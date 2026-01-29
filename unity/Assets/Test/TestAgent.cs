@@ -17,12 +17,12 @@ namespace Test
         private Rigidbody _rigidbody;
         private InputAction _moveAction;
         private float _stayTime;
-        
+
         private float _normalizationFactor;
-        
+
         [SerializeField]
         private float stayTimeThreshold = 5f;
-        
+
         [SerializeField]
         private float stayTrialReward = 5f;
         [SerializeField]
@@ -33,19 +33,19 @@ namespace Test
         private float fallingPenalty = 30f;
         [SerializeField]
         private float distancePenaltyMultiplier = 0.001f;
-        
+
         [SerializeField]
         private float actionMultiplier = 10f;
 
         protected override void Awake()
         {
             base.Awake();
-            
+
             _rigidbody = GetComponent<Rigidbody>();
             _normalizationFactor = testManager.SpawnRange * 2f;
 
             if (!inputActions) return;
-            
+
             var playerMap = inputActions.FindActionMap("Player");
             _moveAction = playerMap?.FindAction("Move");
         }
@@ -60,32 +60,32 @@ namespace Test
             base.OnEnable();
             _moveAction?.Enable();
         }
-        
+
         protected override void OnDisable()
         {
             base.OnDisable();
             _moveAction?.Disable();
         }
-        
+
         private void OnTriggerEnter(Collider other)
         {
             if (other.transform != _target) return;
-            
+
             AddReward(stayTrialReward);
         }
 
         private void OnTriggerStay(Collider other)
         {
             if (other.transform != _target) return;
-            
+
             _stayTime += Time.fixedDeltaTime;
         }
 
         private void OnTriggerExit(Collider other)
         {
             if (other.transform != _target) return;
-            
-            AddReward(-stayFailurePenalty); 
+
+            AddReward(-stayFailurePenalty);
             _stayTime = 0f;
         }
 
@@ -99,7 +99,7 @@ namespace Test
         public override void CollectObservations(VectorSensor sensor)
         {
             var relativePosition = _target.localPosition - transform.localPosition;
-            
+
             sensor.AddObservation(relativePosition / _normalizationFactor);
             sensor.AddObservation(relativePosition.magnitude / _normalizationFactor);
             sensor.AddObservation(_rigidbody.linearVelocity);
@@ -116,7 +116,7 @@ namespace Test
 
             var distanceToTarget = Vector3.Distance(transform.localPosition, _target.localPosition);
             AddReward(-distancePenaltyMultiplier * distanceToTarget / _normalizationFactor);
-        
+
             if (_stayTime >= stayTimeThreshold)
             {
                 SetReward(staySuccessReward);

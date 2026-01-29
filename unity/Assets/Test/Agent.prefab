@@ -212,5 +212,5 @@ MonoBehaviour:
   stayFailurePenalty: 10
   staySuccessReward: 20
   fallingPenalty: 30
-  distancePenaltyMultiplier: 0.001
+  distancePenaltyMultiplier: 0.01
   actionMultiplier: 5
