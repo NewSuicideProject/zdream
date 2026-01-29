@@ -1,0 +1,73 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Test",
+      "type": "shell",
+      "dependsOn": ["Start TensorBoard"],
+      "command": "conda",
+      "args": [
+        "run",
+        "-n",
+        "zdream",
+        "--no-capture-output",
+        "python",
+        "${file}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/python"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Start TensorBoard",
+      "type": "shell",
+      "command": "conda",
+      "args": [
+        "run",
+        "-n",
+        "zdream",
+        "--no-capture-output",
+        "tensorboard",
+        "--logdir=runs",
+        "--bind_all"
+      ],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}/python"
+      },
+      "problemMatcher": [
+        {
+          "pattern": {
+            "regexp": "^$"
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "^.*TensorBoard.*",
+            "endsPattern": "^.*(http://|localhost).*"
+          }
+        }
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    }
+  ]
+}

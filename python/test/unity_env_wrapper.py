@@ -9,9 +9,6 @@ class UnityEnvWrapper(gym.Env):
         self._env = unity_env
         self._env.reset()
 
-        if not self._env.behavior_specs:
-            self._env.step()
-
         self.behavior_name = list(self._env.behavior_specs.keys())[0]
         self.spec = self._env.behavior_specs[self.behavior_name]
 
@@ -37,9 +34,6 @@ class UnityEnvWrapper(gym.Env):
     def reset(self, seed=None, options=None):
         self._env.reset()
         decision_steps, _ = self._env.get_steps(self.behavior_name)
-        if len(decision_steps) == 0:
-            self._env.step()
-            decision_steps, _ = self._env.get_steps(self.behavior_name)
 
         obs = decision_steps.obs[0][0]
         return obs, {}
@@ -56,18 +50,25 @@ class UnityEnvWrapper(gym.Env):
 
         decision_steps, terminal_steps = self._env.get_steps(self.behavior_name)
 
-        done = False
-        reward = 0.0
+        terminated = False
+        truncated = False
 
         if len(terminal_steps) > 0:
-            done = True
-            reward = terminal_steps.reward[0]
             obs = terminal_steps.obs[0][0]
-        else:
-            reward = decision_steps.reward[0]
-            obs = decision_steps.obs[0][0]
+            reward = terminal_steps.reward[0]
 
-        return obs, float(reward), done, False, {}
+            if terminal_steps.interrupted[0]:
+                truncated = True
+                terminated = False
+            else:
+                truncated = False
+                terminated = True
+
+        else:
+            obs = decision_steps.obs[0][0]
+            reward = decision_steps.reward[0]
+
+        return obs, float(reward), terminated, truncated, {}
 
     def close(self):
         self._env.close()
