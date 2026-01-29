@@ -1,17 +1,11 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-
-from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.base_env import ActionTuple
-from stable_baselines3 import SAC
 
 
-class UnityToGymnasiumWrapper(gym.Env):
-    def __init__(
-        self,
-        unity_env,
-    ):
+class UnityEnvWrapper(gym.Env):
+    def __init__(self, unity_env):
         self._env = unity_env
         self._env.reset()
 
@@ -77,22 +71,3 @@ class UnityToGymnasiumWrapper(gym.Env):
 
     def close(self):
         self._env.close()
-
-
-def main():
-    unity_env = UnityEnvironment(file_name=None, base_port=5004)
-
-    env = UnityToGymnasiumWrapper(unity_env)
-
-    model = SAC("MlpPolicy", env, verbose=1)
-
-    print("학습 시작! (터미널에 진행 상황이 표시됩니다)")
-    model.learn(total_timesteps=1000)
-
-    model.save("sac_unity_agent")
-    env.close()
-    print("학습 종료.")
-
-
-if __name__ == "__main__":
-    main()
