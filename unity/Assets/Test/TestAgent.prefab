@@ -197,7 +197,7 @@ MonoBehaviour:
   staySuccessReward: 20
   fallingPenalty: 10
   distancePenaltyMultiplier: 0.01
-  actionMultiplier: 100
+  actionMultiplier: 10
 --- !u!114 &5680371697082156952
 MonoBehaviour:
   m_ObjectHideFlags: 0

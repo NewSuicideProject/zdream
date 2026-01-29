@@ -17,7 +17,7 @@ class TestUnityGymnasium(gym.Env):
         self.spec = self._env.behavior_specs[self.behavior_name]
 
         if self.spec.action_spec.is_continuous():
-            high = np.inf
+            high = 1.0
             self.action_space = spaces.Box(
                 -high,
                 high,
@@ -30,7 +30,7 @@ class TestUnityGymnasium(gym.Env):
             )
 
         obs_shape = self.spec.observation_specs[0].shape
-        high = np.inf
+        high = 1.0
         self.observation_space = spaces.Box(
             -high, high, shape=obs_shape, dtype=np.float32
         )

@@ -4,7 +4,6 @@
     {
       "label": "Start Test",
       "type": "shell",
-      "dependsOn": ["Start TensorBoard"],
       "command": "conda",
       "args": [
         "run",
@@ -12,10 +11,11 @@
         "zdream",
         "--no-capture-output",
         "python",
-        "${file}"
+        "-m",
+        "python.test.test"
       ],
       "options": {
-        "cwd": "${workspaceFolder}/python"
+        "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "group": {
@@ -41,12 +41,11 @@
         "zdream",
         "--no-capture-output",
         "tensorboard",
-        "--logdir=runs",
         "--bind_all"
       ],
       "isBackground": true,
       "options": {
-        "cwd": "${workspaceFolder}/python"
+        "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [
         {

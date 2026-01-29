@@ -34,7 +34,7 @@ namespace Test
         private float distancePenaltyMultiplier = 0.01f;
         
         [SerializeField]
-        private float actionMultiplier = 100f;
+        private float actionMultiplier = 10f;
 
         protected override void Awake()
         {
