@@ -15,10 +15,9 @@ config = {
 
 policy_config = {
     "net_arch": {
-        "pi": [32, 16, 16, 8, 8, 4],  # Actor network
-        "qf": [32, 16, 16, 8, 8, 4],  # Critic network
-    },
-    "activation_fn": nn.ReLU,
+        "pi": [128, 64, 32],  # Actor network
+        "qf": [256, 128, 64],  # Critic network
+    }
 }
 
 print(f"test config: {config}")

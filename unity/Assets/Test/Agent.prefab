@@ -208,8 +208,9 @@ MonoBehaviour:
   testManager: {fileID: 0}
   inputActions: {fileID: -944628639613478452, guid: d1fbcd158d573bc47aa627dedcf8be20, type: 3}
   stayTimeThreshold: 5
-  stayFailurePenalty: 5
+  stayTrialReward: 5
+  stayFailurePenalty: 10
   staySuccessReward: 20
-  fallingPenalty: 10
-  distancePenaltyMultiplier: 0.01
-  actionMultiplier: 10
+  fallingPenalty: 30
+  distancePenaltyMultiplier: 0.001
+  actionMultiplier: 5

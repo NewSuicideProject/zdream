@@ -17,6 +17,9 @@ def main():
 
     env = TestUnityGymnasium()
 
+    print(env.observation_space)
+    print(env.action_space)
+
     checkpoint_callback = CheckpointCallback(
         save_freq=config["save_freq"],
         save_path=str(checkpoint_dir),

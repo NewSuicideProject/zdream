@@ -24,13 +24,15 @@ namespace Test
         private float stayTimeThreshold = 5f;
         
         [SerializeField]
-        private float stayFailurePenalty = 5f;
+        private float stayTrialReward = 5f;
+        [SerializeField]
+        private float stayFailurePenalty = 10f;
         [SerializeField]
         private float staySuccessReward = 20f;
         [SerializeField]
-        private float fallingPenalty = 10f;
+        private float fallingPenalty = 30f;
         [SerializeField]
-        private float distancePenaltyMultiplier = 0.01f;
+        private float distancePenaltyMultiplier = 0.001f;
         
         [SerializeField]
         private float actionMultiplier = 10f;
@@ -64,24 +66,26 @@ namespace Test
             base.OnDisable();
             _moveAction?.Disable();
         }
+        
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.transform != _target) return;
+            
+            AddReward(stayTrialReward);
+        }
 
         private void OnTriggerStay(Collider other)
         {
-            if (other.transform == _target)
-            {
-                _stayTime += Time.fixedDeltaTime;
-            }
+            if (other.transform != _target) return;
+            
+            _stayTime += Time.fixedDeltaTime;
         }
 
         private void OnTriggerExit(Collider other)
         {
             if (other.transform != _target) return;
             
-            if (_stayTime > 0f) 
-            {
-                AddReward(-stayFailurePenalty); 
-            }
-                
+            AddReward(-stayFailurePenalty); 
             _stayTime = 0f;
         }
 
