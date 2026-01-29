@@ -685,7 +685,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c61e5f2744c23164ab4b3c7613628c6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: 15
+  rotationSpeed: 5
 --- !u!4 &637733760 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8681392194698916746, guid: ffa311e883fc8dc4abc06fe8233bdbac, type: 3}

@@ -4,10 +4,12 @@ from pathlib import Path
 from datetime import datetime
 
 from .test_unity_gymnasium import TestUnityGymnasium
+from .env import config
 
 
 def main():
     base_path = Path.cwd()
+
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     save_dir = base_path / "tests" / timestamp
     checkpoint_dir = save_dir / "cps"
@@ -16,12 +18,23 @@ def main():
     env = TestUnityGymnasium()
 
     checkpoint_callback = CheckpointCallback(
-        save_freq=1000, save_path=str(checkpoint_dir), name_prefix="cp"
+        save_freq=config["save_freq"],
+        save_path=str(checkpoint_dir),
+        name_prefix="cp",
     )
 
-    model = SAC("MlpPolicy", env, verbose=1, tensorboard_log=str(log_dir))
+    checkpoint_path = config["checkpoint_path"]
+    if checkpoint_path and Path(checkpoint_path).exists():
+        model = SAC.load(
+            checkpoint_path, env=env, verbose=1, tensorboard_log=str(log_dir)
+        )
+    else:
+        model = SAC("MlpPolicy", env, verbose=1, tensorboard_log=str(log_dir))
+
     model.learn(
-        total_timesteps=10000, callback=checkpoint_callback, log_interval=10
+        total_timesteps=config["total_timesteps"],
+        callback=checkpoint_callback,
+        log_interval=config["log_interval"],
     )
 
     model.save(str(save_dir / "result"))

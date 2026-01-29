@@ -18,6 +18,8 @@ dependencies:
   - gymnasium
   - onnx
 
+  - python-dotenv
+
   - pip:
       - mlagents
       - protobuf<4.0.0
