@@ -10,7 +10,10 @@ from mlagents_envs.base_env import ActionTuple
 
 class TestUnityGymnasium(gym.Env):
     def __init__(self):
+        print("waiting unity")
         self._env = UnityEnvironment(file_name=None, base_port=5004)
+        print("unity connected ")
+
         self._env.reset()
 
         self.behavior_name = list(self._env.behavior_specs.keys())[0]
