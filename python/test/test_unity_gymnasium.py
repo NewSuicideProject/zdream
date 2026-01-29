@@ -1,18 +1,21 @@
+import logging
 import numpy as np
 
 np.bool = bool  # Fix for numpy compatibility issue
 
-from mlagents_envs.environment import UnityEnvironment
 import gymnasium as gym
 from gymnasium import spaces
 from mlagents_envs.base_env import ActionTuple
+from mlagents_envs.environment import UnityEnvironment
+
+logger = logging.getLogger(__name__)
 
 
 class TestUnityGymnasium(gym.Env):
     def __init__(self):
-        print("waiting unity")
+        logger.info("waiting unity")
         self._env = UnityEnvironment(file_name=None, base_port=5004)
-        print("unity connected ")
+        logger.info("unity connected")
 
         self._env.reset()
 

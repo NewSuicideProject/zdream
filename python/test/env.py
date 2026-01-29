@@ -1,7 +1,10 @@
 import os
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
 import torch.nn as nn
+
+logger = logging.getLogger(__name__)
 
 
 load_dotenv(Path.cwd() / ".env.test")
@@ -20,5 +23,5 @@ policy_config = {
     }
 }
 
-print(f"test config: {config}")
-print(f"policy config: {policy_config}")
+logger.info(f"test config: {config}")
+logger.info(f"policy config: {policy_config}")

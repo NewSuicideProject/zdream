@@ -1,3 +1,13 @@
+import logging
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(levelname)s] %(message)s",
+        force=True,
+    )
+    logging.getLogger("mlagents_envs").setLevel(logging.WARNING)
+
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import CheckpointCallback
 from pathlib import Path
@@ -5,6 +15,8 @@ from datetime import datetime
 
 from .test_unity_gymnasium import TestUnityGymnasium
 from .env import config, policy_config
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -17,8 +29,8 @@ def main():
 
     env = TestUnityGymnasium()
 
-    print(env.observation_space)
-    print(env.action_space)
+    logger.info(f"observation space: {env.observation_space}")
+    logger.info(f"action space: {env.action_space}")
 
     checkpoint_callback = CheckpointCallback(
         save_freq=config["save_freq"],
@@ -30,12 +42,12 @@ def main():
 
     checkpoint_path = config["checkpoint_path"]
     if checkpoint_path and Path(checkpoint_path).exists():
-        print(f"valid checkpoint found: {checkpoint_path}")
+        logger.info(f"valid checkpoint found: {checkpoint_path}")
         model = SAC.load(
             checkpoint_path, env=env, verbose=1, tensorboard_log=str(log_dir)
         )
     else:
-        print("no valid checkpoint")
+        logger.info("no valid checkpoint")
         model = SAC(
             "MlpPolicy",
             env,
