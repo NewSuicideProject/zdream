@@ -18,8 +18,8 @@ config = {
 
 policy_config = {
     "net_arch": {
-        "pi": [128, 64, 64],  # Actor network
-        "qf": [128, 64, 64],  # Critic network
+        "pi": [128, 128, 128],  # Actor network
+        "qf": [128, 128, 128],  # Critic network
     }
 }
 

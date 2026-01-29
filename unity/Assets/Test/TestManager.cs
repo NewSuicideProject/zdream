@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Test
 {
@@ -12,7 +13,14 @@ namespace Test
 
         [SerializeField] private float minSpawnDistance = 5f;
 
+        [SerializeField] private float timeScale = 2f;
+
         public float SpawnRange => spawnRange;
+
+        private void Awake()
+        {
+            Time.timeScale = timeScale;
+        }
 
         public void Reset()
         {
