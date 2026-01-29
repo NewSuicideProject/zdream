@@ -198,28 +198,7 @@ MonoBehaviour:
       - rid: 365787294444814364
       - rid: 365787294444814365
     m_RuntimeSettings:
-      m_List:
-      - rid: 8556427327610290176
-      - rid: 8556427327610290180
-      - rid: 365787294444814337
-      - rid: 365787294444814338
-      - rid: 365787294444814340
-      - rid: 365787294444814341
-      - rid: 365787294444814343
-      - rid: 365787294444814344
-      - rid: 365787294444814346
-      - rid: 365787294444814347
-      - rid: 365787294444814348
-      - rid: 365787294444814351
-      - rid: 365787294444814352
-      - rid: 365787294444814355
-      - rid: 365787294444814356
-      - rid: 365787294444814357
-      - rid: 365787294444814358
-      - rid: 365787294444814360
-      - rid: 365787294444814361
-      - rid: 365787294444814363
-      - rid: 365787294444814364
+      m_List: []
   renderingLayerNames:
   - Light Layer default
   - Light Layer 1
@@ -484,7 +463,7 @@ MonoBehaviour:
       type: {class: HDRPDefaultVolumeProfileSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
         m_Version: 0
-        m_VolumeProfile: {fileID: 11400000, guid: 14b392ee213d25a48b1feddbd9f5a9be, type: 2}
+        m_VolumeProfile: {fileID: 11400000, guid: 8ebdcb46d4732324e8b8a9d8016f86f8, type: 2}
     - rid: 365787294444814341
       type: {class: LensSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
@@ -608,7 +587,7 @@ MonoBehaviour:
       type: {class: LookDevVolumeProfileSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
         m_Version: 0
-        m_VolumeProfile: {fileID: 11400000, guid: 4594f4a3fb14247e192bcca6dc23c8ed, type: 2}
+        m_VolumeProfile: {fileID: 11400000, guid: 527800e4601a0504bbb1f167174c4e3f, type: 2}
     - rid: 365787294444814351
       type: {class: WaterSystemGlobalSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:

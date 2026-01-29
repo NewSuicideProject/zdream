@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 
 from .test_unity_gymnasium import TestUnityGymnasium
-from .env import config
+from .env import config, policy_config
 
 
 def main():
@@ -23,13 +23,23 @@ def main():
         name_prefix="cp",
     )
 
+    policy_kwargs = policy_config.copy()
+
     checkpoint_path = config["checkpoint_path"]
     if checkpoint_path and Path(checkpoint_path).exists():
+        print(f"valid checkpoint found: {checkpoint_path}")
         model = SAC.load(
             checkpoint_path, env=env, verbose=1, tensorboard_log=str(log_dir)
         )
     else:
-        model = SAC("MlpPolicy", env, verbose=1, tensorboard_log=str(log_dir))
+        print("no valid checkpoint")
+        model = SAC(
+            "MlpPolicy",
+            env,
+            policy_kwargs=policy_kwargs,
+            verbose=1,
+            tensorboard_log=str(log_dir),
+        )
 
     model.learn(
         total_timesteps=config["total_timesteps"],

@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import torch.nn as nn
 
 
 load_dotenv(Path.cwd() / ".env.test")
@@ -12,4 +13,13 @@ config = {
     "checkpoint_path": os.getenv("CHECKPOINT_PATH"),
 }
 
-print(config)
+policy_config = {
+    "net_arch": {
+        "pi": [32, 16, 16, 8, 8, 4],  # Actor network
+        "qf": [32, 16, 16, 8, 8, 4],  # Critic network
+    },
+    "activation_fn": nn.ReLU,
+}
+
+print(f"test config: {config}")
+print(f"policy config: {policy_config}")

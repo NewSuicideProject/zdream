@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 938443188456541242}
   - component: {fileID: 7735095284926425227}
   - component: {fileID: 6180766952174032734}
-  - component: {fileID: 6270756265903450374}
   - component: {fileID: 5680371697082156952}
+  - component: {fileID: 9002928729781984050}
   m_Layer: 0
   m_Name: Agent
   m_TagString: Untagged
@@ -71,7 +71,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6bf3687b55d2fa34cb263d986bee7a01, type: 2}
+  - {fileID: 2100000, guid: 0b2e4bb07daf6344482cb2c44d472c60, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -174,30 +174,6 @@ MonoBehaviour:
   m_UseChildActuators: 1
   m_DeterministicInference: 0
   m_ObservableAttributeHandling: 0
---- !u!114 &6270756265903450374
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1773494241456120922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17abef68d96253b4da8592f3625e3e68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TestAgent
-  agentParameters:
-    maxStep: 0
-  hasUpgradedFromAgentParameters: 1
-  MaxStep: 3000
-  testManager: {fileID: 0}
-  inputActions: {fileID: -944628639613478452, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
-  stayTimeThreshold: 5
-  stayFailurePenalty: 5
-  staySuccessReward: 20
-  fallingPenalty: 10
-  distancePenaltyMultiplier: 0.01
-  actionMultiplier: 10
 --- !u!114 &5680371697082156952
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -213,3 +189,27 @@ MonoBehaviour:
   DecisionPeriod: 5
   DecisionStep: 0
   TakeActionsBetweenDecisions: 1
+--- !u!114 &9002928729781984050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1773494241456120922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0cd0f47b4ea87b4694ab8ecceab4ecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Test.TestAgent
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 3000
+  testManager: {fileID: 0}
+  inputActions: {fileID: -944628639613478452, guid: d1fbcd158d573bc47aa627dedcf8be20, type: 3}
+  stayTimeThreshold: 5
+  stayFailurePenalty: 5
+  staySuccessReward: 20
+  fallingPenalty: 10
+  distancePenaltyMultiplier: 0.01
+  actionMultiplier: 10
