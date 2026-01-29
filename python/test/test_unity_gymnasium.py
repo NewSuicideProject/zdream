@@ -1,12 +1,16 @@
 import numpy as np
+
+np.bool = bool  # Fix for numpy compatibility issue
+
+from mlagents_envs.environment import UnityEnvironment
 import gymnasium as gym
 from gymnasium import spaces
 from mlagents_envs.base_env import ActionTuple
 
 
-class UnityEnvWrapper(gym.Env):
-    def __init__(self, unity_env):
-        self._env = unity_env
+class TestUnityGymnasium(gym.Env):
+    def __init__(self):
+        self._env = UnityEnvironment(file_name=None, base_port=5004)
         self._env.reset()
 
         self.behavior_name = list(self._env.behavior_specs.keys())[0]
