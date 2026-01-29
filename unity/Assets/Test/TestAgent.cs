@@ -8,41 +8,37 @@ namespace Test
 {
     public class TestAgent : Agent
     {
-        [SerializeField]
-        private TestManager testManager;
-        [SerializeField]
-        private InputActionAsset inputActions;
-        private Transform _target;
+        private const float VelocityNormalizer = 20;
+
+        [SerializeField] private TestManager testManager;
+        [SerializeField] private InputActionAsset inputActions;
+
+        [SerializeField] private float stayTrialReward = 5f;
+        [SerializeField] private float staySuccessReward = 20f;
+        [SerializeField] private float staySuccessThreshold = 5f;
+        [SerializeField] private float stayFailurePenalty = 10f;
+
+        [SerializeField] private float fallingPenalty = 30f;
+
+        [SerializeField] private AnimationCurve distanceRewardCurve;
+        [SerializeField] private float distanceRewardMultiplier = 0.01f;
+
+        [SerializeField] private float actionMultiplier = 10f;
+
+        private InputAction _moveAction;
+
+        private float _positionNormalizer;
 
         private Rigidbody _rigidbody;
-        private InputAction _moveAction;
         private float _stayTime;
-
-        private float _normalizationFactor;
-
-        [SerializeField]
-        private float stayTimeThreshold = 5f;
-
-        [SerializeField]
-        private float stayTrialReward = 5f;
-        [SerializeField]
-        private float stayFailurePenalty = 10f;
-        [SerializeField]
-        private float staySuccessReward = 20f;
-        [SerializeField]
-        private float fallingPenalty = 30f;
-        [SerializeField]
-        private float distancePenaltyMultiplier = 0.001f;
-
-        [SerializeField]
-        private float actionMultiplier = 10f;
+        private Transform _target;
 
         protected override void Awake()
         {
             base.Awake();
 
             _rigidbody = GetComponent<Rigidbody>();
-            _normalizationFactor = testManager.SpawnRange * 2f;
+            _positionNormalizer = testManager.SpawnRange * 2f;
 
             if (!inputActions) return;
 
@@ -74,19 +70,19 @@ namespace Test
             AddReward(stayTrialReward);
         }
 
-        private void OnTriggerStay(Collider other)
-        {
-            if (other.transform != _target) return;
-
-            _stayTime += Time.fixedDeltaTime;
-        }
-
         private void OnTriggerExit(Collider other)
         {
             if (other.transform != _target) return;
 
             AddReward(-stayFailurePenalty);
             _stayTime = 0f;
+        }
+
+        private void OnTriggerStay(Collider other)
+        {
+            if (other.transform != _target) return;
+
+            _stayTime += Time.fixedDeltaTime;
         }
 
         public override void OnEpisodeBegin()
@@ -98,12 +94,8 @@ namespace Test
 
         public override void CollectObservations(VectorSensor sensor)
         {
-            var relativePosition = _target.localPosition - transform.localPosition;
-
-            sensor.AddObservation(relativePosition / _normalizationFactor);
-            sensor.AddObservation(relativePosition.magnitude / _normalizationFactor);
-            sensor.AddObservation(_rigidbody.linearVelocity);
-            sensor.AddObservation(_rigidbody.angularVelocity);
+            sensor.AddObservation((_target.localPosition - transform.localPosition) / _positionNormalizer);
+            sensor.AddObservation(_rigidbody.linearVelocity / VelocityNormalizer);
         }
 
         public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -115,9 +107,9 @@ namespace Test
             _rigidbody.AddForce(controlSignal * actionMultiplier);
 
             var distanceToTarget = Vector3.Distance(transform.localPosition, _target.localPosition);
-            AddReward(-distancePenaltyMultiplier * distanceToTarget / _normalizationFactor);
+            AddReward(distanceRewardCurve.Evaluate(distanceToTarget / _positionNormalizer) * distanceRewardMultiplier);
 
-            if (_stayTime >= stayTimeThreshold)
+            if (_stayTime >= staySuccessThreshold)
             {
                 SetReward(staySuccessReward);
                 EndEpisode();
@@ -134,10 +126,7 @@ namespace Test
             var continuousActionsOut = actionsOut.ContinuousActions;
             var moveInput = Vector2.zero;
 
-            if (_moveAction != null)
-            {
-                moveInput = _moveAction.ReadValue<Vector2>();
-            }
+            if (_moveAction != null) moveInput = _moveAction.ReadValue<Vector2>();
 
             continuousActionsOut[0] = moveInput.x;
             continuousActionsOut[1] = moveInput.y;

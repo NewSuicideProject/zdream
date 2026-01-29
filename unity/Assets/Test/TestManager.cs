@@ -4,25 +4,21 @@ namespace Test
 {
     public class TestManager : MonoBehaviour
     {
-        [SerializeField]
-        private Transform agentTransform;
-        [SerializeField]
-        private Rigidbody agentRigidbody;
+        [SerializeField] private Transform agentTransform;
+        [SerializeField] private Rigidbody agentRigidbody;
         public Transform targetTransform;
 
-        [SerializeField]
-        private float spawnRange = 20f;
-        
-        [SerializeField]
-        private float minSpawnDistance = 5f;
-        
+        [SerializeField] private float spawnRange = 20f;
+
+        [SerializeField] private float minSpawnDistance = 5f;
+
         public float SpawnRange => spawnRange;
 
         public void Reset()
         {
             var agentScale = agentTransform.localScale;
             var targetScale = targetTransform.localScale;
-            
+
             var agentRadius = Mathf.Max(agentScale.x, agentScale.z) * 0.5f;
             var targetRadius = Mathf.Max(targetScale.x, targetScale.z) * 0.5f;
 
@@ -57,7 +53,6 @@ namespace Test
                 var agentRandomX = Random.Range(-agentSafeRange, agentSafeRange);
                 var agentRandomZ = Random.Range(-agentSafeRange, agentSafeRange);
                 agentPos = new Vector3(agentRandomX, agentTransform.localScale.y / 2f, agentRandomZ);
-
             } while (Vector3.Distance(targetPos, agentPos) < minSpawnDistance);
 
             targetTransform.localPosition = targetPos;

@@ -156,8 +156,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Policies.BehaviorParameters
   m_BrainParameters:
-    VectorObservationSize: 10
-    NumStackedVectorObservations: 3
+    VectorObservationSize: 4
+    NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 2
       BranchSizes: 
@@ -207,10 +207,34 @@ MonoBehaviour:
   MaxStep: 3000
   testManager: {fileID: 0}
   inputActions: {fileID: -944628639613478452, guid: d1fbcd158d573bc47aa627dedcf8be20, type: 3}
-  stayTimeThreshold: 5
   stayTrialReward: 5
-  stayFailurePenalty: 10
   staySuccessReward: 20
+  staySuccessThreshold: 5
+  stayFailurePenalty: 10
   fallingPenalty: 30
-  distancePenaltyMultiplier: 0.01
-  actionMultiplier: 5
+  distanceRewardCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: -0.13514662
+      outSlope: -0.13514662
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.55583525
+    - serializedVersion: 3
+      time: 1
+      value: -1
+      inSlope: -5.7099547
+      outSlope: -5.7099547
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.05078304
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  distanceRewardMultiplier: 0.01
+  actionMultiplier: 10
