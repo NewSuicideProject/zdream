@@ -31,9 +31,9 @@ def run():
     base_port = config.get("base_port", 5004)
 
     if config.get("parallel", False):
-        env = UnityEnv(base_port=base_port)
-    else:
         env = UnityParallelEnv(base_port=base_port)
+    else:
+        env = UnityEnv(base_port=base_port)
 
     checkpoint_callback = CheckpointCallback(
         save_freq=config.get("save_freq", 1_000),
