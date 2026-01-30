@@ -4,14 +4,14 @@ import numpy as np
 np.bool = bool  # Fix for numpy compatibility issue
 
 from gymnasium import spaces
-from gymnasium.vector import VectorEnv
+from stable_baselines3.common.vec_env import VecEnv
 from mlagents_envs.base_env import ActionTuple
 from mlagents_envs.environment import UnityEnvironment
 
 logger = logging.getLogger(__name__)
 
 
-class UnityParallelEnv(VectorEnv):
+class UnityParallelEnv(VecEnv):
     def __init__(self, base_port=5004):
         logger.info("waiting unity")
         self._env = UnityEnvironment(file_name=None, base_port=base_port)
@@ -27,7 +27,7 @@ class UnityParallelEnv(VectorEnv):
 
         self.num_envs = available_agents
 
-        single_action_space = spaces.Box(
+        action_space = spaces.Box(
             -1,
             1,
             shape=(self.spec.action_spec.continuous_size,),
@@ -35,14 +35,12 @@ class UnityParallelEnv(VectorEnv):
         )
 
         obs_shape = self.spec.observation_specs[0].shape
-        single_observation_space = spaces.Box(
-            -1, 1, shape=obs_shape, dtype=np.float32
-        )
+        observation_space = spaces.Box(-1, 1, shape=obs_shape, dtype=np.float32)
 
         super().__init__(
             num_envs=self.num_envs,
-            observation_space=single_observation_space,
-            action_space=single_action_space,
+            observation_space=observation_space,
+            action_space=action_space,
         )
 
         self.agent_ids = []
@@ -69,7 +67,6 @@ class UnityParallelEnv(VectorEnv):
         decision_steps, _ = self._env.get_steps(self.behavior_name)
 
         observations = []
-        infos = [{} for _ in range(self.num_envs)]
 
         for i in range(self.num_envs):
             if i < len(decision_steps):
@@ -77,23 +74,31 @@ class UnityParallelEnv(VectorEnv):
                 observations.append(obs)
             else:
                 observations.append(
-                    np.zeros(
-                        self.single_observation_space.shape, dtype=np.float32
-                    )
+                    np.zeros(self.observation_space.shape, dtype=np.float32)
                 )
 
-        return np.array(observations, dtype=np.float32), infos
+        return np.array(observations, dtype=np.float32)
 
     def reset(self, seed=None, options=None):
         self.reset_async(seed, options)
         return self.reset_wait(seed, options)
 
     def step_async(self, actions):
-        action_tuple = ActionTuple()
+        decision_steps, _ = self._env.get_steps(self.behavior_name)
 
-        action_tuple.add_continuous(np.array(actions, dtype=np.float32))
+        if len(decision_steps) > 0:
+            agent_actions = []
+            for i, agent_id in enumerate(self.agent_ids):
+                if i < len(actions) and agent_id in decision_steps:
+                    agent_actions.append(actions[i])
 
-        self._env.set_actions(self.behavior_name, action_tuple)
+            if len(agent_actions) > 0:
+                action_tuple = ActionTuple()
+                action_tuple.add_continuous(
+                    np.array(agent_actions, dtype=np.float32)
+                )
+                self._env.set_actions(self.behavior_name, action_tuple)
+
         self._env.step()
 
     def step_wait(self):
@@ -133,7 +138,7 @@ class UnityParallelEnv(VectorEnv):
                     reward = decision_steps.reward[i]
                 else:
                     obs = np.zeros(
-                        self.single_observation_space.shape, dtype=np.float32
+                        self.observation_space.shape, dtype=np.float32
                     )
                     reward = 0.0
                 terminated = False
@@ -147,11 +152,12 @@ class UnityParallelEnv(VectorEnv):
 
         self._update_agent_ids()
 
+        dones = np.logical_or(terminateds, truncateds)
+
         return (
             np.array(observations, dtype=np.float32),
             np.array(rewards, dtype=np.float32),
-            np.array(terminateds, dtype=bool),
-            np.array(truncateds, dtype=bool),
+            np.array(dones, dtype=bool),
             infos,
         )
 
@@ -165,3 +171,29 @@ class UnityParallelEnv(VectorEnv):
 
     def close_extras(self, **kwargs):
         pass
+
+    def seed(self, seed=None):
+        return [None for _ in range(self.num_envs)]
+
+    def render(self, mode="human"):
+        return None
+
+    def env_is_wrapped(self, wrapper_class, indices=None):
+        if indices is None:
+            indices = range(self.num_envs)
+        return [False for _ in indices]
+
+    def get_attr(self, attr_name, indices=None):
+        if indices is None:
+            indices = range(self.num_envs)
+        return [None for _ in indices]
+
+    def set_attr(self, attr_name, value, indices=None):
+        pass
+
+    def env_method(
+        self, method_name, *method_args, indices=None, **method_kwargs
+    ):
+        if indices is None:
+            indices = range(self.num_envs)
+        return [None for _ in indices]
