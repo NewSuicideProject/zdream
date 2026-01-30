@@ -247,7 +247,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Test.Scripts.CameraManager
   inputActions: {fileID: -944628639613478452, guid: d1fbcd158d573bc47aa627dedcf8be20, type: 3}
   moveSpeed: 10
-  fastMoveMultiplier: 2
+  fastMoveMultiplier: 5
   lookSensitivity: 0.1
   minVerticalAngle: -80
   maxVerticalAngle: 80

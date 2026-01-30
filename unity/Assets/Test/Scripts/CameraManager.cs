@@ -8,7 +8,7 @@ namespace Test.Scripts
         [SerializeField] private InputActionAsset inputActions;
 
         [SerializeField] private float moveSpeed = 10f;
-        [SerializeField] private float fastMoveMultiplier = 2f;
+        [SerializeField] private float fastMoveMultiplier = 5f;
         [SerializeField] private float lookSensitivity = 0.1f;
         [SerializeField] private float minVerticalAngle = -80f;
         [SerializeField] private float maxVerticalAngle = 80f;
@@ -25,7 +25,7 @@ namespace Test.Scripts
         {
             if (!inputActions) return;
 
-            var cameraMap = inputActions.FindActionMap("Player");
+            var cameraMap = inputActions.FindActionMap("Camera");
 
             _moveAction = cameraMap?.FindAction("Move");
             _lookAction = cameraMap?.FindAction("Look");
