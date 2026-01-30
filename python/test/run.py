@@ -13,7 +13,8 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from pathlib import Path
 from datetime import datetime
 
-from .unity_env import UnityEnv
+from .envs.unity_env import UnityEnv
+from .envs.unity_parallel_env import UnityParallelEnv
 from .env import config, policy_config
 
 logger = logging.getLogger(__name__)
@@ -29,10 +30,10 @@ def run():
 
     base_port = config.get("base_port", 5004)
 
-    env = UnityEnv(base_port=base_port)
-
-    logger.info(f"observation space: {env.observation_space}")
-    logger.info(f"action space: {env.action_space}")
+    if config.get("parallel", False):
+        env = UnityEnv(base_port=base_port)
+    else:
+        env = UnityParallelEnv(base_port=base_port)
 
     checkpoint_callback = CheckpointCallback(
         save_freq=config.get("save_freq", 1_000),

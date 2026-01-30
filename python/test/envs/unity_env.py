@@ -34,6 +34,9 @@ class UnityEnv(gym.Env):
             -1, 1, shape=obs_shape, dtype=np.float32
         )
 
+        logger.info(f"observation space: {self.observation_space}")
+        logger.info(f"action space: {self.action_space}")
+
     def reset(self, seed=None, options=None):
         self._env.reset()
         decision_steps, _ = self._env.get_steps(self.behavior_name)

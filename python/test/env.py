@@ -14,6 +14,7 @@ config = {
     "total_timesteps": int(os.getenv("TOTAL_TIMESTEPS", "1_000_000")),
     "checkpoint_path": os.getenv("CHECKPOINT_PATH", None),
     "base_port": int(os.getenv("BASE_PORT", "5004")),
+    "parallel": os.getenv("PARALLEL", "False").lower() == "true",
 }
 
 policy_config = {

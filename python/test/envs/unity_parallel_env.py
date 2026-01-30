@@ -11,7 +11,7 @@ from mlagents_envs.environment import UnityEnvironment
 logger = logging.getLogger(__name__)
 
 
-class UnityEnv(VectorEnv):
+class UnityParallelEnv(VectorEnv):
     def __init__(self, base_port=5004):
         logger.info("waiting unity")
         self._env = UnityEnvironment(file_name=None, base_port=base_port)
@@ -26,7 +26,6 @@ class UnityEnv(VectorEnv):
         available_agents = len(decision_steps)
 
         self.num_envs = available_agents
-        logger.info(f"num_envs: {self.num_envs}")
 
         single_action_space = spaces.Box(
             -1,
@@ -48,6 +47,10 @@ class UnityEnv(VectorEnv):
 
         self.agent_ids = []
         self._update_agent_ids()
+
+        logger.info(f"observation space: {self.observation_space}")
+        logger.info(f"action space: {self.action_space}")
+        logger.info(f"num_envs: {self.num_envs}")
 
     def _update_agent_ids(self):
         decision_steps, terminal_steps = self._env.get_steps(self.behavior_name)
@@ -105,7 +108,6 @@ class UnityEnv(VectorEnv):
         for i in range(self.num_envs):
             agent_id = self.agent_ids[i] if i < len(self.agent_ids) else -1
 
-            # 종료된 에이전트 확인
             if agent_id in terminal_steps:
                 idx = list(terminal_steps.agent_id).index(agent_id)
                 obs = terminal_steps.obs[0][idx]
@@ -118,7 +120,6 @@ class UnityEnv(VectorEnv):
                     truncated = False
                     terminated = True
 
-            # 진행 중인 에이전트
             elif agent_id in decision_steps:
                 idx = list(decision_steps.agent_id).index(agent_id)
                 obs = decision_steps.obs[0][idx]
@@ -126,7 +127,6 @@ class UnityEnv(VectorEnv):
                 terminated = False
                 truncated = False
 
-            # 에이전트를 찾을 수 없는 경우 (새로운 에이전트로 대체)
             else:
                 if len(decision_steps) > i:
                     obs = decision_steps.obs[0][i]
@@ -145,7 +145,6 @@ class UnityEnv(VectorEnv):
             truncateds.append(truncated)
             infos.append({})
 
-        # 에이전트 ID 업데이트
         self._update_agent_ids()
 
         return (
