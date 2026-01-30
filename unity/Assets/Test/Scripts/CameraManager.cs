@@ -5,24 +5,18 @@ namespace Test.Scripts
 {
     public class CameraManager : MonoBehaviour
     {
-        [Header("Input")] [SerializeField] private InputActionAsset inputActions;
+        [SerializeField] private InputActionAsset inputActions;
 
-        [Header("Movement Settings")] [SerializeField]
-        private float moveSpeed = 10f;
-
+        [SerializeField] private float moveSpeed = 10f;
         [SerializeField] private float fastMoveMultiplier = 2f;
-
-        [Header("Rotation Settings")] [SerializeField]
-        private float lookSensitivity = 2f;
-
+        [SerializeField] private float lookSensitivity = 0.1f;
         [SerializeField] private float minVerticalAngle = -80f;
         [SerializeField] private float maxVerticalAngle = 80f;
+
         private InputAction _downAction;
         private InputAction _fastMoveAction;
         private InputAction _lookAction;
-
         private InputAction _moveAction;
-
         private float _rotationX;
         private float _rotationY;
         private InputAction _upAction;
