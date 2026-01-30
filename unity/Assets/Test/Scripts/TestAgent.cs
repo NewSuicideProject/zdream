@@ -4,13 +4,12 @@ using Unity.MLAgents.Sensors;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Test
+namespace Test.Scripts
 {
     public class TestAgent : Agent
     {
         private const float VelocityNormalizer = 20;
 
-        [SerializeField] private TestManager testManager;
         [SerializeField] private InputActionAsset inputActions;
 
         [SerializeField] private float stayTrialReward = 5f;
@@ -24,21 +23,23 @@ namespace Test
         [SerializeField] private float distanceRewardMultiplier = 0.01f;
 
         [SerializeField] private float actionMultiplier = 10f;
-
         private InputAction _moveAction;
 
         private float _positionNormalizer;
 
         private Rigidbody _rigidbody;
         private float _stayTime;
-        private Transform _target;
+        private Transform _targetTransform;
+
+        private TestEnvironment _testEnvironment;
 
         protected override void Awake()
         {
             base.Awake();
 
             _rigidbody = GetComponent<Rigidbody>();
-            _positionNormalizer = testManager.SpawnRange * 2f;
+            _testEnvironment = GetComponentInParent<TestEnvironment>();
+            _positionNormalizer = _testEnvironment.SpawnRange * 2f;
 
             if (!inputActions) return;
 
@@ -48,7 +49,7 @@ namespace Test
 
         private void Start()
         {
-            _target = testManager.targetTransform;
+            _targetTransform = _testEnvironment.TargetTransform;
         }
 
         protected override void OnEnable()
@@ -65,14 +66,14 @@ namespace Test
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.transform != _target) return;
+            if (other.transform != _targetTransform) return;
 
             AddReward(stayTrialReward);
         }
 
         private void OnTriggerExit(Collider other)
         {
-            if (other.transform != _target) return;
+            if (other.transform != _targetTransform) return;
 
             AddReward(-stayFailurePenalty);
             _stayTime = 0f;
@@ -80,7 +81,7 @@ namespace Test
 
         private void OnTriggerStay(Collider other)
         {
-            if (other.transform != _target) return;
+            if (other.transform != _targetTransform) return;
 
             _stayTime += Time.fixedDeltaTime;
         }
@@ -88,13 +89,12 @@ namespace Test
         public override void OnEpisodeBegin()
         {
             _stayTime = 0f;
-
-            testManager.Reset();
+            _testEnvironment.Reset();
         }
 
         public override void CollectObservations(VectorSensor sensor)
         {
-            sensor.AddObservation((_target.localPosition - transform.localPosition) / _positionNormalizer);
+            sensor.AddObservation((_targetTransform.localPosition - transform.localPosition) / _positionNormalizer);
             sensor.AddObservation(_rigidbody.linearVelocity / VelocityNormalizer);
         }
 
@@ -106,7 +106,7 @@ namespace Test
 
             _rigidbody.AddForce(controlSignal * actionMultiplier);
 
-            var distanceToTarget = Vector3.Distance(transform.localPosition, _target.localPosition);
+            var distanceToTarget = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
             AddReward(distanceRewardCurve.Evaluate(distanceToTarget / _positionNormalizer) * distanceRewardMultiplier);
 
             if (_stayTime >= staySuccessThreshold)

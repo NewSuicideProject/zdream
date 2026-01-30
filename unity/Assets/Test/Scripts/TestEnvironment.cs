@@ -3,23 +3,35 @@ using Random = UnityEngine.Random;
 
 namespace Test.Scripts
 {
-    public class TestEnvironemnt : MonoBehaviour
+    public class TestEnvironment : MonoBehaviour
     {
-        
-        public Transform targetTransform;
-
         [SerializeField] private float spawnRange = 20f;
 
         [SerializeField] private float minSpawnDistance = 5f;
-        
-        private TestAgent _agent;
+
+        [SerializeField] private GameObject testAgentPrefab;
+        [SerializeField] public GameObject testTargetPrefab;
+
+        private Rigidbody _agentRigidbody;
+        private Transform _agentTransform;
 
         public float SpawnRange => spawnRange;
+        public Transform TargetTransform { get; private set; }
+
+        private void Awake()
+        {
+            var agentInstance = Instantiate(testAgentPrefab, Vector3.zero, Quaternion.identity, transform);
+            _agentTransform = agentInstance.transform;
+            _agentRigidbody = agentInstance.GetComponent<Rigidbody>();
+
+            var targetInstance = Instantiate(testTargetPrefab, Vector3.zero, Quaternion.identity, transform);
+            TargetTransform = targetInstance.transform;
+        }
 
         public void Reset()
         {
-            var agentScale = agentTransform.localScale;
-            var targetScale = targetTransform.localScale;
+            var agentScale = _agentTransform.localScale;
+            var targetScale = TargetTransform.localScale;
 
             var agentRadius = Mathf.Max(agentScale.x, agentScale.z) * 0.5f;
             var targetRadius = Mathf.Max(targetScale.x, targetScale.z) * 0.5f;
@@ -54,14 +66,14 @@ namespace Test.Scripts
 
                 var agentRandomX = Random.Range(-agentSafeRange, agentSafeRange);
                 var agentRandomZ = Random.Range(-agentSafeRange, agentSafeRange);
-                agentPos = new Vector3(agentRandomX, agentTransform.localScale.y / 2f, agentRandomZ);
+                agentPos = new Vector3(agentRandomX, _agentTransform.localScale.y / 2f, agentRandomZ);
             } while (Vector3.Distance(targetPos, agentPos) < minSpawnDistance);
 
-            targetTransform.localPosition = targetPos;
-            agentTransform.localPosition = agentPos;
+            TargetTransform.localPosition = targetPos;
+            _agentTransform.localPosition = agentPos;
 
-            agentRigidbody.angularVelocity = Vector3.zero;
-            agentRigidbody.linearVelocity = Vector3.zero;
+            _agentRigidbody.angularVelocity = Vector3.zero;
+            _agentRigidbody.linearVelocity = Vector3.zero;
         }
     }
 }

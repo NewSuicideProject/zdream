@@ -1,16 +1,8 @@
 using UnityEngine;
 
-public class ParallelTestManager : MonoBehaviour
+namespace Test.Scripts
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class ParallelTestManager : MonoBehaviour
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

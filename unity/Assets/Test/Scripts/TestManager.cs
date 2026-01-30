@@ -1,16 +1,16 @@
 using UnityEngine;
 
-public class ParallelTestManager : MonoBehaviour
+namespace Test.Scripts
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class TestManager : MonoBehaviour
     {
-        
-    }
+        [SerializeField] private TestEnvironment testEnvironmentPrefab;
+        [SerializeField] private float timeScale = 2f;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        private void Awake()
+        {
+            Time.timeScale = timeScale;
+            Instantiate(testEnvironmentPrefab, Vector3.zero, Quaternion.identity);
+        }
     }
 }
