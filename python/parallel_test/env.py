@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 logger = logging.getLogger(__name__)
 
 
-load_dotenv(Path.cwd() / ".env.test")
+load_dotenv(Path.cwd() / ".env.parallel_test")
 
 config = {
     "save_freq": int(os.getenv("SAVE_FREQ", "1_000")),
@@ -23,5 +23,5 @@ policy_config = {
     }
 }
 
-logger.info(f"test config: {config}")
+logger.info(f"parallel test config: {config}")
 logger.info(f"policy config: {policy_config}")

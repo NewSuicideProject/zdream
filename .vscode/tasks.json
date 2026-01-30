@@ -12,7 +12,7 @@
         "--no-capture-output",
         "python",
         "-m",
-        "python.test.test"
+        "python.test.run"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -21,6 +21,36 @@
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Start Parallel Test",
+      "type": "shell",
+      "command": "conda",
+      "args": [
+        "run",
+        "-n",
+        "zdream",
+        "--no-capture-output",
+        "python",
+        "-m",
+        "python.parallel_test.run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
       },
       "presentation": {
         "echo": true,

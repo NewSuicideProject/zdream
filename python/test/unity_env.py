@@ -11,10 +11,10 @@ from mlagents_envs.environment import UnityEnvironment
 logger = logging.getLogger(__name__)
 
 
-class TestUnityGymnasium(gym.Env):
-    def __init__(self):
+class UnityEnv(gym.Env):
+    def __init__(self, base_port=5004):
         logger.info("waiting unity")
-        self._env = UnityEnvironment(file_name=None, base_port=5004)
+        self._env = UnityEnvironment(file_name=None, base_port=base_port)
         logger.info("unity connected")
 
         self._env.reset()
@@ -22,23 +22,16 @@ class TestUnityGymnasium(gym.Env):
         self.behavior_name = list(self._env.behavior_specs.keys())[0]
         self.spec = self._env.behavior_specs[self.behavior_name]
 
-        if self.spec.action_spec.is_continuous():
-            high = 1.0
-            self.action_space = spaces.Box(
-                -high,
-                high,
-                shape=(self.spec.action_spec.continuous_size,),
-                dtype=np.float32,
-            )
-        else:
-            self.action_space = spaces.Discrete(
-                self.spec.action_spec.discrete_branches[0]
-            )
+        self.action_space = spaces.Box(
+            -1,
+            1,
+            shape=(self.spec.action_spec.continuous_size,),
+            dtype=np.float32,
+        )
 
         obs_shape = self.spec.observation_specs[0].shape
-        high = 1.0
         self.observation_space = spaces.Box(
-            -high, high, shape=obs_shape, dtype=np.float32
+            -1, 1, shape=obs_shape, dtype=np.float32
         )
 
     def reset(self, seed=None, options=None):
@@ -50,10 +43,7 @@ class TestUnityGymnasium(gym.Env):
 
     def step(self, action):
         action_tuple = ActionTuple()
-        if self.spec.action_spec.is_continuous():
-            action_tuple.add_continuous(np.array([action]))
-        else:
-            action_tuple.add_discrete(np.array([[action]]))
+        action_tuple.add_continuous(np.array([action]))
 
         self._env.set_actions(self.behavior_name, action_tuple)
         self._env.step()
