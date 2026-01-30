@@ -10,9 +10,13 @@ namespace Test.Scripts
         [SerializeField] private int gridHeight = 3;
         [SerializeField] private float gridOffset = 75f;
 
+        private Transform _containerTransform;
+
         private void Awake()
         {
             Time.timeScale = timeScale;
+
+            _containerTransform = new GameObject("EnvironmentContainer").transform;
 
             var startX = -(gridWidth - 1) * gridOffset / 2f;
             var startZ = -(gridHeight - 1) * gridOffset / 2f;
@@ -26,7 +30,7 @@ namespace Test.Scripts
                     startZ + z * gridOffset
                 );
 
-                Instantiate(testEnvironmentPrefab, position, Quaternion.identity);
+                Instantiate(testEnvironmentPrefab, position, Quaternion.identity, _containerTransform);
             }
         }
     }
