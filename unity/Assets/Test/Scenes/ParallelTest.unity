@@ -453,7 +453,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Test.Scripts.ParallelTestManager
   testEnvironmentPrefab: {fileID: 4634089905413009483, guid: d85e26795611a1c4aaa86b72ea420386, type: 3}
-  timeScale: 2
+  timeScale: 1
   gridWidth: 5
   gridHeight: 5
   gridOffset: 75
