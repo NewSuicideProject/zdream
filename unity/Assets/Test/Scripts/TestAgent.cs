@@ -1,3 +1,4 @@
+using System;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -8,30 +9,29 @@ namespace Test.Scripts
 {
     public class TestAgent : Agent
     {
-        private const float VelocityNormalizer = 20;
-
         [SerializeField] private InputActionAsset inputActions;
-
-        [SerializeField] private float stayTrialReward = 5f;
-        [SerializeField] private float staySuccessReward = 20f;
-        [SerializeField] private float staySuccessThreshold = 5f;
-        [SerializeField] private float stayFailurePenalty = 10f;
-
-        [SerializeField] private float fallingPenalty = 30f;
-
-        [SerializeField] private AnimationCurve distanceRewardCurve;
-        [SerializeField] private float distanceRewardMultiplier = 0.01f;
-
-        [SerializeField] private float actionMultiplier = 10f;
         private InputAction _moveAction;
 
-        private float _positionNormalizer;
+        [SerializeField] private float expectedMaxSpeed = 20;
+        [SerializeField] private float expectedMaxDistance = 20;
+        private float _distanceNormalizationFactor;
+        private float _speedNormalizationFactor;
 
-        private Rigidbody _rigidbody;
+        [SerializeField] private float staySuccessReward = 20f;
+        [SerializeField] private float stayingReward = 10f;
+        [SerializeField] private float staySuccessThreshold = 5f;
         private float _stayTime;
-        private Transform _targetTransform;
+
+        [SerializeField] private float fallingPenalty = 50f;
+
+        [SerializeField] private AnimationCurve distanceRewardCurve;
+        [SerializeField] private float distanceRewardMultiplier = 0.025f;
+
+        [SerializeField] private float actionMultiplier = 10f;
 
         private TestEnvironment _testEnvironment;
+        private Transform _targetTransform;
+        private Rigidbody _rigidbody;
 
         protected override void Awake()
         {
@@ -39,7 +39,9 @@ namespace Test.Scripts
 
             _rigidbody = GetComponent<Rigidbody>();
             _testEnvironment = GetComponentInParent<TestEnvironment>();
-            _positionNormalizer = _testEnvironment.SpawnRange * 2f;
+
+            _distanceNormalizationFactor = 1f / expectedMaxDistance;
+            _speedNormalizationFactor = 1f / expectedMaxSpeed;
 
             if (!inputActions) return;
 
@@ -64,18 +66,11 @@ namespace Test.Scripts
             _moveAction?.Disable();
         }
 
-        private void OnTriggerEnter(Collider other)
-        {
-            if (other.transform != _targetTransform) return;
-
-            AddReward(stayTrialReward);
-        }
 
         private void OnTriggerExit(Collider other)
         {
             if (other.transform != _targetTransform) return;
 
-            AddReward(-stayFailurePenalty);
             _stayTime = 0f;
         }
 
@@ -83,7 +78,34 @@ namespace Test.Scripts
         {
             if (other.transform != _targetTransform) return;
 
+            AddReward(stayingReward * Time.fixedDeltaTime);
             _stayTime += Time.fixedDeltaTime;
+        }
+
+        private float NormalizeDistance(float distance)
+        {
+            return (float)Math.Tanh(distance * _distanceNormalizationFactor);
+        }
+
+        private float NormalizeSpeed(float speed)
+        {
+            return (float)Math.Tanh(speed * _speedNormalizationFactor);
+        }
+
+        private Vector3 NormalizeCoordinate(Vector3 coordinate)
+        {
+            return new Vector3(
+                NormalizeDistance(coordinate.x),
+                NormalizeDistance(coordinate.y),
+                NormalizeDistance(coordinate.z));
+        }
+
+        private Vector3 NormalizeVelocity(Vector3 velocity)
+        {
+            return new Vector3(
+                NormalizeSpeed(velocity.x),
+                NormalizeSpeed(velocity.y),
+                NormalizeSpeed(velocity.z));
         }
 
         public override void OnEpisodeBegin()
@@ -94,8 +116,8 @@ namespace Test.Scripts
 
         public override void CollectObservations(VectorSensor sensor)
         {
-            sensor.AddObservation((_targetTransform.localPosition - transform.localPosition) / _positionNormalizer);
-            sensor.AddObservation(_rigidbody.linearVelocity / VelocityNormalizer);
+            sensor.AddObservation(NormalizeCoordinate(_targetTransform.localPosition - transform.localPosition));
+            sensor.AddObservation(NormalizeVelocity(_rigidbody.linearVelocity));
         }
 
         public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -107,7 +129,7 @@ namespace Test.Scripts
             _rigidbody.AddForce(controlSignal * actionMultiplier);
 
             var distanceToTarget = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
-            AddReward(distanceRewardCurve.Evaluate(distanceToTarget / _positionNormalizer) * distanceRewardMultiplier);
+            AddReward(distanceRewardCurve.Evaluate(NormalizeDistance(distanceToTarget)) * distanceRewardMultiplier);
 
             if (_stayTime >= staySuccessThreshold)
             {
