@@ -5,10 +5,11 @@ from pathlib import Path
 
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import CheckpointCallback
-from stable_baselines3.common.vec_env import SubprocVecEnv
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 
 from .env import BASE_PORT, config, policy_config
-from .envs.unity_env import UnityEnv
+from .unity_env import UnityEnv
 
 logger = logging.getLogger(__name__)
 
@@ -63,12 +64,14 @@ def run():
                 partial(make_unity_env, str(server_file_path), BASE_PORT, i)
             )
         env = SubprocVecEnv(env_fns)
+        env = VecMonitor(env)
     else:
         exe_to_use = file_path if file_path else server_file_path
         env = UnityEnv(
             file_name=str(exe_to_use) if exe_to_use else None,
             base_port=BASE_PORT,
         )
+        env = Monitor(env)
 
     checkpoint_callback = CheckpointCallback(
         save_freq=config.get("save_freq", 1_000),
