@@ -1,12 +1,10 @@
 import logging
+
 import numpy as np
-
-np.bool = bool  # Fix for numpy compatibility issue
-
 from gymnasium import spaces
-from stable_baselines3.common.vec_env import VecEnv
 from mlagents_envs.base_env import ActionTuple
 from mlagents_envs.environment import UnityEnvironment
+from stable_baselines3.common.vec_env import VecEnv
 
 logger = logging.getLogger(__name__)
 

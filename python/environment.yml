@@ -8,18 +8,23 @@ dependencies:
   - python=3.10
   - pip
 
+  - black
+  - ruff
+
   - pytorch
   - pytorch-cuda=12.1
   - torchvision
   - torchaudio
   - tensorboard
 
-  - stable-baselines3
+  - numpy=1.23.5
+
   - gymnasium
   - onnx
 
   - python-dotenv
 
   - pip:
+      - stable-baselines3[extra]
       - mlagents
       - protobuf<4.0.0

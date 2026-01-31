@@ -8,14 +8,15 @@ if __name__ == "__main__":
     )
     logging.getLogger("mlagents_envs").setLevel(logging.WARNING)
 
+from datetime import datetime
+from pathlib import Path
+
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import CheckpointCallback
-from pathlib import Path
-from datetime import datetime
 
+from .env import config, policy_config
 from .envs.unity_env import UnityEnv
 from .envs.unity_parallel_env import UnityParallelEnv
-from .env import config, policy_config
 
 logger = logging.getLogger(__name__)
 

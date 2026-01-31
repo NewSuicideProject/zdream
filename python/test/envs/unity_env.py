@@ -1,9 +1,7 @@
 import logging
-import numpy as np
-
-np.bool = bool  # Fix for numpy compatibility issue
 
 import gymnasium as gym
+import numpy as np
 from gymnasium import spaces
 from mlagents_envs.base_env import ActionTuple
 from mlagents_envs.environment import UnityEnvironment

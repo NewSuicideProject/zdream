@@ -1,0 +1,34 @@
+[tool.black]
+line-length = 80
+target-version = ['py310']
+include = '\.pyi?$'
+skip-string-normalization = false
+
+[tool.ruff]
+line-length = 80
+indent-width = 4
+target-version = "py310"
+exclude = [
+    ".bzr", ".direnv", ".eggs", ".git", ".hg", ".mypy_cache", ".nox",
+    ".pants.d", ".pytype", ".ruff_cache", ".svn", ".tox", ".venv",
+    "__pypackages__", "_build", "buck-out", "build", "dist",
+    "node_modules", "venv",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+force-single-line = false
+lines-after-imports = -1
+known-first-party = ["MyProjectName"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
