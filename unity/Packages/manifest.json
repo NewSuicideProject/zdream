@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.unity.dedicated-server": "2.0.1",
     "com.unity.ide.rider": "3.0.39",
     "com.unity.inputsystem": "1.18.0",
     "com.unity.ml-agents": "4.0.1",

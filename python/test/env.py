@@ -9,14 +9,15 @@ logger = logging.getLogger(__name__)
 
 load_dotenv(Path.cwd() / ".env.test")
 
+BASE_PORT = 5004
 
 config = {
-    "save_freq": int(os.getenv("SAVE_FREQ", "1_000")),
-    "log_interval": int(os.getenv("LOG_INTERVAL", "10")),
-    "total_timesteps": int(os.getenv("TOTAL_TIMESTEPS", "1_000_000")),
     "checkpoint_path": os.getenv("CHECKPOINT_PATH", None),
-    "base_port": int(os.getenv("BASE_PORT", "5004")),
-    "parallel": os.getenv("PARALLEL", "False").lower() == "true",
+    "file_name": os.getenv("UNITY_EXE_PATH", None),
+    "total_timesteps": int(os.getenv("STEP_COUNT", "1_000_000")),
+    "num_envs": int(os.getenv("ENV_COUNT", "1")),
+    "save_freq": int(os.getenv("CHECKPOINT_INTERVAL", "1_000")),
+    "log_interval": int(os.getenv("LOG_INTERVAL", "10")),
 }
 
 policy_config = {

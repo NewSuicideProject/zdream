@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class UnityEnv(gym.Env):
-    def __init__(self, base_port=5004):
+    def __init__(self, file_name=None, base_port=5004):
         logger.info("waiting unity")
-        self._env = UnityEnvironment(file_name=None, base_port=base_port)
+        self._env = UnityEnvironment(file_name=file_name, base_port=base_port)
         logger.info("unity connected")
 
         self._env.reset()
@@ -21,16 +21,11 @@ class UnityEnv(gym.Env):
         self.spec = self._env.behavior_specs[self.behavior_name]
 
         self.action_space = spaces.Box(
-            -1,
-            1,
-            shape=(self.spec.action_spec.continuous_size,),
-            dtype=np.float32,
+            -1, 1, shape=(self.spec.action_spec.continuous_size,)
         )
 
         obs_shape = self.spec.observation_specs[0].shape
-        self.observation_space = spaces.Box(
-            -1, 1, shape=obs_shape, dtype=np.float32
-        )
+        self.observation_space = spaces.Box(-1, 1, shape=obs_shape)
 
         logger.info(f"observation space: {self.observation_space}")
         logger.info(f"action space: {self.action_space}")

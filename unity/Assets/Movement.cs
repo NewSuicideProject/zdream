@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Test.Scripts {
-    public class CameraManager : MonoBehaviour {
+    public class Movement : MonoBehaviour {
         [SerializeField] private InputActionAsset inputActions;
 
         [SerializeField] private float moveSpeed = 10f;
