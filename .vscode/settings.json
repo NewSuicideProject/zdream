@@ -8,5 +8,23 @@
     }
   },
   "black-formatter.importStrategy": "fromEnvironment",
-  "ruff.importStrategy": "fromEnvironment"
+  "ruff.importStrategy": "fromEnvironment",
+
+  "git.autofetch": true,
+
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+  "diffEditor.wordWrap": "off",
+
+  "editor.wordWrap": "off",
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.guides.indentation": true,
+  "editor.guides.bracketPairs": true,
+  "editor.wordBasedSuggestions": "off",
+  "editor.tabCompletion": "onlySnippets",
+
+  "trailing-spaces.trimOnSave": true,
+
+  "editor.rulers": [{ "color": "#ff000020", "column": 80 }],
 }
