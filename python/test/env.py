@@ -14,6 +14,7 @@ BASE_PORT = 5004
 config = {
     "checkpoint_path": os.getenv("CHECKPOINT_PATH", None),
     "file_name": os.getenv("UNITY_EXE_PATH", None),
+    "server_file_name": os.getenv("UNITY_SERVER_EXE_PATH", None),
     "total_timesteps": int(os.getenv("STEP_COUNT", "1_000_000")),
     "num_envs": int(os.getenv("ENV_COUNT", "1")),
     "save_freq": int(os.getenv("CHECKPOINT_INTERVAL", "1_000")),
@@ -26,6 +27,3 @@ policy_config = {
         "qf": [128, 128, 128],  # Critic network
     }
 }
-
-logger.info(f"test config: {config}")
-logger.info(f"policy config: {policy_config}")
