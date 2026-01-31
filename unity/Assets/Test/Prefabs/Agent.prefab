@@ -205,45 +205,12 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 1000
-  testManager: {fileID: 0}
   inputActions: {fileID: -944628639613478452, guid: d1fbcd158d573bc47aa627dedcf8be20, type: 3}
-  stayTrialReward: 5
+  expectedMaxSpeed: 20
+  expectedMaxDistance: 20
   staySuccessReward: 20
+  stayingReward: 10
   staySuccessThreshold: 5
-  stayFailurePenalty: 10
   fallingPenalty: 50
-  distanceRewardCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: -0.13514662
-      outSlope: -0.13514662
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.55583525
-    - serializedVersion: 3
-      time: 0.35
-      value: 0
-      inSlope: -4.719197
-      outSlope: -4.719197
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.40949228
-      outWeight: 0.066666745
-    - serializedVersion: 3
-      time: 1
-      value: -1
-      inSlope: 0.061165866
-      outSlope: 0.061165866
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.27999997
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  distanceRewardMultiplier: 0.025
+  distancePenaltyMultiplier: 0.25
   actionMultiplier: 10

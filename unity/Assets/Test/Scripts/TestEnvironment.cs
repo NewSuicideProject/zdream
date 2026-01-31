@@ -10,16 +10,13 @@ namespace Test.Scripts {
         [SerializeField] private GameObject testAgentPrefab;
         [SerializeField] public GameObject testTargetPrefab;
 
-        private Rigidbody _agentRigidbody;
-        private Transform _agentTransform;
 
-        public float SpawnRange => spawnRange;
+        private Transform _agentTransform;
         public Transform TargetTransform { get; private set; }
 
         private void Awake() {
             GameObject agentInstance = Instantiate(testAgentPrefab, Vector3.zero, Quaternion.identity, transform);
             _agentTransform = agentInstance.transform;
-            _agentRigidbody = agentInstance.GetComponent<Rigidbody>();
 
             GameObject targetInstance = Instantiate(testTargetPrefab, Vector3.zero, Quaternion.identity, transform);
             TargetTransform = targetInstance.transform;
@@ -64,9 +61,6 @@ namespace Test.Scripts {
 
             TargetTransform.localPosition = targetPos;
             _agentTransform.localPosition = agentPos;
-
-            _agentRigidbody.angularVelocity = Vector3.zero;
-            _agentRigidbody.linearVelocity = Vector3.zero;
         }
     }
 }

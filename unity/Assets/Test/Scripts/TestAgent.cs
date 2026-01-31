@@ -17,7 +17,7 @@ namespace Test.Scripts {
         [SerializeField] private float staySuccessThreshold = 5f;
 
         [SerializeField] private float fallingPenalty = 50f;
-        [SerializeField] private float distancePenaltyMultiplier = 0.025f;
+        [SerializeField] private float distancePenaltyMultiplier = 0.25f;
 
         [SerializeField] private float actionMultiplier = 10f;
 
@@ -96,6 +96,10 @@ namespace Test.Scripts {
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
+
+            _rigidbody.angularVelocity = Vector3.zero;
+            _rigidbody.linearVelocity = Vector3.zero;
+
             _testEnvironment.Reset();
         }
 
@@ -115,10 +119,10 @@ namespace Test.Scripts {
             AddReward(-NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier);
 
             if (_stayTime >= staySuccessThreshold) {
-                SetReward(staySuccessReward);
+                AddReward(staySuccessReward);
                 EndEpisode();
             } else if (transform.localPosition.y < 0f) {
-                SetReward(-fallingPenalty);
+                AddReward(-fallingPenalty);
                 EndEpisode();
             }
         }

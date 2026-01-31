@@ -510,7 +510,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Test.Scripts.TestManager
   testEnvironmentPrefab: {fileID: 4634089905413009483, guid: d85e26795611a1c4aaa86b72ea420386, type: 3}
-  timeScale: 2
+  timeScale: 1
 --- !u!1 &2013410473
 GameObject:
   m_ObjectHideFlags: 1
