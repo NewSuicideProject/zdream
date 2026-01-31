@@ -24,9 +24,9 @@ def run():
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     base_dir = Path.cwd() / "tests" / timestamp
-    log_dir = base_dir
+    log_dir = base_dir / "log"
     model_dir = base_dir
-    cps_dir = base_dir / "cps"
+    checkpoint_dir = base_dir / "checkpoints"
 
     file_name = config.get("file_name", None)
     server_file_name = config.get("server_file_name", None)
@@ -72,7 +72,8 @@ def run():
 
     checkpoint_callback = CheckpointCallback(
         save_freq=config.get("save_freq", 1_000),
-        save_path=str(cps_dir),
+        name_prefix="checkpoint",
+        save_path=str(checkpoint_dir),
     )
 
     policy_kwargs = policy_config.copy()
@@ -97,7 +98,7 @@ def run():
         total_timesteps=config.get("total_timesteps", 1_000_000),
         callback=checkpoint_callback,
         log_interval=config.get("log_interval", 10),
-        tb_log_name="test_tb_log",
+        tb_log_name="test",
     )
 
     model.save(str(model_dir))
