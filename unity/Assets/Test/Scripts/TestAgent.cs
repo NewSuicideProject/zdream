@@ -17,9 +17,7 @@ namespace Test.Scripts {
         [SerializeField] private float staySuccessThreshold = 5f;
 
         [SerializeField] private float fallingPenalty = 50f;
-
-        [SerializeField] private AnimationCurve distanceRewardCurve;
-        [SerializeField] private float distanceRewardMultiplier = 0.025f;
+        [SerializeField] private float distancePenaltyMultiplier = 0.025f;
 
         [SerializeField] private float actionMultiplier = 10f;
 
@@ -114,7 +112,7 @@ namespace Test.Scripts {
             _rigidbody.AddForce(controlSignal * actionMultiplier);
 
             float distanceToTarget = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
-            AddReward(distanceRewardCurve.Evaluate(NormalizeDistance(distanceToTarget)) * distanceRewardMultiplier);
+            AddReward(-NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier);
 
             if (_stayTime >= staySuccessThreshold) {
                 SetReward(staySuccessReward);
