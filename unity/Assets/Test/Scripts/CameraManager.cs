@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Test.Scripts
-{
-    public class CameraManager : MonoBehaviour
-    {
+namespace Test.Scripts {
+    public class CameraManager : MonoBehaviour {
         [SerializeField] private InputActionAsset inputActions;
 
         [SerializeField] private float moveSpeed = 10f;
@@ -21,11 +19,12 @@ namespace Test.Scripts
         private float _rotationY;
         private InputAction _upAction;
 
-        private void Awake()
-        {
-            if (!inputActions) return;
+        private void Awake() {
+            if (!inputActions) {
+                return;
+            }
 
-            var cameraMap = inputActions.FindActionMap("Camera");
+            InputActionMap cameraMap = inputActions.FindActionMap("Camera");
 
             _moveAction = cameraMap?.FindAction("Move");
             _lookAction = cameraMap?.FindAction("Look");
@@ -34,16 +33,16 @@ namespace Test.Scripts
             _fastMoveAction = cameraMap?.FindAction("FastMove");
         }
 
-        private void Update()
-        {
+        private void Update() {
             HandleMovement();
             HandleRotation();
 
-            if (Keyboard.current?.escapeKey.wasPressedThisFrame ?? false) ToggleCursor();
+            if (Keyboard.current?.escapeKey.wasPressedThisFrame ?? false) {
+                ToggleCursor();
+            }
         }
 
-        private void OnEnable()
-        {
+        private void OnEnable() {
             _moveAction?.Enable();
             _lookAction?.Enable();
             _upAction?.Enable();
@@ -54,8 +53,7 @@ namespace Test.Scripts
             Cursor.visible = false;
         }
 
-        private void OnDisable()
-        {
+        private void OnDisable() {
             _moveAction?.Disable();
             _lookAction?.Disable();
             _upAction?.Disable();
@@ -66,31 +64,37 @@ namespace Test.Scripts
             Cursor.visible = true;
         }
 
-        private void HandleMovement()
-        {
-            var movement = Vector3.zero;
+        private void HandleMovement() {
+            Vector3 movement = Vector3.zero;
 
-            if (_moveAction != null)
-            {
-                var moveInput = _moveAction.ReadValue<Vector2>();
+            if (_moveAction != null) {
+                Vector2 moveInput = _moveAction.ReadValue<Vector2>();
                 movement += transform.right * moveInput.x;
                 movement += transform.forward * moveInput.y;
             }
 
-            if (_upAction != null && _upAction.IsPressed()) movement += Vector3.up;
-            if (_downAction != null && _downAction.IsPressed()) movement += Vector3.down;
+            if (_upAction != null && _upAction.IsPressed()) {
+                movement += Vector3.up;
+            }
 
-            var currentSpeed = moveSpeed;
-            if (_fastMoveAction != null && _fastMoveAction.IsPressed()) currentSpeed *= fastMoveMultiplier;
+            if (_downAction != null && _downAction.IsPressed()) {
+                movement += Vector3.down;
+            }
+
+            float currentSpeed = moveSpeed;
+            if (_fastMoveAction != null && _fastMoveAction.IsPressed()) {
+                currentSpeed *= fastMoveMultiplier;
+            }
 
             transform.position += movement.normalized * (currentSpeed * Time.deltaTime);
         }
 
-        private void HandleRotation()
-        {
-            if (_lookAction == null) return;
+        private void HandleRotation() {
+            if (_lookAction == null) {
+                return;
+            }
 
-            var lookInput = _lookAction.ReadValue<Vector2>();
+            Vector2 lookInput = _lookAction.ReadValue<Vector2>();
 
             _rotationX += lookInput.x * lookSensitivity;
             _rotationY -= lookInput.y * lookSensitivity;
@@ -100,15 +104,11 @@ namespace Test.Scripts
             transform.rotation = Quaternion.Euler(_rotationY, _rotationX, 0f);
         }
 
-        private static void ToggleCursor()
-        {
-            if (Cursor.lockState == CursorLockMode.Locked)
-            {
+        private static void ToggleCursor() {
+            if (Cursor.lockState == CursorLockMode.Locked) {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
-            }
-            else
-            {
+            } else {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
             }

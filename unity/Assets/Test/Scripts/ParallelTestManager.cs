@@ -1,9 +1,7 @@
 using UnityEngine;
 
-namespace Test.Scripts
-{
-    public class ParallelTestManager : MonoBehaviour
-    {
+namespace Test.Scripts {
+    public class ParallelTestManager : MonoBehaviour {
         [SerializeField] private GameObject testEnvironmentPrefab;
         [SerializeField] private float timeScale = 1f;
         [SerializeField] private int gridWidth = 3;
@@ -12,22 +10,20 @@ namespace Test.Scripts
 
         private Transform _containerTransform;
 
-        private void Awake()
-        {
+        private void Awake() {
             Time.timeScale = timeScale;
 
             _containerTransform = new GameObject("EnvironmentContainer").transform;
 
-            var startX = -(gridWidth - 1) * gridOffset / 2f;
-            var startZ = -(gridHeight - 1) * gridOffset / 2f;
+            float startX = -(gridWidth - 1) * gridOffset / 2f;
+            float startZ = -(gridHeight - 1) * gridOffset / 2f;
 
-            for (var x = 0; x < gridWidth; x++)
-            for (var z = 0; z < gridHeight; z++)
-            {
-                var position = new Vector3(
-                    startX + x * gridOffset,
+            for (int x = 0; x < gridWidth; x++)
+            for (int z = 0; z < gridHeight; z++) {
+                Vector3 position = new(
+                    startX + (x * gridOffset),
                     0f,
-                    startZ + z * gridOffset
+                    startZ + (z * gridOffset)
                 );
 
                 Instantiate(testEnvironmentPrefab, position, Quaternion.identity, _containerTransform);
