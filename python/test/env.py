@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 load_dotenv(Path.cwd() / ".env.test")
 
+
 config = {
     "save_freq": int(os.getenv("SAVE_FREQ", "1_000")),
     "log_interval": int(os.getenv("LOG_INTERVAL", "10")),
