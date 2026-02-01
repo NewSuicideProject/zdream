@@ -26,7 +26,7 @@ def run():
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     base_dir = Path.cwd() / "tests" / timestamp
     log_dir = base_dir / "log"
-    model_dir = base_dir
+    model_path = base_dir / "result.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
     file_name = config.get("file_name", None)
@@ -104,7 +104,7 @@ def run():
         tb_log_name="test",
     )
 
-    model.save(str(model_dir))
+    model.save(str(model_path))
     env.close()
 
 
