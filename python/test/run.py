@@ -3,22 +3,12 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 
-from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
+from stable_baselines3.sac import SAC
+from stable_baselines3.sac.policies import MlpPolicy
 
-from .env import (
-    BASE_PORT,
-    CHECKPOINT_INTERVAL,
-    CHECKPOINT_PATH,
-    ENV_COUNT,
-    LOG_INTERVAL,
-    STEP_COUNT,
-    UNITY_PATH,
-    UNITY_SERVER_PATH,
-    config,
-    policy_config,
-)
+from .config import config
 from .unity_env import UnityEnv
 
 logger = logging.getLogger(__name__)
@@ -31,7 +21,6 @@ def make_unity_env(file_name, base_port, worker_id):
 
 def run():
     logger.info(f"config: {config}")
-    logger.info(f"policy config: {policy_config}")
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     base_dir = Path.cwd() / "tests" / timestamp
@@ -39,63 +28,45 @@ def run():
     model_path = base_dir / "result.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
-    unity_path = config.get(UNITY_PATH, None)
-    unity_server_path = config.get(UNITY_SERVER_PATH, None)
-
-    unity_path = Path(unity_path) if unity_path else None
-    unity_server_path = Path(unity_server_path) if unity_server_path else None
-
-    if unity_path and not unity_path.exists():
-        logger.warning(f"exe not found: {unity_path}")
-        unity_path = None
-
-    if unity_server_path and not unity_server_path.exists():
-        logger.warning(f"server exe not found: {unity_server_path}")
-        unity_server_path = None
-
-    num_envs = config.get(ENV_COUNT, 1)
-
-    if unity_server_path is None and num_envs > 1:
-        logger.warning("no server exe forcing env_count to 1")
-        num_envs = 1
-
     envs = []
-    envs.append(partial(make_unity_env, str(unity_path), BASE_PORT, 0))
-    for i in range(1, num_envs):
+    envs.append(partial(make_unity_env, str(config.unity_path), 5004, 0))
+    for i in range(1, config.env_count):
         envs.append(
-            partial(make_unity_env, str(unity_server_path), BASE_PORT, i)
+            partial(
+                make_unity_env,
+                str(config.unity_server_path),
+                5004,
+                i,
+            )
         )
     env = SubprocVecEnv(envs)
     env = VecMonitor(env)
 
     checkpoint_callback = CheckpointCallback(
-        save_freq=config.get(CHECKPOINT_INTERVAL, 1_000),
+        save_freq=config.checkpoint_interval,
         name_prefix="checkpoint",
         save_path=str(checkpoint_dir),
     )
 
-    policy_kwargs = policy_config.copy()
-
-    checkpoint_path = config.get(CHECKPOINT_PATH, None)
+    checkpoint_path = config.checkpoint_path
     if checkpoint_path and Path(checkpoint_path).exists():
         logger.info(f"valid checkpoint: {checkpoint_path}")
         model = SAC.load(
-            checkpoint_path, env=env, verbose=1, tensorboard_log=str(log_dir)
+            path=checkpoint_path, env=env, tensorboard_log=str(log_dir)
         )
     else:
         logger.info("no valid checkpoint")
         model = SAC(
-            "MlpPolicy",
-            env,
-            policy_kwargs=policy_kwargs,
-            verbose=1,
+            policy=MlpPolicy,
+            env=env,
+            policy_kwargs=config.policy_kwargs,
             tensorboard_log=str(log_dir),
         )
 
     model.learn(
-        total_timesteps=config.get(STEP_COUNT, 1_000_000),
+        total_timesteps=config.step_count,
         callback=checkpoint_callback,
-        log_interval=config.get(LOG_INTERVAL, 10),
+        log_interval=config.log_interval,
         tb_log_name="test",
     )
 
