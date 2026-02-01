@@ -4,6 +4,7 @@ from functools import partial
 from pathlib import Path
 
 from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 from stable_baselines3.sac import SAC
 from stable_baselines3.sac.policies import MlpPolicy
@@ -28,19 +29,21 @@ def run():
     model_path = base_dir / "result.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
-    envs = []
-    envs.append(partial(make_unity_env, str(config.unity_path), 5004, 0))
-    for i in range(1, config.env_count):
-        envs.append(
-            partial(
-                make_unity_env,
-                str(config.unity_server_path),
-                5004,
-                i,
+    if config.env_count > 1:
+        envs = []
+        envs.append(partial(make_unity_env, str(config.unity_path), 5004, 0))
+        for i in range(1, config.env_count):
+            envs.append(
+                partial(make_unity_env, str(config.unity_server_path), 5004, i)
             )
+        env = SubprocVecEnv(envs)
+        env = VecMonitor(env)
+    else:
+        env = UnityEnv(
+            file_name=str(config.unity_path) if config.unity_path else None,
+            base_port=5004,
         )
-    env = SubprocVecEnv(envs)
-    env = VecMonitor(env)
+        env = Monitor(env)
 
     checkpoint_callback = CheckpointCallback(
         save_freq=config.checkpoint_interval,

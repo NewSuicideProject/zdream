@@ -39,6 +39,16 @@ class Config:
             logger.warning("no server exe, forcing env_count to 1")
             self.env_count = 1
 
+    def __str__(self):
+        items = []
+        for key, value in self.__dict__.items():
+            if isinstance(value, dict):
+                dict_str = ", ".join(f"{k}: {v}" for k, v in value.items())
+                items.append(f"{key}: {{{dict_str}}}")
+            else:
+                items.append(f"{key}: {value}")
+        return "\n".join(items)
+
     @staticmethod
     def _validate_path(path_str):
         if not path_str:
