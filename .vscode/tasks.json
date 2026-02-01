@@ -15,7 +15,10 @@
         "python.test.run"
       ],
       "options": {
-        "cwd": "${workspaceFolder}/test"
+        "cwd": "${workspaceFolder}/test",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}"
+        }
       },
       "problemMatcher": [],
       "group": {
@@ -41,7 +44,7 @@
         "zdream",
         "--no-capture-output",
         "tensorboard",
-        "--logdir=${workspaceFolder}/test",
+        "--logdir=${workspaceFolder}/test/tests",
         "--bind_all"
       ],
       "isBackground": true,
