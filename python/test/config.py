@@ -8,14 +8,16 @@ from dotenv import load_dotenv
 logger = logging.getLogger(__name__)
 
 
-load_dotenv(Path.cwd() / ".env.test")
+load_dotenv(Path.cwd() / ".env")
 
 
 class Config:
     def __init__(self):
         self.config_path = self._validate_path(os.getenv("CONFIG_PATH", None))
         if self.config_path is None:
-            self.config_path = Path(__file__).parent / "config.yml"
+            self.config_path = (
+                Path(__file__).parent / "examples" / "config.yml.example"
+            )
 
         with open(self.config_path, encoding="utf-8") as file:
             for key, value in yaml.safe_load(file).items():
@@ -55,7 +57,7 @@ class Config:
             return None
         path = Path(path_str)
         if not path.exists():
-            logger.warning(f"path not found: {path}")
+            logger.warning(f"path invalid: {path}")
             return None
         return path
 

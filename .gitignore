@@ -1,4 +1,2 @@
-tests
-builds
-.env.*
-!.env.*.example
+/builds
+/test
