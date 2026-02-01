@@ -5,7 +5,6 @@ from pathlib import Path
 
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import CheckpointCallback
-from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 
 from .env import (
@@ -15,8 +14,8 @@ from .env import (
     ENV_COUNT,
     LOG_INTERVAL,
     STEP_COUNT,
-    UNITY_EXE_PATH,
-    UNITY_SERVER_EXE_PATH,
+    UNITY_PATH,
+    UNITY_SERVER_PATH,
     config,
     policy_config,
 )
@@ -40,55 +39,34 @@ def run():
     model_path = base_dir / "result.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
-    unity_exe_path = config.get(UNITY_EXE_PATH, None)
-    unity_server_exe_path = config.get(UNITY_SERVER_EXE_PATH, None)
+    unity_path = config.get(UNITY_PATH, None)
+    unity_server_path = config.get(UNITY_SERVER_PATH, None)
 
-    unity_exe_path = Path(unity_exe_path) if unity_exe_path else None
-    unity_server_exe_path = (
-        Path(unity_server_exe_path) if unity_server_exe_path else None
-    )
+    unity_path = Path(unity_path) if unity_path else None
+    unity_server_path = Path(unity_server_path) if unity_server_path else None
 
-    if unity_exe_path and not unity_exe_path.exists():
-        logger.warning(f"exe not found: {unity_exe_path}")
-        unity_exe_path = None
+    if unity_path and not unity_path.exists():
+        logger.warning(f"exe not found: {unity_path}")
+        unity_path = None
 
-    if unity_server_exe_path and not unity_server_exe_path.exists():
-        logger.warning(f"server exe not found: {unity_server_exe_path}")
-        unity_server_exe_path = None
+    if unity_server_path and not unity_server_path.exists():
+        logger.warning(f"server exe not found: {unity_server_path}")
+        unity_server_path = None
 
     num_envs = config.get(ENV_COUNT, 1)
 
-    if unity_server_exe_path is None and num_envs > 1:
-        logger.warning("no server exe provided. forcing num_envs to 1.")
+    if unity_server_path is None and num_envs > 1:
+        logger.warning("no server exe forcing env_count to 1")
         num_envs = 1
 
-    if num_envs > 1:
-        envs = []
+    envs = []
+    envs.append(partial(make_unity_env, str(unity_path), BASE_PORT, 0))
+    for i in range(1, num_envs):
         envs.append(
-            partial(
-                make_unity_env,
-                str(
-                    unity_exe_path if unity_exe_path else unity_server_exe_path
-                ),
-                BASE_PORT,
-                0,
-            )
+            partial(make_unity_env, str(unity_server_path), BASE_PORT, i)
         )
-        for i in range(1, num_envs):
-            envs.append(
-                partial(
-                    make_unity_env, str(unity_server_exe_path), BASE_PORT, i
-                )
-            )
-        env = SubprocVecEnv(envs)
-        env = VecMonitor(env)
-    else:
-        exe_path = unity_exe_path if unity_exe_path else unity_server_exe_path
-        env = UnityEnv(
-            file_name=str(exe_path) if exe_path else None,
-            base_port=BASE_PORT,
-        )
-        env = Monitor(env)
+    env = SubprocVecEnv(envs)
+    env = VecMonitor(env)
 
     checkpoint_callback = CheckpointCallback(
         save_freq=config.get(CHECKPOINT_INTERVAL, 1_000),

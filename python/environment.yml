@@ -19,8 +19,6 @@ dependencies:
 
   - numpy=1.23.5
 
-  - hydra-core
-
   - gymnasium
   - onnx
 

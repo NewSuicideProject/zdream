@@ -18,14 +18,14 @@ STEP_COUNT = "step_count"
 ENV_COUNT = "env_count"
 
 CHECKPOINT_PATH = "checkpoint_path"
-UNITY_EXE_PATH = "unity_exe_path"
-UNITY_SERVER_EXE_PATH = "unity_server_exe_path"
+UNITY_PATH = "unity_path"
+UNITY_SERVER_PATH = "unity_server_path"
 
 
 config = {
     CHECKPOINT_PATH: os.getenv("CHECKPOINT_PATH", None),
-    UNITY_EXE_PATH: os.getenv("UNITY_EXE_PATH", None),
-    UNITY_SERVER_EXE_PATH: os.getenv("UNITY_SERVER_EXE_PATH", None),
+    UNITY_PATH: os.getenv("UNITY_PATH", None),
+    UNITY_SERVER_PATH: os.getenv("UNITY_SERVER_PATH", None),
     STEP_COUNT: int(os.getenv("STEP_COUNT", "1_000_000")),
     ENV_COUNT: int(os.getenv("ENV_COUNT", "1")),
     CHECKPOINT_INTERVAL: int(os.getenv("CHECKPOINT_INTERVAL", "1_000")),
