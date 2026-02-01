@@ -8,7 +8,18 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 
-from .env import BASE_PORT, config, policy_config
+from .env import (
+    BASE_PORT,
+    CHECKPOINT_INTERVAL,
+    CHECKPOINT_PATH,
+    ENV_COUNT,
+    LOG_INTERVAL,
+    STEP_COUNT,
+    UNITY_EXE_PATH,
+    UNITY_SERVER_EXE_PATH,
+    config,
+    policy_config,
+)
 from .unity_env import UnityEnv
 
 logger = logging.getLogger(__name__)
@@ -29,59 +40,65 @@ def run():
     model_path = base_dir / "result.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
-    file_name = config.get("file_name", None)
-    server_file_name = config.get("server_file_name", None)
+    unity_exe_path = config.get(UNITY_EXE_PATH, None)
+    unity_server_exe_path = config.get(UNITY_SERVER_EXE_PATH, None)
 
-    file_path = Path(file_name) if file_name else None
-    server_file_path = Path(server_file_name) if server_file_name else None
+    unity_exe_path = Path(unity_exe_path) if unity_exe_path else None
+    unity_server_exe_path = (
+        Path(unity_server_exe_path) if unity_server_exe_path else None
+    )
 
-    if file_path and not file_path.exists():
-        logger.warning(f"exe not found: {file_path}")
-        file_path = None
+    if unity_exe_path and not unity_exe_path.exists():
+        logger.warning(f"exe not found: {unity_exe_path}")
+        unity_exe_path = None
 
-    if server_file_path and not server_file_path.exists():
-        logger.warning(f"server exe not found: {server_file_path}")
-        server_file_path = None
+    if unity_server_exe_path and not unity_server_exe_path.exists():
+        logger.warning(f"server exe not found: {unity_server_exe_path}")
+        unity_server_exe_path = None
 
-    num_envs = config.get("num_envs", 1)
+    num_envs = config.get(ENV_COUNT, 1)
 
-    if server_file_path is None and num_envs > 1:
+    if unity_server_exe_path is None and num_envs > 1:
         logger.warning("no server exe provided. forcing num_envs to 1.")
         num_envs = 1
 
     if num_envs > 1:
-        env_fns = []
-        env_fns.append(
+        envs = []
+        envs.append(
             partial(
                 make_unity_env,
-                str(file_path if file_path else server_file_path),
+                str(
+                    unity_exe_path if unity_exe_path else unity_server_exe_path
+                ),
                 BASE_PORT,
                 0,
             )
         )
         for i in range(1, num_envs):
-            env_fns.append(
-                partial(make_unity_env, str(server_file_path), BASE_PORT, i)
+            envs.append(
+                partial(
+                    make_unity_env, str(unity_server_exe_path), BASE_PORT, i
+                )
             )
-        env = SubprocVecEnv(env_fns)
+        env = SubprocVecEnv(envs)
         env = VecMonitor(env)
     else:
-        exe_to_use = file_path if file_path else server_file_path
+        exe_path = unity_exe_path if unity_exe_path else unity_server_exe_path
         env = UnityEnv(
-            file_name=str(exe_to_use) if exe_to_use else None,
+            file_name=str(exe_path) if exe_path else None,
             base_port=BASE_PORT,
         )
         env = Monitor(env)
 
     checkpoint_callback = CheckpointCallback(
-        save_freq=config.get("save_freq", 1_000),
+        save_freq=config.get(CHECKPOINT_INTERVAL, 1_000),
         name_prefix="checkpoint",
         save_path=str(checkpoint_dir),
     )
 
     policy_kwargs = policy_config.copy()
 
-    checkpoint_path = config.get("checkpoint_path", None)
+    checkpoint_path = config.get(CHECKPOINT_PATH, None)
     if checkpoint_path and Path(checkpoint_path).exists():
         logger.info(f"valid checkpoint: {checkpoint_path}")
         model = SAC.load(
@@ -98,9 +115,9 @@ def run():
         )
 
     model.learn(
-        total_timesteps=config.get("total_timesteps", 1_000_000),
+        total_timesteps=config.get(STEP_COUNT, 1_000_000),
         callback=checkpoint_callback,
-        log_interval=config.get("log_interval", 10),
+        log_interval=config.get(LOG_INTERVAL, 10),
         tb_log_name="test",
     )
 

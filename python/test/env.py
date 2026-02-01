@@ -11,14 +11,25 @@ load_dotenv(Path.cwd() / ".env.test")
 
 BASE_PORT = 5004
 
+CHECKPOINT_INTERVAL = "checkpoint_interval"
+LOG_INTERVAL = "log_interval"
+
+STEP_COUNT = "step_count"
+ENV_COUNT = "env_count"
+
+CHECKPOINT_PATH = "checkpoint_path"
+UNITY_EXE_PATH = "unity_exe_path"
+UNITY_SERVER_EXE_PATH = "unity_server_exe_path"
+
+
 config = {
-    "checkpoint_path": os.getenv("CHECKPOINT_PATH", None),
-    "file_name": os.getenv("UNITY_EXE_PATH", None),
-    "server_file_name": os.getenv("UNITY_SERVER_EXE_PATH", None),
-    "total_timesteps": int(os.getenv("STEP_COUNT", "1_000_000")),
-    "num_envs": int(os.getenv("ENV_COUNT", "1")),
-    "save_freq": int(os.getenv("CHECKPOINT_INTERVAL", "1_000")),
-    "log_interval": int(os.getenv("LOG_INTERVAL", "10")),
+    CHECKPOINT_PATH: os.getenv("CHECKPOINT_PATH", None),
+    UNITY_EXE_PATH: os.getenv("UNITY_EXE_PATH", None),
+    UNITY_SERVER_EXE_PATH: os.getenv("UNITY_SERVER_EXE_PATH", None),
+    STEP_COUNT: int(os.getenv("STEP_COUNT", "1_000_000")),
+    ENV_COUNT: int(os.getenv("ENV_COUNT", "1")),
+    CHECKPOINT_INTERVAL: int(os.getenv("CHECKPOINT_INTERVAL", "1_000")),
+    LOG_INTERVAL: int(os.getenv("LOG_INTERVAL", "10")),
 }
 
 policy_config = {
