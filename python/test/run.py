@@ -31,8 +31,7 @@ def run():
     checkpoint_dir = base_dir / "checkpoints"
 
     if config.env_count > 1:
-        envs = []
-        envs.append(partial(make_unity_env, str(config.unity_path), 5004, 0))
+        envs = [partial(make_unity_env, str(config.unity_path), 5004, 0)]
         for i in range(1, config.env_count):
             envs.append(
                 partial(make_unity_env, str(config.unity_server_path), 5004, i)
@@ -41,8 +40,7 @@ def run():
         env = VecMonitor(env)
     else:
         env = UnityEnv(
-            file_name=str(config.unity_path) if config.unity_path else None,
-            base_port=5004,
+            file_name=str(config.unity_path) if config.unity_path else None
         )
         env = Monitor(env)
 

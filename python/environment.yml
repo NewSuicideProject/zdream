@@ -21,9 +21,11 @@ dependencies:
   - gymnasium
   - onnx
 
+  - pyyaml
   - python-dotenv
 
   - pip:
       - stable-baselines3[extra]
       - mlagents
+      - mlagents-envs
       - protobuf<4.0.0

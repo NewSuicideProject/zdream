@@ -7,6 +7,10 @@ indent_style = space
 indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
+max_line_length = 120
 
-[*.{json,yaml,yml,md,js,html,css}]
+[*.{py,pyi}]
+max_line_length = 88
+
+[*.{json,json5,yaml,yml,toml,webmanifest,html,js,jsx,ts,tsx,css,scss,md}]
 indent_size = 2

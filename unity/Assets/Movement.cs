@@ -85,7 +85,8 @@ public class Movement : MonoBehaviour {
             currentSpeed *= fastMoveMultiplier;
         }
 
-        transform.position += movement.normalized * (currentSpeed * Time.deltaTime);
+        transform.position +=
+            movement.normalized * (currentSpeed * Time.deltaTime);
     }
 
     private void HandleRotation() {
@@ -98,7 +99,8 @@ public class Movement : MonoBehaviour {
         _rotationX += lookInput.x * lookSensitivity;
         _rotationY -= lookInput.y * lookSensitivity;
 
-        _rotationY = Mathf.Clamp(_rotationY, minVerticalAngle, maxVerticalAngle);
+        _rotationY =
+            Mathf.Clamp(_rotationY, minVerticalAngle, maxVerticalAngle);
 
         transform.rotation = Quaternion.Euler(_rotationY, _rotationX, 0f);
     }
