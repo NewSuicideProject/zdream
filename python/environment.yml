@@ -8,7 +8,6 @@ dependencies:
   - python=3.10
   - pip
 
-  - black
   - ruff
 
   - pytorch

@@ -1,13 +1,12 @@
 {
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports": "explicit",
       "source.fixAll": "explicit"
     }
   },
-  "black-formatter.importStrategy": "fromEnvironment",
   "ruff.importStrategy": "fromEnvironment",
 
   "git.autofetch": true,
