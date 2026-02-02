@@ -16,9 +16,7 @@ class Config:
     def __init__(self):
         self.config_path = self._validate_path(os.getenv("CONFIG_PATH", None))
         if self.config_path is None:
-            self.config_path = (
-                Path(__file__).parent / "examples" / "config.yml.example"
-            )
+            self.config_path = Path(__file__).parent / "examples" / "config.yml.example"
 
         with open(self.config_path, encoding="utf-8") as file:
             for key, value in yaml.safe_load(file).items():
@@ -33,9 +31,7 @@ class Config:
         )
         self.step_count = int(os.getenv("STEP_COUNT", "1_000_000"))
         self.env_count = int(os.getenv("ENV_COUNT", "1"))
-        self.checkpoint_interval = int(
-            os.getenv("CHECKPOINT_INTERVAL", "1_000")
-        )
+        self.checkpoint_interval = int(os.getenv("CHECKPOINT_INTERVAL", "1_000"))
         self.log_interval = int(os.getenv("LOG_INTERVAL", "10"))
 
         if self.unity_server_path is None and self.env_count > 1:

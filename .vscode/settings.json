@@ -25,5 +25,5 @@
 
   "trailing-spaces.trimOnSave": true,
 
-  "editor.rulers": [{ "color": "#ff000020", "column": 80 }],
+  "editor.rulers": [{ "color": "#ff000020", "column": 88 }],
 }

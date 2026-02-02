@@ -33,15 +33,11 @@ def run():
     if config.env_count > 1:
         envs = [partial(make_unity_env, str(config.unity_path), 5004, 0)]
         for i in range(1, config.env_count):
-            envs.append(
-                partial(make_unity_env, str(config.unity_server_path), 5004, i)
-            )
+            envs.append(partial(make_unity_env, str(config.unity_server_path), 5004, i))
         env = SubprocVecEnv(envs)
         env = VecMonitor(env)
     else:
-        env = UnityEnv(
-            file_name=str(config.unity_path) if config.unity_path else None
-        )
+        env = UnityEnv(file_name=str(config.unity_path) if config.unity_path else None)
         env = Monitor(env)
 
     checkpoint_callback = CheckpointCallback(
@@ -53,9 +49,7 @@ def run():
     checkpoint_path = config.checkpoint_path
     if checkpoint_path and Path(checkpoint_path).exists():
         logger.info(f"valid checkpoint: {checkpoint_path}")
-        model = SAC.load(
-            path=checkpoint_path, env=env, tensorboard_log=str(log_dir)
-        )
+        model = SAC.load(path=checkpoint_path, env=env, tensorboard_log=str(log_dir))
     else:
         logger.info("no valid checkpoint")
         model = SAC(
