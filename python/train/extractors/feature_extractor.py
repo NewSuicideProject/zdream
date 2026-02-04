@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from unity_env import HEIGHT_MAP_KEY
 
 
 def build_mlp(input_dim, net_arch, activation_fn):
@@ -22,14 +23,7 @@ def build_mlp(input_dim, net_arch, activation_fn):
     return nn.Sequential(*layers), last_dim
 
 
-class CustomFeatureExtractor(BaseFeaturesExtractor):
-    """
-    Stream B (Terrain)
-    Stream C (Proprioception)
-    → 각각 인코딩
-    → Concatenate
-    """
-
+class FeatureExtractor(BaseFeaturesExtractor):
     def __init__(
         self,
         observation_space,
@@ -51,11 +45,7 @@ class CustomFeatureExtractor(BaseFeaturesExtractor):
         super().__init__(observation_space, features_dim=1)
 
         # Stream B (Terrain Vision)
-        self.stream_b, b_out_dim = build_mlp(
-            input_dim=stream_b_dim,
-            net_arch=net_arch_b,
-            activation_fn=activation_fn,
-        )
+        self.stream_b, b_out_dim = HeightExtractor()
 
         # Stream C (Proprioception)
         self.stream_c, c_out_dim = build_mlp(
@@ -64,7 +54,7 @@ class CustomFeatureExtractor(BaseFeaturesExtractor):
             activation_fn=activation_fn,
         )
 
-        # 🔥 Concatenate 이후 최종 feature 차원
+        # Concatenate 이후 최종 feature 차원
         self._features_dim = b_out_dim + c_out_dim
 
     def forward(self, observations):
@@ -76,13 +66,13 @@ class CustomFeatureExtractor(BaseFeaturesExtractor):
         }
         """
 
-        obs_b = observations["stream_b"]
+        obs_b = observations[HEIGHT_MAP_KEY]
         obs_c = observations["stream_c"]
 
         out_b = self.stream_b(obs_b)
         out_c = self.stream_c(obs_c)
 
-        # ✅ 여기서 Concatenate
+        # 여기서 Concatenate
         features = torch.cat([out_b, out_c], dim=1)
 
         return features
