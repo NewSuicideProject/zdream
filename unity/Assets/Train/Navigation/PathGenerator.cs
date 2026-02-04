@@ -3,9 +3,6 @@ using UnityEngine.AI;
 
 namespace Train.Navigation
 {
-    /// <summary>
-    /// AI Navigation 패키지를 사용하여 장애물을 회피하는 경로를 생성합니다.
-    /// </summary>
     public class PathGenerator : MonoBehaviour
     {
         [Header("Settings")]
@@ -72,7 +69,6 @@ namespace Train.Navigation
                 return;
             }
 
-            // 1. 최종 목표 지점 출력
             Debug.Log($"[Target] Final Position: {FinalTargetPosition}");
 
             // 2. 경로 배열(World Position) 전체 출력
@@ -81,7 +77,6 @@ namespace Train.Navigation
 
             for (int i = 0; i < WorldPathArray.Length; i++)
             {
-                // 각 지점의 인덱스와 좌표(X, Y, Z)를 포맷팅
                 sb.AppendLine($"  - Point [{i}]: {WorldPathArray[i].ToString("F2")}");
             }
 
