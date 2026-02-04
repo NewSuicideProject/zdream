@@ -27,12 +27,13 @@ namespace ZombieBody {
             log += $"{_pelvis.name} {_pelvis.dofCount}DoF\n";
             for (int i = 1; i < articulationBodies.Length; i++) {
                 ArticulationBody body = articulationBodies[i];
-                _articulationBodies.Add(body);
-                log += $"{body.name} {body.dofCount}DoF\n";
 
                 if (body.dofCount <= 0) {
                     continue;
                 }
+
+                _articulationBodies.Add(body);
+                log += $"{body.name} {body.dofCount}DoF\n";
 
                 JointLimitCache[] limitCache = new JointLimitCache[body.dofCount];
 
