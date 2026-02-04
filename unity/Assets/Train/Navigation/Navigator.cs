@@ -3,11 +3,10 @@ using UnityEngine;
 using UnityEngine.AI;
 
 namespace Train.Navigation {
-    public class PathNavigator : MonoBehaviour {
+    public class Navigator : MonoBehaviour {
         [Header("Settings")] [SerializeField] private Transform targetTransform;
         [SerializeField] private float updateInterval = 0.1f;
 
-        //[Header("Output Data")] public Vector3 FinalTargetPosition { get; private set; }
         private Vector3[] WorldPathArray { get; set; }
         private Vector3[] GetPathArray() => WorldPathArray ?? Array.Empty<Vector3>();
 
@@ -34,7 +33,6 @@ namespace Train.Navigation {
 
         private void UpdatePathData() {
             if (NavMesh.CalculatePath(transform.position, targetTransform.position, NavMesh.AllAreas, _navPath)) {
-                //FinalTargetPosition = targetTransform.position;
                 WorldPathArray = _navPath.corners;
             } else {
                 WorldPathArray = Array.Empty<Vector3>();
@@ -55,21 +53,6 @@ namespace Train.Navigation {
         public Vector3[] GetUpdatedPath() {
             UpdatePathData();
             return GetPathArray();
-        }
-
-        public Vector3[] GetPathDeltas() {
-            if (WorldPathArray == null || WorldPathArray.Length < 2) {
-                return Array.Empty<Vector3>();
-            }
-
-            int vectorCount = WorldPathArray.Length - 1;
-            Vector3[] pathVectors = new Vector3[vectorCount];
-
-            for (int i = 0; i < vectorCount; i++) {
-                pathVectors[i] = WorldPathArray[i + 1] - WorldPathArray[i];
-            }
-
-            return pathVectors;
         }
     }
 }
