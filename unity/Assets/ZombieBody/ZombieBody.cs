@@ -8,8 +8,16 @@ namespace ZombieBody {
         private ArticulationBody _pelvis;
         private readonly List<ArticulationBody> _articulationBodies = new();
 
+        private struct JointLimitCache {
+            public float LowerLimit;
+            public float UpperLimit;
+        }
+
+        private readonly List<JointLimitCache[]> _jointLimitCaches = new();
+
         private void Awake() {
             _articulationBodies.Clear();
+            _jointLimitCaches.Clear();
 
             ArticulationBody[] articulationBodies = GetComponentsInChildren<ArticulationBody>();
 
@@ -18,8 +26,24 @@ namespace ZombieBody {
             string log = "Zombie Body Structure:\n";
             log += $"{_pelvis.name} {_pelvis.dofCount}DoF\n";
             for (int i = 1; i < articulationBodies.Length; i++) {
-                _articulationBodies.Add(articulationBodies[i]);
-                log += $"{articulationBodies[i].name} {articulationBodies[i].dofCount}DoF\n";
+                ArticulationBody body = articulationBodies[i];
+                _articulationBodies.Add(body);
+                log += $"{body.name} {body.dofCount}DoF\n";
+
+                if (body.dofCount <= 0) {
+                    continue;
+                }
+
+                JointLimitCache[] limitCache = new JointLimitCache[body.dofCount];
+
+                for (int j = 0; j < body.dofCount; j++) {
+                    ArticulationDrive drive = GetDriveForAxis(body, j);
+                    limitCache[j] = new JointLimitCache {
+                        LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
+                    };
+                }
+
+                _jointLimitCaches.Add(limitCache);
             }
 
             Debug.Log(log);
@@ -29,10 +53,6 @@ namespace ZombieBody {
             List<float[]> result = new();
 
             foreach (ArticulationBody body in _articulationBodies) {
-                if (body.dofCount == 0) {
-                    continue;
-                }
-
                 float[] currentAngles = new float[body.dofCount];
 
                 for (int i = 0; i < body.dofCount; i++) {
@@ -49,10 +69,6 @@ namespace ZombieBody {
             List<float[]> result = new();
 
             foreach (ArticulationBody body in _articulationBodies) {
-                if (body.dofCount == 0) {
-                    continue;
-                }
-
                 float[] currentVelocities = new float[body.dofCount];
 
                 for (int i = 0; i < body.dofCount; i++) {
@@ -74,33 +90,17 @@ namespace ZombieBody {
 
         public float[][] GetNormJointAngleArray() {
             List<float[]> result = new();
+            int arrayIndex = 0;
 
             foreach (ArticulationBody body in _articulationBodies) {
-                if (body.dofCount == 0) {
-                    continue;
-                }
-
-                ArticulationDrive[] drives = new ArticulationDrive[body.dofCount];
-                float[] currentAngles = new float[body.dofCount];
-
-                for (int i = 0; i < body.dofCount; i++) {
-                    currentAngles[i] = body.jointPosition[i];
-
-                    drives[i] = GetDriveForAxis(body, i);
-                }
-
                 float[] normalizedAngles = new float[body.dofCount];
+                JointLimitCache[] limitCache = _jointLimitCaches[arrayIndex++];
 
                 for (int i = 0; i < body.dofCount; i++) {
-                    if (drives[i].lowerLimit >= drives[i].upperLimit) {
-                        Debug.LogError($"Joint {body.name} drive {i} is not Limited!");
-                        return null;
-                    }
-
                     normalizedAngles[i] = Normalization.LinearMinMax(
-                        currentAngles[i],
-                        drives[i].lowerLimit * Mathf.Deg2Rad,
-                        drives[i].upperLimit * Mathf.Deg2Rad
+                        body.jointPosition[i],
+                        limitCache[i].LowerLimit,
+                        limitCache[i].UpperLimit
                     );
                 }
 
@@ -116,10 +116,6 @@ namespace ZombieBody {
             List<float[]> result = new();
 
             foreach (ArticulationBody body in _articulationBodies) {
-                if (body.dofCount == 0) {
-                    continue;
-                }
-
                 float[] normalizedVelocities = new float[body.dofCount];
 
                 for (int i = 0; i < body.dofCount; i++) {

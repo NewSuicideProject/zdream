@@ -2133,7 +2133,7 @@ ArticulationBody:
   m_LinearY: 2
   m_LinearZ: 2
   m_SwingY: 1
-  m_SwingZ: 0
+  m_SwingZ: 1
   m_Twist: 1
   m_XDrive:
     lowerLimit: -30
@@ -2154,10 +2154,10 @@ ArticulationBody:
     targetVelocity: 0
     driveType: 0
   m_ZDrive:
-    lowerLimit: 0
-    upperLimit: 0
-    stiffness: 0
-    damping: 0
+    lowerLimit: -30
+    upperLimit: 30
+    stiffness: 5000
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
