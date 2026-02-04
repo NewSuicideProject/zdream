@@ -872,6 +872,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZombieBody.ZombieBody
   expectedMaxSpeed: 10
+  contacts:
+  - {fileID: 3485215057659731747}
+  - {fileID: 9020273533164236187}
+  - {fileID: 4743989368016516421}
+  - {fileID: 7784266452726279460}
+  contactRange: 0.01
 --- !u!1 &1922574190645850265
 GameObject:
   m_ObjectHideFlags: 0
@@ -2883,6 +2889,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7991705778363450825}
+  - component: {fileID: 4743989368016516421}
   m_Layer: 0
   m_Name: LeftHand
   m_TagString: Untagged
@@ -2910,6 +2917,27 @@ Transform:
   - {fileID: 1512356090195282452}
   m_Father: {fileID: 1473262677752011443}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &4743989368016516421
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8055954256144572147}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.05
+  m_Center: {x: 0, y: 0.075, z: 0}
 --- !u!1 &8079182187004983998
 GameObject:
   m_ObjectHideFlags: 0
@@ -3354,6 +3382,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1990032622070923186}
+  - component: {fileID: 7784266452726279460}
   m_Layer: 0
   m_Name: RightHand
   m_TagString: Untagged
@@ -3381,6 +3410,27 @@ Transform:
   - {fileID: 7500914866712472387}
   m_Father: {fileID: 4680555265465836782}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &7784266452726279460
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9067485741221947131}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.05
+  m_Center: {x: 0, y: 0.075, z: 0}
 --- !u!1 &9139463641497014936
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,8 +10,12 @@ namespace ZombieBody {
 
     public class ZombieBody : MonoBehaviour {
         [SerializeField] private float expectedMaxSpeed = 10f;
+        [SerializeField] private List<Collider> contacts = new();
+        [SerializeField] private float contactRange = 0.01f;
 
         private ArticulationBody _pelvis;
+        private float[] _contactsCache;
+        private Collider[] _overlapBuffer;
         private Quaternion _pelvisInitialRotation;
         private readonly List<ArticulationBody> _articulationBodies = new();
 
@@ -25,6 +29,9 @@ namespace ZombieBody {
         private void Awake() {
             _articulationBodies.Clear();
             _jointLimitCaches.Clear();
+
+            _contactsCache = new float[contacts.Count];
+            _overlapBuffer = new Collider[10];
 
             ArticulationBody[] articulationBodies = GetComponentsInChildren<ArticulationBody>();
 
@@ -56,6 +63,41 @@ namespace ZombieBody {
             }
 
             Debug.Log(log);
+        }
+
+        private void FixedUpdate() => UpdateContacts();
+
+        private void UpdateContacts() {
+            for (int i = 0; i < contacts.Count; i++) {
+                Collider contactCollider = contacts[i];
+
+                int overlapCount = Physics.OverlapSphereNonAlloc(
+                    contactCollider.bounds.center,
+                    contactRange,
+                    _overlapBuffer
+                );
+
+                bool hasContact = false;
+                ArticulationBody selfBody = contactCollider.GetComponentInParent<ArticulationBody>();
+
+                for (int j = 0; j < overlapCount; j++) {
+                    Collider overlap = _overlapBuffer[j];
+
+                    if (overlap == contactCollider) {
+                        continue;
+                    }
+
+                    ArticulationBody otherBody = overlap.GetComponentInParent<ArticulationBody>();
+                    if (otherBody != null && otherBody == selfBody) {
+                        continue;
+                    }
+
+                    hasContact = true;
+                    break;
+                }
+
+                _contactsCache[i] = hasContact ? 1f : 0f;
+            }
         }
 
         private static float[] GetJointAngles(ArticulationBody body) {
@@ -168,6 +210,15 @@ namespace ZombieBody {
             // TODO
             1.0f;
 
+        public Vector3 GetForward() =>
+            _pelvis.transform.forward;
+
+        public float[] GetContacts() =>
+            _contactsCache;
+
+        public float[] GetAttaches() =>
+            new float[contacts.Count];
+
         private void OnDrawGizmos() {
             if (!_pelvis) {
                 return;
@@ -178,12 +229,17 @@ namespace ZombieBody {
             Vector3 gravityVector = GetGravity();
             Gizmos.color = Color.red;
             Gizmos.DrawRay(pelvisPosition, gravityVector);
-            Gizmos.DrawSphere(pelvisPosition + gravityVector, 0.05f);
 
             Vector3 straightGravityVector = GetStraightGravity();
             Gizmos.color = Color.green;
             Gizmos.DrawRay(pelvisPosition, straightGravityVector);
-            Gizmos.DrawSphere(pelvisPosition + straightGravityVector, 0.05f);
+
+
+            for (int i = 0; i < contacts.Count; i++) {
+                Collider contactCollider = contacts[i];
+                Gizmos.color = _contactsCache[i] > 0.5f ? Color.green : Color.red;
+                Gizmos.DrawSphere(contactCollider.bounds.center, 0.025f);
+            }
         }
     }
 }
