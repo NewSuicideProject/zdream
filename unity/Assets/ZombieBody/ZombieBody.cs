@@ -15,11 +15,14 @@ namespace ZombieBody {
 
             _pelvis = articulationBodies[0];
 
-            Debug.Log("Zombie Body Structure:");
+            string log = "Zombie Body Structure:\n";
+            log += $"{_pelvis.name} {_pelvis.dofCount}DoF\n";
             for (int i = 1; i < articulationBodies.Length; i++) {
                 _articulationBodies.Add(articulationBodies[i]);
-                Debug.Log($"{articulationBodies[i].name}");
+                log += $"{articulationBodies[i].name} {articulationBodies[i].dofCount}DoF\n";
             }
+
+            Debug.Log(log);
         }
 
         public float[][] GetJointAngleArray() {
