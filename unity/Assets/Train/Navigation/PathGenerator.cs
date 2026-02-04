@@ -12,6 +12,7 @@ namespace Train.Navigation
         [Header("Output Data")]
         public Vector3 FinalTargetPosition { get; private set; }
         public Vector3[] WorldPathArray { get; private set; }
+        public Vector3[] GetPathArray() => WorldPathArray ?? System.Array.Empty<Vector3>();
 
         private NavMeshPath _navPath;
         private float _timer;
@@ -71,7 +72,6 @@ namespace Train.Navigation
 
             Debug.Log($"[Target] Final Position: {FinalTargetPosition}");
 
-            // 2. 경로 배열(World Position) 전체 출력
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             sb.AppendLine($"[Path] Waypoints Count: {WorldPathArray.Length}");
 
@@ -81,6 +81,30 @@ namespace Train.Navigation
             }
 
             Debug.Log(sb.ToString());
+        }
+
+        public Vector3[] GetUpdatedPath()
+        {
+            UpdatePathData();
+            return GetPathArray();
+        }
+
+        public Vector3[] GetPathDeltas()
+        {
+            if (WorldPathArray == null || WorldPathArray.Length < 2)
+            {
+                return System.Array.Empty<Vector3>();
+            }
+
+            int vectorCount = WorldPathArray.Length - 1;
+            Vector3[] pathVectors = new Vector3[vectorCount];
+
+            for (int i = 0; i < vectorCount; i++)
+            {
+                pathVectors[i] = WorldPathArray[i + 1] - WorldPathArray[i];
+            }
+
+            return pathVectors;
         }
     }
 }
