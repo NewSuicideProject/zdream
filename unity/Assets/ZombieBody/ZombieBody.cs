@@ -82,8 +82,8 @@ namespace ZombieBody {
             axisIndex switch {
                 0 => body.xDrive,
                 1 => body.yDrive,
-                3 => body.zDrive,
-                _ => throw new System.ArgumentOutOfRangeException(nameof(axisIndex), "Invalid axis index")
+                2 => body.zDrive,
+                _ => throw new System.ArgumentOutOfRangeException(nameof(axisIndex), $"Invalid axis index {axisIndex}")
             };
 
         private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, expectedMaxSpeed);
@@ -150,10 +150,10 @@ namespace ZombieBody {
             Vector3.zero;
 
         public Vector3 GetGravity() =>
-            _pelvis.transform.InverseTransformDirection(Physics.gravity);
+            _pelvis.transform.InverseTransformDirection(Physics.gravity).normalized;
 
         public Vector3 GetStraightGravity() =>
-            Quaternion.Inverse(_pelvisInitialRotation) * Physics.gravity;
+            Quaternion.Inverse(_pelvisInitialRotation) * Physics.gravity.normalized;
 
         public Vector3 GetAngularVelocity() =>
             _pelvis.angularVelocity;
@@ -161,8 +161,29 @@ namespace ZombieBody {
         public Vector3 GetLinearVelocity() =>
             _pelvis.linearVelocity;
 
+        public Vector3 GetPosition() =>
+            _pelvis.transform.position;
+
         public float GetIntegrity() =>
             // TODO
             1.0f;
+
+        private void OnDrawGizmos() {
+            if (!_pelvis) {
+                return;
+            }
+
+            Vector3 pelvisPosition = _pelvis.transform.position;
+
+            Vector3 gravityVector = GetGravity();
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(pelvisPosition, gravityVector);
+            Gizmos.DrawSphere(pelvisPosition + gravityVector, 0.05f);
+
+            Vector3 straightGravityVector = GetStraightGravity();
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(pelvisPosition, straightGravityVector);
+            Gizmos.DrawSphere(pelvisPosition + straightGravityVector, 0.05f);
+        }
     }
 }
