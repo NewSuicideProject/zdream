@@ -537,7 +537,7 @@ ArticulationBody:
     lowerLimit: 0
     upperLimit: 120
     stiffness: 5000
-    damping: 100
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -899,6 +899,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1520589561386849863}
   - component: {fileID: 3895953439738972202}
+  - component: {fileID: 5062316325737463570}
   m_Layer: 0
   m_Name: LeftArm
   m_TagString: Untagged
@@ -945,6 +946,72 @@ CapsuleCollider:
   m_Height: 0.30728054
   m_Direction: 1
   m_Center: {x: -0.007796275, y: 0.12134862, z: -0.0000000030188971}
+--- !u!171741748 &5062316325737463570
+ArticulationBody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1964630219221214380}
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Mass: 4
+  m_ParentAnchorPosition: {x: -0.18808213, y: 0.311943, z: -0.0077717043}
+  m_ParentAnchorRotation: {x: 0.003095612, y: 0.000000014901161, z: -0.0000005811453, w: -0.9999951}
+  m_AnchorPosition: {x: 0, y: 0, z: 0}
+  m_AnchorRotation: {x: 0.49999997, y: -0.49999997, z: 0.49999997, w: -0.49999997}
+  m_MatchAnchors: 1
+  m_ArticulationJointType: 3
+  m_LinearX: 2
+  m_LinearY: 2
+  m_LinearZ: 2
+  m_SwingY: 1
+  m_SwingZ: 1
+  m_Twist: 1
+  m_XDrive:
+    lowerLimit: -90
+    upperLimit: 90
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_YDrive:
+    lowerLimit: -30
+    upperLimit: 120
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_ZDrive:
+    lowerLimit: -90
+    upperLimit: 90
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_LinearDamping: 0.05
+  m_AngularDamping: 0.05
+  m_JointFriction: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_Immovable: 0
+  m_UseGravity: 1
+  m_CollisionDetectionMode: 0
 --- !u!1 &2314232170044489437
 GameObject:
   m_ObjectHideFlags: 0
@@ -1480,9 +1547,9 @@ ArticulationBody:
   serializedVersion: 5
   m_Mass: 7
   m_ParentAnchorPosition: {x: 0.0937394, y: -0.0491061, z: -0.005413524}
-  m_ParentAnchorRotation: {x: -0.0016164287, y: -0.009203869, z: 0.99993324, w: 0.006799697}
+  m_ParentAnchorRotation: {x: -0.009203869, y: 0.0016164291, z: 0.006799653, w: -0.99993324}
   m_AnchorPosition: {x: 0, y: 0, z: 0}
-  m_AnchorRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_AnchorRotation: {x: 0, y: 0, z: 1, w: -0.00000004371139}
   m_MatchAnchors: 1
   m_ArticulationJointType: 3
   m_LinearX: 2
@@ -1492,10 +1559,10 @@ ArticulationBody:
   m_SwingZ: 1
   m_Twist: 1
   m_XDrive:
-    lowerLimit: -60
-    upperLimit: 120
-    stiffness: 1000
-    damping: 100
+    lowerLimit: -90
+    upperLimit: 60
+    stiffness: 5000
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -1504,7 +1571,7 @@ ArticulationBody:
     lowerLimit: -45
     upperLimit: 45
     stiffness: 5000
-    damping: 100
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -1512,8 +1579,8 @@ ArticulationBody:
   m_ZDrive:
     lowerLimit: -45
     upperLimit: 45
-    stiffness: 1000
-    damping: 100
+    stiffness: 5000
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -1618,7 +1685,7 @@ ArticulationBody:
     lowerLimit: 0
     upperLimit: 120
     stiffness: 5000
-    damping: 100
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -1987,6 +2054,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6408461406936068385}
   - component: {fileID: 7591079408935803246}
+  - component: {fileID: 2782784776887362004}
   m_Layer: 0
   m_Name: Spine1
   m_TagString: Untagged
@@ -2031,6 +2099,72 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.3, y: 0.32350576, z: 0.1655589}
   m_Center: {x: 0.000000089403436, y: 0.16175017, z: 0.023081392}
+--- !u!171741748 &2782784776887362004
+ArticulationBody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6658923496638122693}
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Mass: 1
+  m_ParentAnchorPosition: {x: 0.000000092684786, y: 0.08836055, z: -0.0136081}
+  m_ParentAnchorRotation: {x: -0.076329716, y: 0.000006622088, z: -0.000061236526, w: 0.99708265}
+  m_AnchorPosition: {x: 0, y: 0, z: 0}
+  m_AnchorRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_MatchAnchors: 1
+  m_ArticulationJointType: 2
+  m_LinearX: 2
+  m_LinearY: 2
+  m_LinearZ: 2
+  m_SwingY: 2
+  m_SwingZ: 2
+  m_Twist: 1
+  m_XDrive:
+    lowerLimit: -30
+    upperLimit: 60
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_YDrive:
+    lowerLimit: 0
+    upperLimit: 0
+    stiffness: 0
+    damping: 0
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_ZDrive:
+    lowerLimit: 0
+    upperLimit: 0
+    stiffness: 0
+    damping: 0
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_LinearDamping: 0.05
+  m_AngularDamping: 0.05
+  m_JointFriction: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_Immovable: 0
+  m_UseGravity: 1
+  m_CollisionDetectionMode: 0
 --- !u!1 &6841068582129852342
 GameObject:
   m_ObjectHideFlags: 0
@@ -2073,6 +2207,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1473262677752011443}
   - component: {fileID: 17871102244259225}
+  - component: {fileID: 2674913658647608145}
   m_Layer: 0
   m_Name: mixamorig5:LeftForeArm
   m_TagString: Untagged
@@ -2119,6 +2254,72 @@ CapsuleCollider:
   m_Height: 0.2690109
   m_Direction: 1
   m_Center: {x: -0.000000001865213, y: 0.14152041, z: -0.0000000027826839}
+--- !u!171741748 &2674913658647608145
+ArticulationBody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7080566057652732564}
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Mass: 4
+  m_ParentAnchorPosition: {x: -0.00000006053597, y: 0.26918957, z: 0.000000022351742}
+  m_ParentAnchorRotation: {x: 0.49854696, y: -0.5014494, z: -0.5014487, w: -0.49854672}
+  m_AnchorPosition: {x: 0, y: 0, z: 0}
+  m_AnchorRotation: {x: 0.49999997, y: -0.49999997, z: -0.49999997, w: -0.49999997}
+  m_MatchAnchors: 1
+  m_ArticulationJointType: 2
+  m_LinearX: 2
+  m_LinearY: 2
+  m_LinearZ: 2
+  m_SwingY: 2
+  m_SwingZ: 2
+  m_Twist: 1
+  m_XDrive:
+    lowerLimit: 0
+    upperLimit: 90
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_YDrive:
+    lowerLimit: 0
+    upperLimit: 0
+    stiffness: 0
+    damping: 0
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_ZDrive:
+    lowerLimit: 0
+    upperLimit: 0
+    stiffness: 0
+    damping: 0
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_LinearDamping: 0.05
+  m_AngularDamping: 0.05
+  m_JointFriction: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_Immovable: 0
+  m_UseGravity: 1
+  m_CollisionDetectionMode: 0
 --- !u!1 &7152620750443786450
 GameObject:
   m_ObjectHideFlags: 0
@@ -2129,6 +2330,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7087660735947624426}
   - component: {fileID: 2803487665350872544}
+  - component: {fileID: 5620064627111617907}
   m_Layer: 0
   m_Name: RightArm
   m_TagString: Untagged
@@ -2175,6 +2377,72 @@ CapsuleCollider:
   m_Height: 0.30728054
   m_Direction: 1
   m_Center: {x: -0.007796275, y: 0.12134862, z: -0.0000000030188971}
+--- !u!171741748 &5620064627111617907
+ArticulationBody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7152620750443786450}
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Mass: 4
+  m_ParentAnchorPosition: {x: 0.18808231, y: 0.311721, z: -0.0063281134}
+  m_ParentAnchorRotation: {x: -0.0019946396, y: -0.00000023841858, z: -0.000002682209, w: 0.999998}
+  m_AnchorPosition: {x: 0, y: 0, z: 0}
+  m_AnchorRotation: {x: 0.49999997, y: 0.49999997, z: -0.49999997, w: -0.49999997}
+  m_MatchAnchors: 1
+  m_ArticulationJointType: 3
+  m_LinearX: 2
+  m_LinearY: 2
+  m_LinearZ: 2
+  m_SwingY: 1
+  m_SwingZ: 1
+  m_Twist: 1
+  m_XDrive:
+    lowerLimit: -90
+    upperLimit: 90
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_YDrive:
+    lowerLimit: -120
+    upperLimit: 30
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_ZDrive:
+    lowerLimit: -90
+    upperLimit: 90
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_LinearDamping: 0.05
+  m_AngularDamping: 0.05
+  m_JointFriction: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_Immovable: 0
+  m_UseGravity: 1
+  m_CollisionDetectionMode: 0
 --- !u!1 &7158918072412470886
 GameObject:
   m_ObjectHideFlags: 0
@@ -2185,6 +2453,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4680555265465836782}
   - component: {fileID: 4288878985843420650}
+  - component: {fileID: 4617779118969330347}
   m_Layer: 0
   m_Name: mixamorig5:RightForeArm
   m_TagString: Untagged
@@ -2231,6 +2500,72 @@ CapsuleCollider:
   m_Height: 0.2690109
   m_Direction: 1
   m_Center: {x: -0.000000001865213, y: 0.14152041, z: -0.0000000027826839}
+--- !u!171741748 &4617779118969330347
+ArticulationBody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7158918072412470886}
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Mass: 4
+  m_ParentAnchorPosition: {x: -0.00000014062971, y: 0.2691906, z: 0.000000037252903}
+  m_ParentAnchorRotation: {x: 0.4982525, y: 0.5017417, z: 0.50174105, w: -0.4982527}
+  m_AnchorPosition: {x: 0, y: 0, z: 0}
+  m_AnchorRotation: {x: 0.49999997, y: 0.49999997, z: 0.49999997, w: -0.49999997}
+  m_MatchAnchors: 1
+  m_ArticulationJointType: 2
+  m_LinearX: 2
+  m_LinearY: 2
+  m_LinearZ: 2
+  m_SwingY: 2
+  m_SwingZ: 2
+  m_Twist: 1
+  m_XDrive:
+    lowerLimit: 0
+    upperLimit: 90
+    stiffness: 5000
+    damping: 200
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_YDrive:
+    lowerLimit: 0
+    upperLimit: 0
+    stiffness: 0
+    damping: 0
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_ZDrive:
+    lowerLimit: 0
+    upperLimit: 0
+    stiffness: 0
+    damping: 0
+    forceLimit: 3.4028235e+38
+    target: 0
+    targetVelocity: 0
+    driveType: 0
+  m_LinearDamping: 0.05
+  m_AngularDamping: 0.05
+  m_JointFriction: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_Immovable: 0
+  m_UseGravity: 1
+  m_CollisionDetectionMode: 0
 --- !u!1 &7378955468865588019
 GameObject:
   m_ObjectHideFlags: 0
@@ -2370,10 +2705,10 @@ ArticulationBody:
   m_Enabled: 1
   serializedVersion: 5
   m_Mass: 4
-  m_ParentAnchorPosition: {x: 0.009654457, y: 0.5192382, z: -0.0010075411}
-  m_ParentAnchorRotation: {x: -0.71236855, y: 0.055804003, z: -0.02846973, w: -0.6990042}
-  m_AnchorPosition: {x: 0.015, y: 0.035, z: -0.05}
-  m_AnchorRotation: {x: -0.31632647, y: 0.07440457, z: -0.024895422, w: -0.94540036}
+  m_ParentAnchorPosition: {x: 0.00005959347, y: 0.5154263, z: -0.005298118}
+  m_ParentAnchorRotation: {x: 0.064531356, y: 0.001058042, z: -0.99755275, w: -0.026896648}
+  m_AnchorPosition: {x: 0.005, y: 0.03, z: -0.05}
+  m_AnchorRotation: {x: 0.07765629, y: -0.45226327, z: -0.8876158, w: -0.039567865}
   m_MatchAnchors: 1
   m_ArticulationJointType: 3
   m_LinearX: 2
@@ -2383,19 +2718,19 @@ ArticulationBody:
   m_SwingZ: 1
   m_Twist: 1
   m_XDrive:
-    lowerLimit: -60
-    upperLimit: 30
-    stiffness: 10000
-    damping: 200
+    lowerLimit: -30
+    upperLimit: 60
+    stiffness: 8000
+    damping: 400
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
     driveType: 0
   m_YDrive:
-    lowerLimit: -20
-    upperLimit: 20
-    stiffness: 10000
-    damping: 200
+    lowerLimit: -45
+    upperLimit: 45
+    stiffness: 8000
+    damping: 400
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2403,8 +2738,8 @@ ArticulationBody:
   m_ZDrive:
     lowerLimit: -30
     upperLimit: 30
-    stiffness: 10000
-    damping: 200
+    stiffness: 8000
+    damping: 400
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2469,10 +2804,10 @@ ArticulationBody:
   m_Enabled: 1
   serializedVersion: 5
   m_Mass: 4
-  m_ParentAnchorPosition: {x: 0.020205673, y: 0.51657546, z: -0.002901079}
-  m_ParentAnchorRotation: {x: 0.7058837, y: 0.05577231, z: -0.029046066, w: 0.70553124}
-  m_AnchorPosition: {x: 0.015, y: 0.035, z: -0.05}
-  m_AnchorRotation: {x: 0.3163264, y: 0.07440462, z: -0.02489543, w: 0.9454003}
+  m_ParentAnchorPosition: {x: -0.00007616542, y: 0.5153093, z: -0.0063717687}
+  m_ParentAnchorRotation: {x: -0.06498488, y: -0.008137077, z: -0.99750334, w: 0.026422556}
+  m_AnchorPosition: {x: -0.005, y: 0.03, z: -0.05}
+  m_AnchorRotation: {x: -0.077656336, y: -0.45226303, z: -0.8876159, w: 0.039567914}
   m_MatchAnchors: 1
   m_ArticulationJointType: 3
   m_LinearX: 2
@@ -2482,19 +2817,19 @@ ArticulationBody:
   m_SwingZ: 1
   m_Twist: 1
   m_XDrive:
-    lowerLimit: -60
-    upperLimit: 30
-    stiffness: 10000
-    damping: 200
+    lowerLimit: -30
+    upperLimit: 60
+    stiffness: 8000
+    damping: 400
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
     driveType: 0
   m_YDrive:
-    lowerLimit: -20
-    upperLimit: 20
-    stiffness: 10000
-    damping: 200
+    lowerLimit: -45
+    upperLimit: 45
+    stiffness: 8000
+    damping: 400
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2502,8 +2837,8 @@ ArticulationBody:
   m_ZDrive:
     lowerLimit: -30
     upperLimit: 30
-    stiffness: 10000
-    damping: 200
+    stiffness: 8000
+    damping: 400
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2752,9 +3087,9 @@ ArticulationBody:
   serializedVersion: 5
   m_Mass: 7
   m_ParentAnchorPosition: {x: -0.09373938, y: -0.049106024, z: -0.0052554444}
-  m_ParentAnchorRotation: {x: 0.001354489, y: -0.015247271, z: 0.9998605, w: -0.0066852327}
+  m_ParentAnchorRotation: {x: -0.015247271, y: -0.0013544883, z: -0.0066852765, w: -0.9998605}
   m_AnchorPosition: {x: 0, y: 0, z: 0}
-  m_AnchorRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_AnchorRotation: {x: 0, y: 0, z: 1, w: -0.00000004371139}
   m_MatchAnchors: 1
   m_ArticulationJointType: 3
   m_LinearX: 2
@@ -2764,10 +3099,10 @@ ArticulationBody:
   m_SwingZ: 1
   m_Twist: 1
   m_XDrive:
-    lowerLimit: -60
-    upperLimit: 120
-    stiffness: 1000
-    damping: 100
+    lowerLimit: -90
+    upperLimit: 60
+    stiffness: 5000
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2776,7 +3111,7 @@ ArticulationBody:
     lowerLimit: -45
     upperLimit: 45
     stiffness: 5000
-    damping: 100
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2784,8 +3119,8 @@ ArticulationBody:
   m_ZDrive:
     lowerLimit: -45
     upperLimit: 45
-    stiffness: 1000
-    damping: 100
+    stiffness: 5000
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
