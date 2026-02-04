@@ -813,7 +813,7 @@ GameObject:
   - component: {fileID: 1360753485437142722}
   - component: {fileID: 4900605519316049080}
   m_Layer: 0
-  m_Name: ZombieArticulationBody
+  m_Name: ZombieBody
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2209,7 +2209,7 @@ GameObject:
   - component: {fileID: 17871102244259225}
   - component: {fileID: 2674913658647608145}
   m_Layer: 0
-  m_Name: mixamorig5:LeftForeArm
+  m_Name: LeftElbow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2455,7 +2455,7 @@ GameObject:
   - component: {fileID: 4288878985843420650}
   - component: {fileID: 4617779118969330347}
   m_Layer: 0
-  m_Name: mixamorig5:RightForeArm
+  m_Name: RightElbow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

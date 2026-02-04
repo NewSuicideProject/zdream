@@ -78,9 +78,9 @@ namespace Test.Scripts {
             _stayTime += Time.fixedDeltaTime;
         }
 
-        private float NormalizeDistance(float distance) => (float)Math.Tanh(distance * _distanceNormalizationFactor);
+        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceNormalizationFactor);
 
-        private float NormalizeSpeed(float speed) => (float)Math.Tanh(speed * _speedNormalizationFactor);
+        private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _speedNormalizationFactor);
 
         private Vector3 NormalizeCoordinate(Vector3 coordinate) =>
             new(
