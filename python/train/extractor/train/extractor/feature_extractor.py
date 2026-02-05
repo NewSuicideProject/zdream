@@ -6,7 +6,7 @@ from .proprioception_mlp import ProprioceptionEncoder
 from .terrain_mlp import TerrainEncoder
 
 
-class CustomFeatureExtractor(BaseFeaturesExtractor):
+class FeatureExtractor(BaseFeaturesExtractor):
     def __init__(self, observation_space, **kwargs):
         super().__init__(observation_space, features_dim=1)
 

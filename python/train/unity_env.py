@@ -17,6 +17,7 @@ class UnityGymEnv(Env):
         self.behavior = list(self.env.behavior_specs.keys())[0]
         spec = self.env.behavior_specs[self.behavior]
 
+        # ML-Agents provides dict-based observations per sensor
         self._obs_names = list(spec.observation_specs.keys())
 
         self.observation_space = spaces.Dict(
@@ -42,13 +43,14 @@ class UnityGymEnv(Env):
         else:
             self.action_space = spaces.Discrete(act_spec.discrete_branches[0])
 
-    def _build_obs(self, decision_steps):
-        return {name: decision_steps.obs[name][0] for name in self._obs_names}
+    def _build_obs(self, steps):
+        return {name: steps.obs[name][0] for name in self._obs_names}
 
     def reset(self, **kwargs):
         self.env.reset()
         decision_steps, _ = self.env.get_steps(self.behavior)
-        return self._build_obs(decision_steps), {}
+        obs = self._build_obs(decision_steps)
+        return obs, {}
 
     def step(self, action):
         if isinstance(self.action_space, spaces.Discrete):
@@ -73,3 +75,6 @@ class UnityGymEnv(Env):
             terminated = False
 
         return obs, reward, terminated, False, {}
+
+    def close(self):
+        self.env.close()

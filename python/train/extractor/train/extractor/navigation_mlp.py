@@ -2,11 +2,16 @@ import torch.nn as nn
 
 
 class NavigationEncoder(nn.Module):
-    def __init__(self, input_dim, hidden_dims, activation_fn):
+    def __init__(
+        self,
+        navigation_input_dim,
+        hidden_dims,
+        activation_fn,
+    ):
         super().__init__()
 
         layers = []
-        last_dim = input_dim
+        last_dim = navigation_input_dim
 
         for h in hidden_dims:
             layers.append(nn.Linear(last_dim, h))

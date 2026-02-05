@@ -1,12 +1,17 @@
 import torch.nn as nn
 
 
-class ProprioceptionEncoder(nn.Module):
-    def __init__(self, input_dim, hidden_dims, activation_fn):
+class TerrainEncoder(nn.Module):
+    def __init__(
+        self,
+        terrain_input_dim,
+        hidden_dims,
+        activation_fn,
+    ):
         super().__init__()
 
         layers = []
-        last_dim = input_dim
+        last_dim = terrain_input_dim
 
         for h in hidden_dims:
             layers.append(nn.Linear(last_dim, h))
