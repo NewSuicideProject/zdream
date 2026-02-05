@@ -812,6 +812,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1360753485437142722}
   - component: {fileID: 4900605519316049080}
+  - component: {fileID: 3879106064394003096}
   m_Layer: 0
   m_Name: ZombieBody
   m_TagString: Untagged
@@ -858,6 +859,25 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3879106064394003096
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1849166048388668536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c53c3c7ec0e7423449e5f1666f859814, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ZombieBody.ZombieBody
+  expectedMaxSpeed: 10
+  contacts:
+  - {fileID: 3485215057659731747}
+  - {fileID: 9020273533164236187}
+  - {fileID: 4743989368016516421}
+  - {fileID: 7784266452726279460}
+  contactRange: 0.01
 --- !u!1 &1922574190645850265
 GameObject:
   m_ObjectHideFlags: 0
@@ -2114,12 +2134,12 @@ ArticulationBody:
   m_AnchorPosition: {x: 0, y: 0, z: 0}
   m_AnchorRotation: {x: 0, y: 0, z: 0, w: 1}
   m_MatchAnchors: 1
-  m_ArticulationJointType: 2
+  m_ArticulationJointType: 3
   m_LinearX: 2
   m_LinearY: 2
   m_LinearZ: 2
-  m_SwingY: 2
-  m_SwingZ: 2
+  m_SwingY: 1
+  m_SwingZ: 1
   m_Twist: 1
   m_XDrive:
     lowerLimit: -30
@@ -2131,19 +2151,19 @@ ArticulationBody:
     targetVelocity: 0
     driveType: 0
   m_YDrive:
-    lowerLimit: 0
-    upperLimit: 0
-    stiffness: 0
-    damping: 0
+    lowerLimit: -45
+    upperLimit: 45
+    stiffness: 5000
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
     driveType: 0
   m_ZDrive:
-    lowerLimit: 0
-    upperLimit: 0
-    stiffness: 0
-    damping: 0
+    lowerLimit: -30
+    upperLimit: 30
+    stiffness: 5000
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2869,6 +2889,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7991705778363450825}
+  - component: {fileID: 4743989368016516421}
   m_Layer: 0
   m_Name: LeftHand
   m_TagString: Untagged
@@ -2896,6 +2917,27 @@ Transform:
   - {fileID: 1512356090195282452}
   m_Father: {fileID: 1473262677752011443}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &4743989368016516421
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8055954256144572147}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.05
+  m_Center: {x: 0, y: 0.075, z: 0}
 --- !u!1 &8079182187004983998
 GameObject:
   m_ObjectHideFlags: 0
@@ -3340,6 +3382,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1990032622070923186}
+  - component: {fileID: 7784266452726279460}
   m_Layer: 0
   m_Name: RightHand
   m_TagString: Untagged
@@ -3367,6 +3410,27 @@ Transform:
   - {fileID: 7500914866712472387}
   m_Father: {fileID: 4680555265465836782}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &7784266452726279460
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9067485741221947131}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.05
+  m_Center: {x: 0, y: 0.075, z: 0}
 --- !u!1 &9139463641497014936
 GameObject:
   m_ObjectHideFlags: 0

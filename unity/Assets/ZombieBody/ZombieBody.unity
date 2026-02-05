@@ -119,63 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &429238416
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.75769
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -1.05494
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1849166048388668536, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
-      propertyPath: m_Name
-      value: ZombieAgent
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
 --- !u!1 &567744364
 GameObject:
   m_ObjectHideFlags: 0
@@ -416,6 +359,63 @@ MonoBehaviour:
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
   m_ObsoleteContactShadows: 0
+--- !u!1001 &1415960745
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1360753485437142722, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1849166048388668536, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
+      propertyPath: m_Name
+      value: ZombieBody
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 8a68ad159965dd34a9f615dcae6497ef, type: 3}
 --- !u!1 &1591703659
 GameObject:
   m_ObjectHideFlags: 0
@@ -585,4 +585,4 @@ SceneRoots:
   - {fileID: 567744366}
   - {fileID: 1921912971}
   - {fileID: 1591703661}
-  - {fileID: 429238416}
+  - {fileID: 1415960745}

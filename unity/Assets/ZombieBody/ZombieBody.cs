@@ -2,131 +2,197 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace ZombieBody {
+    public struct JointBlock {
+        public float[] Angles;
+        public float[] AngularVelocities;
+        public float IsSevered;
+    }
+
     public class ZombieBody : MonoBehaviour {
         [SerializeField] private float expectedMaxSpeed = 10f;
 
         private ArticulationBody _pelvis;
+        private Quaternion _pelvisInitialRotation;
         private readonly List<ArticulationBody> _articulationBodies = new();
+
+        private struct JointLimitCache {
+            public float LowerLimit;
+            public float UpperLimit;
+        }
+
+        private readonly List<JointLimitCache[]> _jointLimitCaches = new();
 
         private void Awake() {
             _articulationBodies.Clear();
+            _jointLimitCaches.Clear();
+
 
             ArticulationBody[] articulationBodies = GetComponentsInChildren<ArticulationBody>();
 
             _pelvis = articulationBodies[0];
+            _pelvisInitialRotation = _pelvis.transform.rotation;
 
-            Debug.Log("Zombie Body Structure:");
+            string log = "Zombie Body Structure:\n";
+            log += $"{_pelvis.name} {_pelvis.dofCount}DoF\n";
             for (int i = 1; i < articulationBodies.Length; i++) {
-                _articulationBodies.Add(articulationBodies[i]);
-                Debug.Log($"{articulationBodies[i].name}");
-            }
-        }
+                ArticulationBody body = articulationBodies[i];
 
-        public float[][] GetJointAngleArray() {
-            List<float[]> result = new();
-
-            foreach (ArticulationBody body in _articulationBodies) {
-                if (body.dofCount == 0) {
+                if (body.dofCount <= 0) {
                     continue;
                 }
 
-                float[] currentAngles = new float[body.dofCount];
+                _articulationBodies.Add(body);
+                log += $"{body.name} {body.dofCount}DoF\n";
 
-                for (int i = 0; i < body.dofCount; i++) {
-                    currentAngles[i] = body.jointPosition[i];
+                JointLimitCache[] limitCache = new JointLimitCache[body.dofCount];
+
+                for (int j = 0; j < body.dofCount; j++) {
+                    ArticulationDrive drive = GetDriveForAxis(body, j);
+                    limitCache[j] = new JointLimitCache {
+                        LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
+                    };
                 }
 
-                result.Add(currentAngles);
+                _jointLimitCaches.Add(limitCache);
             }
 
-            return result.ToArray();
+            Debug.Log(log);
         }
 
-        public float[][] GetJointAngularVelocityArray() {
-            List<float[]> result = new();
 
-            foreach (ArticulationBody body in _articulationBodies) {
-                if (body.dofCount == 0) {
-                    continue;
-                }
+        private static float[] GetJointAngles(ArticulationBody body) {
+            float[] angles = new float[body.dofCount];
 
-                float[] currentVelocities = new float[body.dofCount];
-
-                for (int i = 0; i < body.dofCount; i++) {
-                    currentVelocities[i] = body.jointVelocity[i];
-                }
-
-                result.Add(currentVelocities);
+            for (int i = 0; i < body.dofCount; i++) {
+                angles[i] = body.jointPosition[i];
             }
 
-            return result.ToArray();
+            return angles;
+        }
+
+        private static float[] GetJointAngularVelocities(ArticulationBody body) {
+            float[] velocities = new float[body.dofCount];
+
+            for (int i = 0; i < body.dofCount; i++) {
+                velocities[i] = body.jointVelocity[i];
+            }
+
+            return velocities;
         }
 
         private static ArticulationDrive GetDriveForAxis(ArticulationBody body, int axisIndex) =>
             axisIndex switch {
                 0 => body.xDrive,
                 1 => body.yDrive,
-                _ => body.zDrive
+                2 => body.zDrive,
+                _ => throw new System.ArgumentOutOfRangeException(nameof(axisIndex), $"Invalid axis index {axisIndex}")
             };
 
-        public float[][] GetNormJointAngleArray() {
-            List<float[]> result = new();
+        private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, expectedMaxSpeed);
+
+        private static float[] GetNormJointAngles(ArticulationBody body, JointLimitCache[] limitCache) {
+            float[] normalizedAngles = new float[body.dofCount];
+
+            for (int i = 0; i < body.dofCount; i++) {
+                normalizedAngles[i] = Normalization.LinearMinMax(
+                    body.jointPosition[i],
+                    limitCache[i].LowerLimit,
+                    limitCache[i].UpperLimit
+                );
+            }
+
+            return normalizedAngles;
+        }
+
+        private float[] GetNormJointAngularVelocities(ArticulationBody body) {
+            float[] normalizedVelocities = new float[body.dofCount];
+
+            for (int i = 0; i < body.dofCount; i++) {
+                normalizedVelocities[i] = NormalizeSpeed(body.jointVelocity[i]);
+            }
+
+            return normalizedVelocities;
+        }
+
+
+        public JointBlock[] GetJointBlocks() {
+            List<JointBlock> result = new();
 
             foreach (ArticulationBody body in _articulationBodies) {
-                if (body.dofCount == 0) {
-                    continue;
-                }
-
-                ArticulationDrive[] drives = new ArticulationDrive[body.dofCount];
-                float[] currentAngles = new float[body.dofCount];
-
-                for (int i = 0; i < body.dofCount; i++) {
-                    currentAngles[i] = body.jointPosition[i];
-
-                    drives[i] = GetDriveForAxis(body, i);
-                }
-
-                float[] normalizedAngles = new float[body.dofCount];
-
-                for (int i = 0; i < body.dofCount; i++) {
-                    if (drives[i].lowerLimit >= drives[i].upperLimit) {
-                        Debug.LogError($"Joint {body.name} drive {i} is not Limited!");
-                        return null;
-                    }
-
-                    normalizedAngles[i] = Normalization.LinearMinMax(
-                        currentAngles[i],
-                        drives[i].lowerLimit * Mathf.Deg2Rad,
-                        drives[i].upperLimit * Mathf.Deg2Rad
-                    );
-                }
-
-                result.Add(normalizedAngles);
+                JointBlock block = new() {
+                    Angles = GetJointAngles(body),
+                    AngularVelocities = GetJointAngularVelocities(body),
+                    IsSevered = 0.0f // TODO
+                };
+                result.Add(block);
             }
 
             return result.ToArray();
         }
 
-        private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, expectedMaxSpeed);
-
-        public float[][] GetNormJointAngularVelocityArray() {
-            List<float[]> result = new();
+        public JointBlock[] GetNormJointBlocks() {
+            List<JointBlock> result = new();
+            int arrayIndex = 0;
 
             foreach (ArticulationBody body in _articulationBodies) {
-                if (body.dofCount == 0) {
-                    continue;
-                }
-
-                float[] normalizedVelocities = new float[body.dofCount];
-
-                for (int i = 0; i < body.dofCount; i++) {
-                    normalizedVelocities[i] = NormalizeSpeed(body.jointVelocity[i]);
-                }
-
-                result.Add(normalizedVelocities);
+                JointLimitCache[] limitCache = _jointLimitCaches[arrayIndex++];
+                JointBlock block = new() {
+                    Angles = GetNormJointAngles(body, limitCache),
+                    AngularVelocities = GetNormJointAngularVelocities(body),
+                    IsSevered = 0.0f // TODO
+                };
+                result.Add(block);
             }
 
             return result.ToArray();
+        }
+
+        public Vector3 GetCoMDiff() =>
+            // TODO
+            Vector3.zero;
+
+        public Vector3 GetGravity() =>
+            _pelvis.transform.InverseTransformDirection(Physics.gravity).normalized;
+
+        public Vector3 GetStraightGravity() =>
+            Quaternion.Inverse(_pelvisInitialRotation) * Physics.gravity.normalized;
+
+        public Vector3 GetAngularVelocity() =>
+            _pelvis.angularVelocity;
+
+        public Vector3 GetLinearVelocity() =>
+            _pelvis.linearVelocity;
+
+        public Vector3 GetPosition() =>
+            _pelvis.transform.position;
+
+        public float GetIntegrity() =>
+            // TODO
+            1.0f;
+
+        public Vector3 GetForward() =>
+            _pelvis.transform.forward;
+
+        public float[] GetContacts() =>
+            new float[4];
+
+        public float[] GetAttaches() =>
+            new float[4];
+
+        private void OnDrawGizmos() {
+            if (!_pelvis) {
+                return;
+            }
+
+            Vector3 pelvisPosition = _pelvis.transform.position;
+
+            Vector3 gravityVector = GetGravity();
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(pelvisPosition, gravityVector);
+
+            Vector3 straightGravityVector = GetStraightGravity();
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(pelvisPosition, straightGravityVector);
         }
     }
 }
