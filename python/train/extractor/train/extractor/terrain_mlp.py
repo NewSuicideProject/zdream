@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 
-class StreamBEncoder(nn.Module):
+class TerrainEncoder(nn.Module):
     def __init__(self, input_dim, hidden_dims, activation_fn):
         super().__init__()
 
