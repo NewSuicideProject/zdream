@@ -1,10 +1,13 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using Unity.AI.Navigation;
 
 namespace Train.Navigation {
     public class Navigator : MonoBehaviour {
-        [Header("Settings")] [SerializeField] private Transform targetTransform;
+        [Header("Settings")]
+        [SerializeField] private Transform targetTransform;
+        [SerializeField] private NavMeshSurface navMeshSurface;
         [SerializeField] private float updateInterval = 0.1f;
 
         private Vector3[] WorldPathArray { get; set; }
@@ -17,18 +20,29 @@ namespace Train.Navigation {
 
         private void Start() => UpdatePathData();
 
-        private void Update() {
+        private void FixedUpdate() {
             if (!targetTransform) {
                 return;
             }
 
-            _timer += Time.deltaTime;
+            _timer += Time.fixedDeltaTime;
             if (!(_timer >= updateInterval)) {
                 return;
             }
 
+            ExecuteNavigation();
             DrawPathDebug();
             _timer = 0f;
+        }
+
+        private void ExecuteNavigation() {
+            if (!navMeshSurface) {
+                return;
+            }
+
+            navMeshSurface.BuildNavMesh();
+
+            UpdatePathData();
         }
 
         private void UpdatePathData() {
