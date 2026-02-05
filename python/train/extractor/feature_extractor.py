@@ -1,9 +1,9 @@
 import torch
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
-from .navigation_mlp import NavigationEncoder
-from .proprioception_mlp import ProprioceptionEncoder
-from .terrain_mlp import TerrainEncoder
+from .encoder.navigation_encoder import NavigationEncoder
+from .encoder.proprioception_encoder import TerrainEncoder
+from .encoder.terrain_encoder import ProprioceptionEncoder
 
 
 class FeatureExtractor(BaseFeaturesExtractor):
