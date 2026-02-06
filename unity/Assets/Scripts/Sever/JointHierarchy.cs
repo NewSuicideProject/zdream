@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Train.AgentBody.Scripts {
+namespace Sever {
     public class JointHierarchy : MonoBehaviour {
         public Quaternion RootStraightQuat { get; private set; }
         public JointNode RootJointNode { get; private set; }

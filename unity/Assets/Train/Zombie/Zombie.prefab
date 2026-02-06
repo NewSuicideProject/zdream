@@ -813,8 +813,9 @@ GameObject:
   - component: {fileID: 1360753485437142722}
   - component: {fileID: 4900605519316049080}
   - component: {fileID: 3879106064394003096}
+  - component: {fileID: 8494265002610849919}
   m_Layer: 0
-  m_Name: ZombieBody
+  m_Name: Zombie
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -871,7 +872,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c53c3c7ec0e7423449e5f1666f859814, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZombieBody.ZombieBody
-  expectedMaxSpeed: 10
+--- !u!114 &8494265002610849919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1849166048388668536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edd8c6e696df1a94eae76f3e8556b123, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Train.AgentBody.Scripts.Proprioception
 --- !u!1 &1922574190645850265
 GameObject:
   m_ObjectHideFlags: 0
@@ -2718,7 +2730,7 @@ ArticulationBody:
   m_GameObject: {fileID: 7982579204568939650}
   m_Enabled: 1
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 2
   m_ParentAnchorPosition: {x: 0.00005959347, y: 0.5154263, z: -0.005298118}
   m_ParentAnchorRotation: {x: 0.064531356, y: 0.001058042, z: -0.99755275, w: -0.026896648}
   m_AnchorPosition: {x: 0.005, y: 0.03, z: -0.05}
@@ -2817,7 +2829,7 @@ ArticulationBody:
   m_GameObject: {fileID: 7999848332112151411}
   m_Enabled: 1
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 2
   m_ParentAnchorPosition: {x: -0.00007616542, y: 0.5153093, z: -0.0063717687}
   m_ParentAnchorRotation: {x: -0.06498488, y: -0.008137077, z: -0.99750334, w: 0.026422556}
   m_AnchorPosition: {x: -0.005, y: 0.03, z: -0.05}

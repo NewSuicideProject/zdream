@@ -1,6 +1,7 @@
+using Sever;
 using UnityEngine;
 
-namespace Train.AgentBody.Scripts {
+namespace Train {
     [RequireComponent(typeof(JointHierarchy))]
     public class Proprioception : MonoBehaviour {
         private JointHierarchy _jointHierarchy;
@@ -75,7 +76,7 @@ namespace Train.AgentBody.Scripts {
 
 
         private void OnDrawGizmos() {
-            if (!_jointHierarchy.RootJointNode.Body) {
+            if (!_jointHierarchy) {
                 return;
             }
 
