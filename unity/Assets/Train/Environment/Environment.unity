@@ -590,11 +590,11 @@ MonoBehaviour:
   zombieSpawnDebugMaterial: {fileID: 0}
   targetSpawnDebugMaterial: {fileID: 0}
   tintWithPropertyBlock: 1
-  width: 256
-  height: 256
+  width: 72
+  height: 72
   cellSize: 1
   wallSize: {x: 1, y: 5, z: 1}
-  initialWallFill: 0.45
+  initialWallFill: 0.39
   minSpawnManhattanDistance: 80
   loopDoorRatio: 0.25
   seed: 0
