@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Sever {
     public class JointNodeBase {
+        public GameObject GameObject;
         public bool LocalIsSevered;
         public readonly List<JointNodeBase> Children = new();
         public JointNodeBase Parent;

@@ -812,8 +812,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1360753485437142722}
   - component: {fileID: 4900605519316049080}
-  - component: {fileID: 3879106064394003096}
-  - component: {fileID: 8494265002610849919}
+  - component: {fileID: 8780102705714806888}
+  - component: {fileID: 5254583176159503731}
   m_Layer: 0
   m_Name: Zombie
   m_TagString: Untagged
@@ -860,7 +860,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &3879106064394003096
+--- !u!114 &8780102705714806888
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -869,10 +869,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1849166048388668536}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c53c3c7ec0e7423449e5f1666f859814, type: 3}
+  m_Script: {fileID: 11500000, guid: 296f8fcf88db44cf89077a232886aa15, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ZombieBody.ZombieBody
---- !u!114 &8494265002610849919
+  m_EditorClassIdentifier: Assembly-CSharp::Train.Sever.TrainJointHierachy
+--- !u!114 &5254583176159503731
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -883,7 +883,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: edd8c6e696df1a94eae76f3e8556b123, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Train.AgentBody.Scripts.Proprioception
+  m_EditorClassIdentifier: Assembly-CSharp::Train.Proprioception
 --- !u!1 &1922574190645850265
 GameObject:
   m_ObjectHideFlags: 0

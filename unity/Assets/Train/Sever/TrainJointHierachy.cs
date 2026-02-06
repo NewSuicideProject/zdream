@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Sever;
 using UnityEngine;
@@ -7,22 +8,26 @@ namespace Train.Sever {
     public class TrainJointHierachy : JointHierarchyBase {
         public Quaternion RootStraightQuat { get; private set; }
 
-        public int TotalDoF => TrainJointNodes.Sum(node => node.Body.dofCount);
+        [NonSerialized] public int TotalDoF;
 
-        public TrainJointNode RootTrainJointNode => (TrainJointNode)RootJointNode;
-        public List<TrainJointNode> TrainJointNodes => Nodes.Cast<TrainJointNode>().ToList();
+        public TrainJointNode RootTrainJointNode;
+        public List<TrainJointNode> TrainJointNodes;
 
         protected override void Awake() {
             base.Awake();
 
             RootStraightQuat = RootTrainJointNode.Body.transform.rotation;
+
+            TrainJointNodes = Nodes.Cast<TrainJointNode>().ToList();
+            TotalDoF = TrainJointNodes.Sum(node => node.Body.dofCount);
+            RootTrainJointNode = (TrainJointNode)RootJointNode;
         }
 
         protected override bool IsJoint(GameObject obj) => obj.GetComponent<ArticulationBody>() != null;
 
         protected override JointNodeBase GetJointNode(GameObject obj, JointNodeBase parent) {
             ArticulationBody body = obj.GetComponent<ArticulationBody>();
-            TrainJointNode node = new() { Body = body, LocalIsSevered = false, Parent = parent };
+            TrainJointNode node = new() { GameObject = obj, Body = body, LocalIsSevered = false, Parent = parent };
 
             if (body.dofCount > 0) {
                 node.JointLimitCache = new JointLimitCache[body.dofCount];
