@@ -7,27 +7,35 @@ from .encoders.terrain_encoder import TerrainEncoder
 
 
 class FeatureExtractor(BaseFeaturesExtractor):
-    def __init__(self, observation_space, **kwargs):
+    def __init__(
+        self,
+        observation_space,
+        navigation_kwargs=None,
+        proprioception_kwargs=None,
+        terrain_kwargs=None,
+    ):
         super().__init__(observation_space, features_dim=1)
 
-        activation_fn = kwargs["activation_fn"]
+        if navigation_kwargs is None:
+            navigation_kwargs = {}
+        if proprioception_kwargs is None:
+            proprioception_kwargs = {}
+        if terrain_kwargs is None:
+            terrain_kwargs = {}
 
         self.navigation = NavigationEncoder(
             input_dim=observation_space["navigation"].shape[0],
-            hidden_dims=kwargs["net_arch_navigation"],
-            activation_fn=activation_fn,
+            **navigation_kwargs,
         )
 
         self.terrain = TerrainEncoder(
             input_dim=observation_space["terrain"].shape[0],
-            hidden_dims=kwargs["net_arch_terrain"],
-            activation_fn=activation_fn,
+            **terrain_kwargs,
         )
 
         self.proprioception = ProprioceptionEncoder(
             input_dim=observation_space["proprioception"].shape[0],
-            hidden_dims=kwargs["net_arch_proprioception"],
-            activation_fn=activation_fn,
+            **proprioception_kwargs,
         )
 
         self._features_dim = (
