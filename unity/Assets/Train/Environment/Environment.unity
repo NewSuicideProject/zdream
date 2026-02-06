@@ -622,15 +622,20 @@ MonoBehaviour:
   zombieSpawnDebugMaterial: {fileID: 2100000, guid: 43448911d687eca46b018de80e6807e6, type: 2}
   targetSpawnDebugMaterial: {fileID: 2100000, guid: 0b2e4bb07daf6344482cb2c44d472c60, type: 2}
   tintWithPropertyBlock: 1
-  width: 77
+  width: 76
   height: 77
   cellSize: 1
   wallSize: {x: 1, y: 5, z: 1}
-  initialWallFill: 0.468
-  minSpawnManhattanDistance: 80
+  initialWallFill: 0.415
+  minSpawnManhattanDistance: 60
   loopDoorRatio: 0.25
   seed: 0
   useRandomSeed: 1
+  enableVariableRoadWidth: 1
+  roadWidth2Chance: 0.5
+  roadWidth3Chance: 0.1
+  maxRoadWidth: 3
+  carvePathIfDisconnected: 0
   fenceParent: {fileID: 886061718}
   fenceContainerName: FenceContainer
   spawnFences: 1
@@ -638,15 +643,15 @@ MonoBehaviour:
   fencePrefab: {fileID: 0}
   fenceHeight: 0.8
   fenceThickness: 0.12
-  fenceYOffset: 0
+  fenceYOffset: 0.02
   pickOneDoorPerPair: 1
   doorPickMode: 2
-  maxFenceCount: 33
-  deterministicFenceSeed: 0
-  fenceSeed: 341412
+  maxFenceCount: 44
+  deterministicFenceSeed: 1
+  fenceSeed: 12345
   enableThroatFallback: 1
   minFenceSpacingCells: 6
-  fenceLengthFactor: 1
+  fenceLengthFactor: 2
 --- !u!1 &1067998556
 GameObject:
   m_ObjectHideFlags: 0
@@ -924,7 +929,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Movement
   inputActions: {fileID: -944628639613478452, guid: d1fbcd158d573bc47aa627dedcf8be20, type: 3}
-  moveSpeed: 10
+  moveSpeed: 60
   fastMoveMultiplier: 5
   lookSensitivity: 0.1
   minVerticalAngle: -80

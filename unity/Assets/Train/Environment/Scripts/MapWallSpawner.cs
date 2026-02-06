@@ -45,6 +45,28 @@ public sealed class MapWallSpawner : MonoBehaviour {
     [SerializeField] private bool useRandomSeed = true;
 
     // =========================================================
+    // Road width post-process (segment-based)
+    // =========================================================
+    [Header("Road Width (1/2/3 cells) - Segment Based")]
+    [Tooltip("If true, widen ONLY corridor segments (room-to-room links). Width does NOT change per-cell.")]
+    [SerializeField]
+    private bool enableVariableRoadWidth = true;
+
+    [Tooltip("Chance that a corridor segment becomes width=2 (if width=3 not chosen).")]
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float roadWidth2Chance = 0.22f;
+
+    [Tooltip("Chance that a corridor segment becomes width=3.")] [Range(0f, 1f)] [SerializeField]
+    private float roadWidth3Chance = 0.10f;
+
+    [Tooltip("Clamp road width to 1..3.")] [SerializeField]
+    private int maxRoadWidth = 3;
+
+    [Tooltip("If no path exists, carve a simple L tunnel first (only opens extra).")] [SerializeField]
+    private bool carvePathIfDisconnected = true;
+
+    // =========================================================
     // Fence container
     // =========================================================
     [Header("Fence Container")]
@@ -98,6 +120,7 @@ public sealed class MapWallSpawner : MonoBehaviour {
     private MaterialPropertyBlock _mpb;
 
     private readonly List<GameObject> _spawnedFences = new();
+    private readonly List<Vector2Int> _mainPath = new(4096);
 
     private void Start() {
         if (basePart == null) {
@@ -129,6 +152,13 @@ public sealed class MapWallSpawner : MonoBehaviour {
         bool[,] walls =
             MapGeneration.GenerateWallMatrix(genCfg, rng, out Vector2Int zombieCell, out Vector2Int targetCell);
 
+        // =========================================================
+        // Segment-based corridor widening (room-to-room links only)
+        // =========================================================
+        if (enableVariableRoadWidth) {
+            PostProcess_VariableWidthMainRoute_SegmentBased(walls, zombieCell, targetCell, rng);
+        }
+
         ApplySpawnMarkersAndDebug(parent, zombieCell, targetCell);
         SpawnWalls(parent, walls);
 
@@ -143,12 +173,322 @@ public sealed class MapWallSpawner : MonoBehaviour {
     }
 
     // =========================================================
+    // Road width post-process (SEGMENT BASED)
+    // =========================================================
+    private void PostProcess_VariableWidthMainRoute_SegmentBased(bool[,] walls, Vector2Int start, Vector2Int goal,
+        System.Random rng) {
+        _mainPath.Clear();
+
+        bool hasPath = TryFindPathBFS(walls, start, goal, _mainPath);
+
+        if (!hasPath && carvePathIfDisconnected) {
+            CarveLTunnel(walls, start, goal, rng);
+            _mainPath.Clear();
+            hasPath = TryFindPathBFS(walls, start, goal, _mainPath);
+        }
+
+        if (!hasPath || _mainPath.Count < 2) {
+            return;
+        }
+
+        int wClamp = Mathf.Clamp(maxRoadWidth, 1, 3);
+
+        // Build "room core" mask once (heuristic)
+        bool[,] isRoomCore = BuildRoomCoreMask(walls);
+
+        // Walk the main path:
+        // - inside room core: DO NOT change width per-cell (we keep whatever map already has)
+        // - outside room core: corridor segment => choose width ONCE for the whole segment
+        int i = 1;
+        while (i < _mainPath.Count) {
+            Vector2Int cur = _mainPath[i];
+
+            if (isRoomCore[cur.y, cur.x]) {
+                // Keep room area as-is (no per-cell width variation logic).
+                SetWalkable(walls, cur);
+                i++;
+                continue;
+            }
+
+            // corridor segment = until we enter room core again (or path ends)
+            int segStart = i;
+            int segEnd = i;
+
+            while (segEnd < _mainPath.Count && !isRoomCore[_mainPath[segEnd].y, _mainPath[segEnd].x]) {
+                segEnd++;
+            }
+
+            int corridorWidth = SampleRoadWidthForSegment(rng, wClamp);
+
+            for (int k = segStart; k < segEnd; k++) {
+                Vector2Int p = _mainPath[k];
+                Vector2Int prev = _mainPath[k - 1];
+                Vector2Int step = p - prev;
+
+                SetWalkable(walls, p);
+
+                // widen perpendicular to travel direction, using FIXED corridorWidth
+                if (step.x != 0) {
+                    // moving E/W => widen along Y
+                    CarvePerpBandY_Fixed(walls, p, corridorWidth);
+                } else if (step.y != 0) {
+                    // moving N/S => widen along X
+                    CarvePerpBandX_Fixed(walls, p, corridorWidth);
+                } else {
+                    CarvePerpBandX_Fixed(walls, p, corridorWidth);
+                }
+            }
+
+            i = segEnd;
+        }
+    }
+
+    private int SampleRoadWidthForSegment(System.Random rng, int clampMax) {
+        if (clampMax <= 1) {
+            return 1;
+        }
+
+        double r = rng.NextDouble();
+        if (clampMax >= 3 && r < roadWidth3Chance) {
+            return 3;
+        }
+
+        r = rng.NextDouble();
+        if (clampMax >= 2 && r < roadWidth2Chance) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    // Fixed band carving (no per-cell randomness)
+    private void CarvePerpBandX_Fixed(bool[,] walls, Vector2Int center, int widthCells) {
+        SetWalkable(walls, center);
+
+        if (widthCells <= 1) {
+            return;
+        }
+
+        if (widthCells == 2) {
+            // deterministic preference: open both if possible, else whichever exists.
+            // But to keep "fixed", we choose +1 as default and fallback to -1 if OOB.
+            Vector2Int c1 = new(center.x + 1, center.y);
+            Vector2Int c2 = new(center.x - 1, center.y);
+
+            if (InInnerBounds(c1)) {
+                SetWalkable(walls, c1);
+            } else if (InInnerBounds(c2)) {
+                SetWalkable(walls, c2);
+            }
+
+            return;
+        }
+
+        // 3
+        SetWalkable(walls, new Vector2Int(center.x - 1, center.y));
+        SetWalkable(walls, new Vector2Int(center.x + 1, center.y));
+    }
+
+    private void CarvePerpBandY_Fixed(bool[,] walls, Vector2Int center, int widthCells) {
+        SetWalkable(walls, center);
+
+        if (widthCells <= 1) {
+            return;
+        }
+
+        if (widthCells == 2) {
+            Vector2Int c1 = new(center.x, center.y + 1);
+            Vector2Int c2 = new(center.x, center.y - 1);
+
+            if (InInnerBounds(c1)) {
+                SetWalkable(walls, c1);
+            } else if (InInnerBounds(c2)) {
+                SetWalkable(walls, c2);
+            }
+
+            return;
+        }
+
+        // 3
+        SetWalkable(walls, new Vector2Int(center.x, center.y - 1));
+        SetWalkable(walls, new Vector2Int(center.x, center.y + 1));
+    }
+
+    private bool[,] BuildRoomCoreMask(bool[,] walls) {
+        bool[,] core = new bool[height, width];
+
+        for (int y = 1; y < height - 1; y++) {
+            for (int x = 1; x < width - 1; x++) {
+                if (walls[y, x]) {
+                    continue;
+                }
+
+                int open4 = 0;
+                if (!walls[y + 1, x]) {
+                    open4++;
+                }
+
+                if (!walls[y - 1, x]) {
+                    open4++;
+                }
+
+                if (!walls[y, x + 1]) {
+                    open4++;
+                }
+
+                if (!walls[y, x - 1]) {
+                    open4++;
+                }
+
+                // Heuristic A: junction / space
+                bool isSpace = open4 >= 3;
+
+                // Heuristic B: part of 2x2 open block (room-like)
+                bool in2x2 =
+                    (!walls[y, x] && !walls[y, x + 1] && !walls[y + 1, x] && !walls[y + 1, x + 1]) ||
+                    (!walls[y, x] && !walls[y, x - 1] && !walls[y + 1, x] && !walls[y + 1, x - 1]) ||
+                    (!walls[y, x] && !walls[y, x + 1] && !walls[y - 1, x] && !walls[y - 1, x + 1]) ||
+                    (!walls[y, x] && !walls[y, x - 1] && !walls[y - 1, x] && !walls[y - 1, x - 1]);
+
+                core[y, x] = isSpace || in2x2;
+            }
+        }
+
+        return core;
+    }
+
+    private void SetWalkable(bool[,] walls, Vector2Int c) {
+        if (!InInnerBounds(c)) {
+            return;
+        }
+
+        walls[c.y, c.x] = false;
+    }
+
+    private bool InInnerBounds(Vector2Int c) =>
+        // keep a 1-cell margin so we don't carve outside the base
+        c.x > 0 && c.x < width - 1 && c.y > 0 && c.y < height - 1;
+
+    private void CarveLTunnel(bool[,] walls, Vector2Int a, Vector2Int b, System.Random rng) {
+        bool hv = rng.Next(2) == 0;
+
+        if (hv) {
+            CarveLineX(walls, a, new Vector2Int(b.x, a.y));
+            CarveLineY(walls, new Vector2Int(b.x, a.y), b);
+        } else {
+            CarveLineY(walls, a, new Vector2Int(a.x, b.y));
+            CarveLineX(walls, new Vector2Int(a.x, b.y), b);
+        }
+    }
+
+    private void CarveLineX(bool[,] walls, Vector2Int from, Vector2Int to) {
+        int y = from.y;
+        int x0 = Mathf.Min(from.x, to.x);
+        int x1 = Mathf.Max(from.x, to.x);
+        for (int x = x0; x <= x1; x++) {
+            SetWalkable(walls, new Vector2Int(x, y));
+        }
+    }
+
+    private void CarveLineY(bool[,] walls, Vector2Int from, Vector2Int to) {
+        int x = from.x;
+        int y0 = Mathf.Min(from.y, to.y);
+        int y1 = Mathf.Max(from.y, to.y);
+        for (int y = y0; y <= y1; y++) {
+            SetWalkable(walls, new Vector2Int(x, y));
+        }
+    }
+
+    private bool TryFindPathBFS(bool[,] walls, Vector2Int start, Vector2Int goal, List<Vector2Int> outPath) {
+        outPath.Clear();
+
+        if (!InBounds(start) || !InBounds(goal)) {
+            return false;
+        }
+
+        if (walls[start.y, start.x]) {
+            return false;
+        }
+
+        if (walls[goal.y, goal.x]) {
+            return false;
+        }
+
+        int W = width;
+        int H = height;
+
+        Queue<Vector2Int> q = new(8192);
+        Vector2Int[,] prev = new Vector2Int[H, W];
+        bool[,] visited = new bool[H, W];
+
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                prev[y, x] = new Vector2Int(int.MinValue, int.MinValue);
+            }
+        }
+
+        visited[start.y, start.x] = true;
+        q.Enqueue(start);
+
+        Vector2Int[] dirs = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+
+        bool found = false;
+
+        while (q.Count > 0) {
+            Vector2Int cur = q.Dequeue();
+            if (cur == goal) {
+                found = true;
+                break;
+            }
+
+            for (int i = 0; i < 4; i++) {
+                Vector2Int nx = cur + dirs[i];
+                if (!InBounds(nx)) {
+                    continue;
+                }
+
+                if (visited[nx.y, nx.x]) {
+                    continue;
+                }
+
+                if (walls[nx.y, nx.x]) {
+                    continue;
+                }
+
+                visited[nx.y, nx.x] = true;
+                prev[nx.y, nx.x] = cur;
+                q.Enqueue(nx);
+            }
+        }
+
+        if (!found) {
+            return false;
+        }
+
+        Vector2Int p = goal;
+        outPath.Add(p);
+        while (p != start) {
+            Vector2Int pr = prev[p.y, p.x];
+            if (pr.x == int.MinValue) {
+                return false;
+            }
+
+            p = pr;
+            outPath.Add(p);
+        }
+
+        outPath.Reverse();
+        return true;
+    }
+
+    private bool InBounds(Vector2Int c) => c.x >= 0 && c.x < width && c.y >= 0 && c.y < height;
+
+    // =========================================================
     // Fence pipeline with fallback
     // =========================================================
     private void SpawnFences(Transform parent, bool[,] walls, System.Random rng) {
         _spawnedFences.Clear();
 
-        // 1) Try "door links between rooms"
         List<DoorFenceLocator.DoorLink> links = ComputeDoorLinksOrEmpty(walls);
 
         if (links.Count > 0) {
@@ -158,14 +498,13 @@ public sealed class MapWallSpawner : MonoBehaviour {
             }
 
             for (int i = 0; i < count; i++) {
-                // doorLink is adjacent cells; that's not ideal for "blocking" but keep as-is for now.
-                CreateFenceSegmentBetweenCellCenters(fenceParent, links[i].cellA, links[i].cellB);
+                // DoorLink fences now span 1/2/3 based on corridor width.
+                CreateFenceForDoorLink(fenceParent, walls, links[i].cellA, links[i].cellB);
             }
 
             return;
         }
 
-        // 2) Fallback: throat detector inside a single connected component map
         if (enableThroatFallback) {
             SpawnFences_ByThroatFallback(fenceParent, walls, rng);
         }
@@ -187,55 +526,55 @@ public sealed class MapWallSpawner : MonoBehaviour {
     }
 
     /// <summary>
-    /// Finds corridor "throats" and places fences perpendicular to travel direction.
-    /// Works even when the whole map is one connected room.
+    /// Finds corridor-ish places and places fences. Excludes room cores.
+    /// Fence spans 1/2/3 by measuring perpendicular openness.
     /// </summary>
     private void SpawnFences_ByThroatFallback(Transform fenceContainer, bool[,] walls, System.Random rng) {
         float topY = MapGridUtil.GetTopSurfaceY(basePart);
 
-        // collect candidates
+        bool[,] isRoomCore = BuildRoomCoreMask(walls);
+
         List<(Vector2Int cell, bool nsCorridor)> candidates = new(2048);
 
         for (int y = 1; y < height - 1; y++) {
             for (int x = 1; x < width - 1; x++) {
                 if (walls[y, x]) {
-                    continue; // only walkable
+                    continue;
                 }
 
-                // neighbors
+                if (isRoomCore[y, x]) {
+                    continue; // avoid inside rooms
+                }
+
                 bool n = !walls[y + 1, x];
                 bool s = !walls[y - 1, x];
                 bool e = !walls[y, x + 1];
                 bool w = !walls[y, x - 1];
 
-                // "1-cell wide corridor throat" patterns
-                bool nsCorridor = n && s && !e && !w; // open north/south, walls east/west
-                bool ewCorridor = e && w && !n && !s; // open east/west, walls north/south
+                bool nsCorridor = n && s;
+                bool ewCorridor = e && w;
 
-                if (nsCorridor) {
+                // prefer tighter places but keep permissive
+                if (nsCorridor && (!e || !w)) {
                     candidates.Add((new Vector2Int(x, y), true));
-                } else if (ewCorridor) {
+                } else if (ewCorridor && (!n || !s)) {
                     candidates.Add((new Vector2Int(x, y), false));
                 }
             }
         }
 
         if (candidates.Count == 0) {
-            Debug.LogWarning("[MapWallSpawner] No throat candidates found. (Map may have wide corridors.)");
+            Debug.LogWarning("[MapWallSpawner] No fallback fence candidates found.");
             return;
         }
 
-        // shuffle for variety
         ShuffleInPlace(candidates, rng);
 
-        // spacing control in cell units
         int spacing = Mathf.Max(0, minFenceSpacingCells);
         List<Vector2Int> picked = new(128);
 
         int spawned = 0;
         int limit = maxFenceCount > 0 ? maxFenceCount : int.MaxValue;
-
-        float halfLen = cellSize * fenceLengthFactor * 0.5f;
 
         for (int i = 0; i < candidates.Count && spawned < limit; i++) {
             (Vector2Int c, bool ns) = candidates[i];
@@ -244,13 +583,16 @@ public sealed class MapWallSpawner : MonoBehaviour {
                 continue;
             }
 
-            // world center of the throat cell
-            Vector3 center = _grid.CellToWorldCenter(c, topY);
+            int span = ns
+                ? MeasurePerpOpenWidth_X(walls, c, 3)
+                : MeasurePerpOpenWidth_Y(walls, c, 3);
 
-            // Build endpoints perpendicular to corridor direction
-            // - ns corridor => fence along east-west (Vector3.right)
-            // - ew corridor => fence along north-south (Vector3.forward)
+            span = Mathf.Clamp(span, 1, 3);
+
+            Vector3 center = _grid.CellToWorldCenter(c, topY);
             Vector3 axis = ns ? Vector3.right : Vector3.forward;
+
+            float halfLen = cellSize * fenceLengthFactor * 0.5f * span;
 
             Vector3 a = center - (axis * halfLen);
             Vector3 b = center + (axis * halfLen);
@@ -275,12 +617,82 @@ public sealed class MapWallSpawner : MonoBehaviour {
     }
 
     // =========================================================
+    // DoorLink fence that blocks width 1/2/3
+    // =========================================================
+    private void CreateFenceForDoorLink(Transform parent, bool[,] walls, Vector2Int cellA, Vector2Int cellB) {
+        Vector2Int d = cellB - cellA;
+
+        float topY = MapGridUtil.GetTopSurfaceY(basePart);
+
+        Vector3 aW = _grid.CellToWorldCenter(cellA, topY);
+        Vector3 bW = _grid.CellToWorldCenter(cellB, topY);
+        Vector3 mid = (aW + bW) * 0.5f;
+
+        bool travelNS = d.y != 0;
+
+        // Measure span from both sides and take max (more stable for widened corridors)
+        int spanA = travelNS ? MeasurePerpOpenWidth_X(walls, cellA, 3) : MeasurePerpOpenWidth_Y(walls, cellA, 3);
+        int spanB = travelNS ? MeasurePerpOpenWidth_X(walls, cellB, 3) : MeasurePerpOpenWidth_Y(walls, cellB, 3);
+        int span = Mathf.Clamp(Mathf.Max(spanA, spanB), 1, 3);
+
+        Vector3 axis = travelNS ? Vector3.right : Vector3.forward;
+        float halfLen = cellSize * fenceLengthFactor * 0.5f * span;
+
+        Vector3 p0 = mid - (axis * halfLen);
+        Vector3 p1 = mid + (axis * halfLen);
+
+        CreateFenceSegmentWorld(parent, p0, p1);
+    }
+
+    private int MeasurePerpOpenWidth_X(bool[,] walls, Vector2Int center, int max) {
+        if (max <= 1) {
+            return 1;
+        }
+
+        bool left = IsWalkable(walls, new Vector2Int(center.x - 1, center.y));
+        bool right = IsWalkable(walls, new Vector2Int(center.x + 1, center.y));
+
+        if (max >= 3 && left && right) {
+            return 3;
+        }
+
+        if (left || right) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    private int MeasurePerpOpenWidth_Y(bool[,] walls, Vector2Int center, int max) {
+        if (max <= 1) {
+            return 1;
+        }
+
+        bool down = IsWalkable(walls, new Vector2Int(center.x, center.y - 1));
+        bool up = IsWalkable(walls, new Vector2Int(center.x, center.y + 1));
+
+        if (max >= 3 && down && up) {
+            return 3;
+        }
+
+        if (down || up) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    private bool IsWalkable(bool[,] walls, Vector2Int c) {
+        if (!InInnerBounds(c)) {
+            return false;
+        }
+
+        return !walls[c.y, c.x];
+    }
+
+    // =========================================================
     // Fence creation helpers
     // =========================================================
-
-    /// <summary>
-    /// Creates fence using world endpoints (this matches your "x1,y1-x2,y2 line" intention best).
-    /// </summary>
     private void CreateFenceSegmentWorld(Transform parent, Vector3 worldA, Vector3 worldB) {
         float topY = MapGridUtil.GetTopSurfaceY(basePart);
 
@@ -316,16 +728,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         go.transform.position = p;
 
         _spawnedFences.Add(go);
-    }
-
-    /// <summary>
-    /// Legacy: connects two cell centers (kept for DoorLink mode).
-    /// </summary>
-    private void CreateFenceSegmentBetweenCellCenters(Transform parent, Vector2Int cellA, Vector2Int cellB) {
-        float topY = MapGridUtil.GetTopSurfaceY(basePart);
-        Vector3 a = _grid.CellToWorldCenter(cellA, topY);
-        Vector3 b = _grid.CellToWorldCenter(cellB, topY);
-        CreateFenceSegmentWorld(parent, a, b);
     }
 
     private static void ShuffleInPlace<T>(List<T> list, System.Random rng) {
@@ -520,6 +922,10 @@ public sealed class MapWallSpawner : MonoBehaviour {
 
         minFenceSpacingCells = Mathf.Max(0, minFenceSpacingCells);
         fenceLengthFactor = Mathf.Clamp(fenceLengthFactor, 0.5f, 2.0f);
+
+        maxRoadWidth = Mathf.Clamp(maxRoadWidth, 1, 3);
+        roadWidth2Chance = Mathf.Clamp01(roadWidth2Chance);
+        roadWidth3Chance = Mathf.Clamp01(roadWidth3Chance);
     }
 #endif
 }
