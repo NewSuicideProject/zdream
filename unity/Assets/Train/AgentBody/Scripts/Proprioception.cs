@@ -1,34 +1,34 @@
 using UnityEngine;
 
 namespace Train.AgentBody.Scripts {
-    [RequireComponent(typeof(AgentBody))]
+    [RequireComponent(typeof(JointHierarchy))]
     public class Proprioception : MonoBehaviour {
-        private AgentBody _agentBody;
+        private JointHierarchy _jointHierarchy;
 
-        private void Awake() => _agentBody = GetComponent<AgentBody>();
+        private void Awake() => _jointHierarchy = GetComponent<JointHierarchy>();
 
         public float[] GetJointBlocks(bool normalize = false) {
-            float[] jointBlocks = new float[(_agentBody.DoFCount * 2) + _agentBody.Configs.Count];
+            float[] jointBlocks = new float[(_jointHierarchy.TotalDoF * 2) + _jointHierarchy.Nodes.Count];
             int index = 0;
 
-            foreach (JointConfig config in _agentBody.Configs) {
-                if (config.IsSevered) {
-                    for (int i = 0; i < config.Body.dofCount; i++) {
+            foreach (JointNode node in _jointHierarchy.Nodes) {
+                if (node.IsSevered) {
+                    for (int i = 0; i < node.Body.dofCount; i++) {
                         jointBlocks[index++] = 0.0f;
                     }
 
-                    for (int i = 0; i < config.Body.dofCount; i++) {
+                    for (int i = 0; i < node.Body.dofCount; i++) {
                         jointBlocks[index++] = 0.0f;
                     }
 
                     jointBlocks[index++] = 1.0f;
                 } else {
-                    float[] jointPositions = config.GetJointPositions(normalize);
+                    float[] jointPositions = node.GetJointPositions(normalize);
                     foreach (float position in jointPositions) {
                         jointBlocks[index++] = position;
                     }
 
-                    float[] jointVelocities = config.GetJointVelocities(normalize);
+                    float[] jointVelocities = node.GetJointVelocities(normalize);
                     foreach (float velocity in jointVelocities) {
                         jointBlocks[index++] = velocity;
                     }
@@ -45,27 +45,27 @@ namespace Train.AgentBody.Scripts {
             Vector3.zero;
 
         public Vector3 GetGravity() =>
-            _agentBody.RootJointConfig.Body.transform.InverseTransformDirection(Physics.gravity)
+            _jointHierarchy.RootJointNode.Body.transform.InverseTransformDirection(Physics.gravity)
                 .normalized;
 
         public Vector3 GetStraightGravity() =>
-            Quaternion.Inverse(_agentBody.RootStraightQuat) * Physics.gravity.normalized;
+            Quaternion.Inverse(_jointHierarchy.RootStraightQuat) * Physics.gravity.normalized;
 
         public Vector3 GetAngularVelocity() =>
-            _agentBody.RootJointConfig.Body.angularVelocity;
+            _jointHierarchy.RootJointNode.Body.angularVelocity;
 
         public Vector3 GetLinearVelocity() =>
-            _agentBody.RootJointConfig.Body.linearVelocity;
+            _jointHierarchy.RootJointNode.Body.linearVelocity;
 
         public Vector3 GetPosition() =>
-            _agentBody.RootJointConfig.Body.transform.position;
+            _jointHierarchy.RootJointNode.Body.transform.position;
 
         public float GetIntegrity() =>
             // TODO
             1.0f;
 
         public Vector3 GetForward() =>
-            _agentBody.RootJointConfig.Body.transform.forward;
+            _jointHierarchy.RootJointNode.Body.transform.forward;
 
         public float[] GetContacts() =>
             new float[4];
@@ -75,11 +75,11 @@ namespace Train.AgentBody.Scripts {
 
 
         private void OnDrawGizmos() {
-            if (!_agentBody.RootJointConfig.Body) {
+            if (!_jointHierarchy.RootJointNode.Body) {
                 return;
             }
 
-            Vector3 pelvisPosition = _agentBody.RootJointConfig.Body.transform.position;
+            Vector3 pelvisPosition = _jointHierarchy.RootJointNode.Body.transform.position;
 
             Vector3 gravityVector = GetGravity();
             Gizmos.color = Color.red;

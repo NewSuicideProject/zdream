@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace Train.AgentBody.Scripts {
-    public class JointConfig {
+    public class JointNode {
         private struct JointLimitCache {
             public float LowerLimit;
             public float UpperLimit;
@@ -11,8 +11,8 @@ namespace Train.AgentBody.Scripts {
         public ArticulationBody Body;
         public bool LocalIsSevered;
         private JointLimitCache[] _jointLimitCache;
-        public readonly List<JointConfig> Children = new();
-        public JointConfig Parent;
+        public readonly List<JointNode> Children = new();
+        public JointNode Parent;
 
         private const float _expectedMaxSpeed = 10f;
 
@@ -73,14 +73,14 @@ namespace Train.AgentBody.Scripts {
             return velocities;
         }
 
-        public static JointConfig GetJointConfig(ArticulationBody body, JointConfig parent) {
-            JointConfig config = new() { Body = body, LocalIsSevered = false, Parent = parent };
+        public static JointNode GetJointNode(ArticulationBody body, JointNode parent) {
+            JointNode node = new() { Body = body, LocalIsSevered = false, Parent = parent };
 
             if (body.dofCount > 0) {
-                config._jointLimitCache = new JointLimitCache[body.dofCount];
+                node._jointLimitCache = new JointLimitCache[body.dofCount];
                 for (int i = 0; i < body.dofCount; i++) {
-                    ArticulationDrive drive = config.GetDrive(i);
-                    config._jointLimitCache[i] = new JointLimitCache {
+                    ArticulationDrive drive = node.GetDrive(i);
+                    node._jointLimitCache[i] = new JointLimitCache {
                         LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
                     };
                 }
@@ -92,11 +92,11 @@ namespace Train.AgentBody.Scripts {
                     continue;
                 }
 
-                JointConfig childConfig = GetJointConfig(childBody, config);
-                config.Children.Add(childConfig);
+                JointNode childNode = GetJointNode(childBody, node);
+                node.Children.Add(childNode);
             }
 
-            return config;
+            return node;
         }
     }
 }
