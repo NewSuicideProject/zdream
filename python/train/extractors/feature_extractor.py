@@ -13,7 +13,6 @@ class FeatureExtractor(BaseFeaturesExtractor):
         navigation_kwargs=None,
         proprioception_kwargs=None,
         terrain_kwargs=None,
-        activation_fn=None,
     ):
         super().__init__(observation_space, features_dim=1)
 
@@ -23,8 +22,6 @@ class FeatureExtractor(BaseFeaturesExtractor):
             proprioception_kwargs = {}
         if terrain_kwargs is None:
             terrain_kwargs = {}
-        if activation_fn is None:
-            activation_fn = torch.nn.ReLU
 
         self.navigation = NavigationEncoder(
             input_dim=observation_space["navigation"].shape[0],
