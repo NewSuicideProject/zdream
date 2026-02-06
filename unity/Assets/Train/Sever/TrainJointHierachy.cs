@@ -10,34 +10,23 @@ namespace Train.Sever {
 
         [NonSerialized] public int TotalDoF;
 
-        public TrainJointNode RootTrainJointNode;
-        public List<TrainJointNode> TrainJointNodes;
+        public TrainJointNode RootTrainNode;
+        public List<TrainJointNode> TrainNodes;
 
         protected override void Awake() {
             base.Awake();
 
-            RootStraightQuat = RootTrainJointNode.Body.transform.rotation;
+            RootStraightQuat = RootTrainNode.Body.transform.rotation;
 
-            TrainJointNodes = Nodes.Cast<TrainJointNode>().ToList();
-            TotalDoF = TrainJointNodes.Sum(node => node.Body.dofCount);
-            RootTrainJointNode = (TrainJointNode)RootJointNode;
+            TrainNodes = Nodes.Cast<TrainJointNode>().ToList();
+            TotalDoF = TrainNodes.Sum(node => node.Body.dofCount);
+            RootTrainNode = (TrainJointNode)RootNode;
         }
 
         protected override bool IsJoint(GameObject obj) => obj.GetComponent<ArticulationBody>() != null;
 
         protected override JointNodeBase GetJointNode(GameObject obj, JointNodeBase parent) {
-            ArticulationBody body = obj.GetComponent<ArticulationBody>();
-            TrainJointNode node = new() { GameObject = obj, Body = body, LocalIsSevered = false, Parent = parent };
-
-            if (body.dofCount > 0) {
-                node.JointLimitCache = new JointLimitCache[body.dofCount];
-                for (int i = 0; i < body.dofCount; i++) {
-                    ArticulationDrive drive = node.GetDrive(i);
-                    node.JointLimitCache[i] = new JointLimitCache {
-                        LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
-                    };
-                }
-            }
+            TrainJointNode node = new(obj, parent);
 
             GameObject[] childrenJoint = GetChildrenJoint(obj);
             foreach (GameObject childJoint in childrenJoint) {

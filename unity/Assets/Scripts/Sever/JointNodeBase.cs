@@ -3,19 +3,34 @@ using UnityEngine;
 
 namespace Sever {
     public class JointNodeBase {
-        public GameObject GameObject;
-        public bool LocalIsSevered;
+        protected readonly GameObject Obj;
+        private bool _isSevered;
         public readonly List<JointNodeBase> Children = new();
-        public JointNodeBase Parent;
+        private readonly JointNodeBase _parent;
+
+        public JointNodeBase(GameObject obj, JointNodeBase parent) {
+            Obj = obj;
+            _parent = parent;
+            _isSevered = false;
+        }
+
+        public virtual void Sever() {
+            _isSevered = true;
+            Obj.transform.localScale = Vector3.zero;
+
+            foreach (JointNodeBase child in Children) {
+                child.Sever();
+            }
+        }
 
 
         public bool IsSevered {
             get {
-                if (LocalIsSevered) {
+                if (_isSevered) {
                     return true;
                 }
 
-                return Parent is { IsSevered: true };
+                return _parent is { IsSevered: true };
             }
         }
     }

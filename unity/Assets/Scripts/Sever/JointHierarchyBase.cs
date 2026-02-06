@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Sever {
     public class JointHierarchyBase : MonoBehaviour {
-        protected JointNodeBase RootJointNode { get; private set; }
+        protected JointNodeBase RootNode { get; private set; }
 
         public List<JointNodeBase> Nodes;
 
@@ -26,10 +26,10 @@ namespace Sever {
                 ? gameObject
                 : GetChildrenJoint(gameObject)[0];
 
-            RootJointNode = GetJointNode(rootObj, null);
+            RootNode = GetJointNode(rootObj, null);
 
             Nodes = new List<JointNodeBase>();
-            GetNodes(RootJointNode);
+            GetNodes(RootNode);
         }
 
         private void GetNodes(JointNodeBase node) {
@@ -42,7 +42,7 @@ namespace Sever {
 
 
         protected virtual JointNodeBase GetJointNode(GameObject obj, JointNodeBase parent) {
-            JointNodeBase node = new() { GameObject = obj, LocalIsSevered = false, Parent = parent };
+            JointNodeBase node = new(obj, parent);
             GameObject[] childrenJoint = GetChildrenJoint(obj);
 
             foreach (GameObject childJoint in childrenJoint) {

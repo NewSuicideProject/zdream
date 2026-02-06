@@ -13,7 +13,7 @@ namespace Train {
             float[] jointBlocks = new float[(_jointHierarchy.TotalDoF * 2) + _jointHierarchy.Nodes.Count];
             int index = 0;
 
-            foreach (TrainJointNode node in _jointHierarchy.TrainJointNodes) {
+            foreach (TrainJointNode node in _jointHierarchy.TrainNodes) {
                 if (node.IsSevered) {
                     for (int i = 0; i < node.Body.dofCount; i++) {
                         jointBlocks[index++] = 0.0f;
@@ -47,27 +47,27 @@ namespace Train {
             Vector3.zero;
 
         public Vector3 GetGravity() =>
-            _jointHierarchy.RootTrainJointNode.Body.transform.InverseTransformDirection(Physics.gravity)
+            _jointHierarchy.RootTrainNode.Body.transform.InverseTransformDirection(Physics.gravity)
                 .normalized;
 
         public Vector3 GetStraightGravity() =>
             Quaternion.Inverse(_jointHierarchy.RootStraightQuat) * Physics.gravity.normalized;
 
         public Vector3 GetAngularVelocity() =>
-            _jointHierarchy.RootTrainJointNode.Body.angularVelocity;
+            _jointHierarchy.RootTrainNode.Body.angularVelocity;
 
         public Vector3 GetLinearVelocity() =>
-            _jointHierarchy.RootTrainJointNode.Body.linearVelocity;
+            _jointHierarchy.RootTrainNode.Body.linearVelocity;
 
         public Vector3 GetPosition() =>
-            _jointHierarchy.RootTrainJointNode.Body.transform.position;
+            _jointHierarchy.RootTrainNode.Body.transform.position;
 
         public float GetIntegrity() =>
             // TODO
             1.0f;
 
         public Vector3 GetForward() =>
-            _jointHierarchy.RootTrainJointNode.Body.transform.forward;
+            _jointHierarchy.RootTrainNode.Body.transform.forward;
 
         public float[] GetContacts() =>
             new float[4];
@@ -81,7 +81,7 @@ namespace Train {
                 return;
             }
 
-            Vector3 pelvisPosition = _jointHierarchy.RootTrainJointNode.Body.transform.position;
+            Vector3 pelvisPosition = _jointHierarchy.RootTrainNode.Body.transform.position;
 
             Vector3 gravityVector = GetGravity();
             Gizmos.color = Color.red;
