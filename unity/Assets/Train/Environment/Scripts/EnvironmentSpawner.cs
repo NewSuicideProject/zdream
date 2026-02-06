@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public sealed class MapWallSpawner : MonoBehaviour {
+public sealed class EnvironmentSpawner : MonoBehaviour {
     [Header("Scene refs")] [SerializeField]
     private Transform basePart;
 
@@ -12,19 +12,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
     private Transform zombieSpawnMarker;
 
     [SerializeField] private Transform targetSpawnMarker;
-
-    [Header("Spawn debug visuals")] [SerializeField]
-    private bool spawnDebugCapsules = true;
-
-    [SerializeField] private float capsuleHeight = 2.0f;
-    [SerializeField] private float capsuleRadius = 0.5f;
-    [SerializeField] private float capsuleYOffset = 0.05f;
-
-    [Header("Spawn debug materials (NO Shader.Find)")] [SerializeField]
-    private Material zombieSpawnDebugMaterial;
-
-    [SerializeField] private Material targetSpawnDebugMaterial;
-    [SerializeField] private bool tintWithPropertyBlock = true;
 
     [Header("Grid")] [SerializeField] private int width = 256;
     [SerializeField] private int height = 256;
@@ -44,9 +31,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
     [Header("Random")] [SerializeField] private int seed = 0;
     [SerializeField] private bool useRandomSeed = true;
 
-    // =========================================================
-    // Road width post-process (segment-based)
-    // =========================================================
     [Header("Road Width (1/2/3 cells) - Segment Based")]
     [Tooltip("If true, widen ONLY corridor segments (room-to-room links). Width does NOT change per-cell.")]
     [SerializeField]
@@ -66,9 +50,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
     [Tooltip("If no path exists, carve a simple L tunnel first (only opens extra).")] [SerializeField]
     private bool carvePathIfDisconnected = true;
 
-    // =========================================================
-    // Fence container
-    // =========================================================
     [Header("Fence Container")]
     [Tooltip("If null, a child object named 'FenceContainer' will be created under wallParent/this.")]
     [SerializeField]
@@ -76,9 +57,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
 
     [SerializeField] private string fenceContainerName = "FenceContainer";
 
-    // =========================================================
-    // Fence settings
-    // =========================================================
     [Header("Fence - Door/Corridor Links")] [SerializeField]
     private bool spawnFences = true;
 
@@ -117,7 +95,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
     private float fenceLengthFactor = 1.0f;
 
     private MapGrid _grid;
-    private MaterialPropertyBlock _mpb;
 
     private readonly List<GameObject> _spawnedFences = new();
     private readonly List<Vector2Int> _mainPath = new(4096);
@@ -127,8 +104,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
             Debug.LogError("[MapWallSpawner] BasePart not assigned.");
             return;
         }
-
-        _mpb ??= new MaterialPropertyBlock();
 
         Transform parent = wallParent != null ? wallParent : transform;
 
@@ -152,14 +127,11 @@ public sealed class MapWallSpawner : MonoBehaviour {
         bool[,] walls =
             MapGeneration.GenerateWallMatrix(genCfg, rng, out Vector2Int zombieCell, out Vector2Int targetCell);
 
-        // =========================================================
-        // Segment-based corridor widening (room-to-room links only)
-        // =========================================================
         if (enableVariableRoadWidth) {
             PostProcess_VariableWidthMainRoute_SegmentBased(walls, zombieCell, targetCell, rng);
         }
 
-        ApplySpawnMarkersAndDebug(parent, zombieCell, targetCell);
+        ApplySpawnMarkersOnly(zombieCell, targetCell);
         SpawnWalls(parent, walls);
 
         if (spawnFences) {
@@ -172,9 +144,22 @@ public sealed class MapWallSpawner : MonoBehaviour {
         }
     }
 
-    // =========================================================
-    // Road width post-process (SEGMENT BASED)
-    // =========================================================
+    private void ApplySpawnMarkersOnly(Vector2Int zombieCell, Vector2Int targetCell) {
+        float topY = MapGridUtil.GetTopSurfaceY(basePart);
+
+        // Place empties on top surface (no extra debug capsule y-offset here)
+        Vector3 zombieWorld = _grid.CellToWorldCenter(zombieCell, topY);
+        Vector3 targetWorld = _grid.CellToWorldCenter(targetCell, topY);
+
+        if (zombieSpawnMarker != null) {
+            zombieSpawnMarker.position = zombieWorld;
+        }
+
+        if (targetSpawnMarker != null) {
+            targetSpawnMarker.position = targetWorld;
+        }
+    }
+
     private void PostProcess_VariableWidthMainRoute_SegmentBased(bool[,] walls, Vector2Int start, Vector2Int goal,
         System.Random rng) {
         _mainPath.Clear();
@@ -196,21 +181,16 @@ public sealed class MapWallSpawner : MonoBehaviour {
         // Build "room core" mask once (heuristic)
         bool[,] isRoomCore = BuildRoomCoreMask(walls);
 
-        // Walk the main path:
-        // - inside room core: DO NOT change width per-cell (we keep whatever map already has)
-        // - outside room core: corridor segment => choose width ONCE for the whole segment
         int i = 1;
         while (i < _mainPath.Count) {
             Vector2Int cur = _mainPath[i];
 
             if (isRoomCore[cur.y, cur.x]) {
-                // Keep room area as-is (no per-cell width variation logic).
                 SetWalkable(walls, cur);
                 i++;
                 continue;
             }
 
-            // corridor segment = until we enter room core again (or path ends)
             int segStart = i;
             int segEnd = i;
 
@@ -227,12 +207,9 @@ public sealed class MapWallSpawner : MonoBehaviour {
 
                 SetWalkable(walls, p);
 
-                // widen perpendicular to travel direction, using FIXED corridorWidth
                 if (step.x != 0) {
-                    // moving E/W => widen along Y
                     CarvePerpBandY_Fixed(walls, p, corridorWidth);
                 } else if (step.y != 0) {
-                    // moving N/S => widen along X
                     CarvePerpBandX_Fixed(walls, p, corridorWidth);
                 } else {
                     CarvePerpBandX_Fixed(walls, p, corridorWidth);
@@ -261,7 +238,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         return 1;
     }
 
-    // Fixed band carving (no per-cell randomness)
     private void CarvePerpBandX_Fixed(bool[,] walls, Vector2Int center, int widthCells) {
         SetWalkable(walls, center);
 
@@ -270,8 +246,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         }
 
         if (widthCells == 2) {
-            // deterministic preference: open both if possible, else whichever exists.
-            // But to keep "fixed", we choose +1 as default and fallback to -1 if OOB.
             Vector2Int c1 = new(center.x + 1, center.y);
             Vector2Int c2 = new(center.x - 1, center.y);
 
@@ -284,7 +258,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
             return;
         }
 
-        // 3
         SetWalkable(walls, new Vector2Int(center.x - 1, center.y));
         SetWalkable(walls, new Vector2Int(center.x + 1, center.y));
     }
@@ -309,7 +282,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
             return;
         }
 
-        // 3
         SetWalkable(walls, new Vector2Int(center.x, center.y - 1));
         SetWalkable(walls, new Vector2Int(center.x, center.y + 1));
     }
@@ -340,10 +312,8 @@ public sealed class MapWallSpawner : MonoBehaviour {
                     open4++;
                 }
 
-                // Heuristic A: junction / space
                 bool isSpace = open4 >= 3;
 
-                // Heuristic B: part of 2x2 open block (room-like)
                 bool in2x2 =
                     (!walls[y, x] && !walls[y, x + 1] && !walls[y + 1, x] && !walls[y + 1, x + 1]) ||
                     (!walls[y, x] && !walls[y, x - 1] && !walls[y + 1, x] && !walls[y + 1, x - 1]) ||
@@ -366,7 +336,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
     }
 
     private bool InInnerBounds(Vector2Int c) =>
-        // keep a 1-cell margin so we don't carve outside the base
         c.x > 0 && c.x < width - 1 && c.y > 0 && c.y < height - 1;
 
     private void CarveLTunnel(bool[,] walls, Vector2Int a, Vector2Int b, System.Random rng) {
@@ -421,10 +390,9 @@ public sealed class MapWallSpawner : MonoBehaviour {
         Vector2Int[,] prev = new Vector2Int[H, W];
         bool[,] visited = new bool[H, W];
 
-        for (int y = 0; y < H; y++) {
-            for (int x = 0; x < W; x++) {
-                prev[y, x] = new Vector2Int(int.MinValue, int.MinValue);
-            }
+        for (int y = 0; y < H; y++)
+        for (int x = 0; x < W; x++) {
+            prev[y, x] = new Vector2Int(int.MinValue, int.MinValue);
         }
 
         visited[start.y, start.x] = true;
@@ -498,7 +466,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
             }
 
             for (int i = 0; i < count; i++) {
-                // DoorLink fences now span 1/2/3 based on corridor width.
                 CreateFenceForDoorLink(fenceParent, walls, links[i].cellA, links[i].cellB);
             }
 
@@ -525,10 +492,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         return res.selectedDoorLinks ?? new List<DoorFenceLocator.DoorLink>(0);
     }
 
-    /// <summary>
-    /// Finds corridor-ish places and places fences. Excludes room cores.
-    /// Fence spans 1/2/3 by measuring perpendicular openness.
-    /// </summary>
     private void SpawnFences_ByThroatFallback(Transform fenceContainer, bool[,] walls, System.Random rng) {
         float topY = MapGridUtil.GetTopSurfaceY(basePart);
 
@@ -543,7 +506,7 @@ public sealed class MapWallSpawner : MonoBehaviour {
                 }
 
                 if (isRoomCore[y, x]) {
-                    continue; // avoid inside rooms
+                    continue;
                 }
 
                 bool n = !walls[y + 1, x];
@@ -554,7 +517,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
                 bool nsCorridor = n && s;
                 bool ewCorridor = e && w;
 
-                // prefer tighter places but keep permissive
                 if (nsCorridor && (!e || !w)) {
                     candidates.Add((new Vector2Int(x, y), true));
                 } else if (ewCorridor && (!n || !s)) {
@@ -616,9 +578,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         return false;
     }
 
-    // =========================================================
-    // DoorLink fence that blocks width 1/2/3
-    // =========================================================
     private void CreateFenceForDoorLink(Transform parent, bool[,] walls, Vector2Int cellA, Vector2Int cellB) {
         Vector2Int d = cellB - cellA;
 
@@ -630,7 +589,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
 
         bool travelNS = d.y != 0;
 
-        // Measure span from both sides and take max (more stable for widened corridors)
         int spanA = travelNS ? MeasurePerpOpenWidth_X(walls, cellA, 3) : MeasurePerpOpenWidth_Y(walls, cellA, 3);
         int spanB = travelNS ? MeasurePerpOpenWidth_X(walls, cellB, 3) : MeasurePerpOpenWidth_Y(walls, cellB, 3);
         int span = Mathf.Clamp(Mathf.Max(spanA, spanB), 1, 3);
@@ -690,9 +648,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         return !walls[c.y, c.x];
     }
 
-    // =========================================================
-    // Fence creation helpers
-    // =========================================================
     private void CreateFenceSegmentWorld(Transform parent, Vector3 worldA, Vector3 worldB) {
         float topY = MapGridUtil.GetTopSurfaceY(basePart);
 
@@ -737,9 +692,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         }
     }
 
-    // =========================================================
-    // Fence container helpers
-    // =========================================================
     private Transform EnsureFenceContainer(Transform parent) {
         if (fenceParent != null) {
             return fenceParent;
@@ -775,9 +727,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         _spawnedFences.Clear();
     }
 
-    // =========================================================
-    // Public fence toggle
-    // =========================================================
     public void SetFencesEnabled(bool enabled) {
         fencesEnabled = enabled;
         ApplyFencesEnabledState();
@@ -795,55 +744,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         }
     }
 
-    // =========================================================
-    // Spawn markers + debug
-    // =========================================================
-    private void ApplySpawnMarkersAndDebug(Transform parent, Vector2Int zombieCell, Vector2Int targetCell) {
-        float topY = MapGridUtil.GetTopSurfaceY(basePart);
-
-        Vector3 zombieWorld = _grid.CellToWorldCenter(zombieCell, topY + capsuleYOffset);
-        Vector3 targetWorld = _grid.CellToWorldCenter(targetCell, topY + capsuleYOffset);
-
-        if (zombieSpawnMarker != null) {
-            zombieSpawnMarker.position = zombieWorld;
-        }
-
-        if (targetSpawnMarker != null) {
-            targetSpawnMarker.position = targetWorld;
-        }
-
-        if (!spawnDebugCapsules) {
-            return;
-        }
-
-        SpawnDebugVisuals.CreateSpawnCapsule(
-            "SpawnDebug_Zombie",
-            zombieWorld,
-            parent,
-            capsuleHeight,
-            capsuleRadius,
-            _mpb,
-            zombieSpawnDebugMaterial,
-            Color.green,
-            tintWithPropertyBlock
-        );
-
-        SpawnDebugVisuals.CreateSpawnCapsule(
-            "SpawnDebug_Target",
-            targetWorld,
-            parent,
-            capsuleHeight,
-            capsuleRadius,
-            _mpb,
-            targetSpawnDebugMaterial,
-            Color.red,
-            tintWithPropertyBlock
-        );
-    }
-
-    // =========================================================
-    // Walls
-    // =========================================================
     private void SpawnWalls(Transform parent, bool[,] walls) {
         float topY = MapGridUtil.GetTopSurfaceY(basePart);
         float wallCenterY = topY + (wallSize.y * 0.5f);
@@ -872,9 +772,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         rb.isKinematic = true;
     }
 
-    // =========================================================
-    // Cleanup
-    // =========================================================
     private void ClearSpawnedChildren(Transform parent) {
         List<GameObject> toDestroy = new(parent.childCount);
 
@@ -885,8 +782,7 @@ public sealed class MapWallSpawner : MonoBehaviour {
                 continue;
             }
 
-            if (ch.name.StartsWith("Wall", StringComparison.Ordinal) ||
-                ch.name.StartsWith("SpawnDebug", StringComparison.Ordinal)) {
+            if (ch.name.StartsWith("Wall", StringComparison.Ordinal)) {
                 toDestroy.Add(ch.gameObject);
             }
         }
@@ -912,9 +808,6 @@ public sealed class MapWallSpawner : MonoBehaviour {
         wallSize.x = Mathf.Max(0.01f, wallSize.x);
         wallSize.y = Mathf.Max(0.01f, wallSize.y);
         wallSize.z = Mathf.Max(0.01f, wallSize.z);
-
-        capsuleHeight = Mathf.Max(0.01f, capsuleHeight);
-        capsuleRadius = Mathf.Max(0.01f, capsuleRadius);
 
         fenceHeight = Mathf.Max(0.01f, fenceHeight);
         fenceThickness = Mathf.Max(0.01f, fenceThickness);

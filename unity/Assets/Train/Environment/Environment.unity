@@ -274,6 +274,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 325591178}
+  - component: {fileID: 325591179}
   m_Layer: 0
   m_Name: TargetSpawn
   m_TagString: Untagged
@@ -296,6 +297,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &325591179
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 325591177}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &867856563
 GameObject:
   m_ObjectHideFlags: 0
@@ -615,13 +639,6 @@ MonoBehaviour:
   wallParent: {fileID: 1067998557}
   zombieSpawnMarker: {fileID: 1969526892}
   targetSpawnMarker: {fileID: 325591178}
-  spawnDebugCapsules: 1
-  capsuleHeight: 32
-  capsuleRadius: 1
-  capsuleYOffset: 0.05
-  zombieSpawnDebugMaterial: {fileID: 2100000, guid: 43448911d687eca46b018de80e6807e6, type: 2}
-  targetSpawnDebugMaterial: {fileID: 2100000, guid: 0b2e4bb07daf6344482cb2c44d472c60, type: 2}
-  tintWithPropertyBlock: 1
   width: 76
   height: 77
   cellSize: 1
@@ -943,6 +960,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1969526892}
+  - component: {fileID: 1969526893}
   m_Layer: 0
   m_Name: ZomebieSpawn
   m_TagString: Untagged
@@ -965,6 +983,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &1969526893
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1969526891}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
