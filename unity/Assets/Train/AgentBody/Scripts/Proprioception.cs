@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AgentBody.Scripts {
+namespace Train.AgentBody.Scripts {
     public struct JointBlock {
         public float[] Angles;
         public float[] AngularVelocities;
@@ -11,11 +11,11 @@ namespace AgentBody.Scripts {
 
     public class Proprioception : MonoBehaviour {
         [SerializeField] private float expectedMaxSpeed = 10f;
-        private ZombieBody _zombieBody;
+        private AgentBody _agentBody;
 
         private void Awake() {
-            _zombieBody = GetComponent<ZombieBody>();
-            if (!_zombieBody) {
+            _agentBody = GetComponent<AgentBody>();
+            if (!_agentBody) {
                 Debug.LogError("ZombieBody component not found!");
             }
         }
@@ -70,8 +70,8 @@ namespace AgentBody.Scripts {
         public JointBlock[] GetJointBlocks() {
             List<JointBlock> result = new();
 
-            if (_zombieBody?.RootJointConfig != null) {
-                CollectJointBlocks(_zombieBody.RootJointConfig, result);
+            if (_agentBody?.RootJointConfig != null) {
+                CollectJointBlocks(_agentBody.RootJointConfig, result);
             }
 
             return result.ToArray();
@@ -93,8 +93,8 @@ namespace AgentBody.Scripts {
         public JointBlock[] GetNormJointBlocks() {
             List<JointBlock> result = new();
 
-            if (_zombieBody?.RootJointConfig != null) {
-                CollectNormJointBlocks(_zombieBody.RootJointConfig, result);
+            if (_agentBody?.RootJointConfig != null) {
+                CollectNormJointBlocks(_agentBody.RootJointConfig, result);
             }
 
             return result.ToArray();
@@ -118,27 +118,27 @@ namespace AgentBody.Scripts {
             Vector3.zero;
 
         public Vector3 GetGravity() =>
-            _zombieBody.RootJointConfig.ArticulationBody.transform.InverseTransformDirection(Physics.gravity)
+            _agentBody.RootJointConfig.ArticulationBody.transform.InverseTransformDirection(Physics.gravity)
                 .normalized;
 
         public Vector3 GetStraightGravity() =>
-            Quaternion.Inverse(_zombieBody.RootStraightQuat) * Physics.gravity.normalized;
+            Quaternion.Inverse(_agentBody.RootStraightQuat) * Physics.gravity.normalized;
 
         public Vector3 GetAngularVelocity() =>
-            _zombieBody.RootJointConfig.ArticulationBody.angularVelocity;
+            _agentBody.RootJointConfig.ArticulationBody.angularVelocity;
 
         public Vector3 GetLinearVelocity() =>
-            _zombieBody.RootJointConfig.ArticulationBody.linearVelocity;
+            _agentBody.RootJointConfig.ArticulationBody.linearVelocity;
 
         public Vector3 GetPosition() =>
-            _zombieBody.RootJointConfig.ArticulationBody.transform.position;
+            _agentBody.RootJointConfig.ArticulationBody.transform.position;
 
         public float GetIntegrity() =>
             // TODO
             1.0f;
 
         public Vector3 GetForward() =>
-            _zombieBody.RootJointConfig.ArticulationBody.transform.forward;
+            _agentBody.RootJointConfig.ArticulationBody.transform.forward;
 
         public float[] GetContacts() =>
             new float[4];
@@ -148,11 +148,11 @@ namespace AgentBody.Scripts {
 
 
         private void OnDrawGizmos() {
-            if (!_zombieBody.RootJointConfig.ArticulationBody) {
+            if (!_agentBody.RootJointConfig.ArticulationBody) {
                 return;
             }
 
-            Vector3 pelvisPosition = _zombieBody.RootJointConfig.ArticulationBody.transform.position;
+            Vector3 pelvisPosition = _agentBody.RootJointConfig.ArticulationBody.transform.position;
 
             Vector3 gravityVector = GetGravity();
             Gizmos.color = Color.red;

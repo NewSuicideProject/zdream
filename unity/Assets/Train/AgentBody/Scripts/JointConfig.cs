@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace AgentBody.Scripts {
+namespace Train.AgentBody.Scripts {
     public struct JointLimitCache {
         public float LowerLimit;
         public float UpperLimit;

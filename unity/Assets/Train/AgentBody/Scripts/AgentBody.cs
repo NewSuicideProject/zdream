@@ -1,7 +1,7 @@
 using UnityEngine;
 
-namespace AgentBody.Scripts {
-    public class ZombieBody : MonoBehaviour {
+namespace Train.AgentBody.Scripts {
+    public class AgentBody : MonoBehaviour {
         public Quaternion RootStraightQuat { get; private set; }
         public JointConfig RootJointConfig { get; private set; }
 
