@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace ZombieBody {
+namespace AgentBody.Scripts {
     public struct JointLimitCache {
         public float LowerLimit;
         public float UpperLimit;

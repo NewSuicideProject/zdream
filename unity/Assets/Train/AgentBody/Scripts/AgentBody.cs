@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ZombieBody {
+namespace AgentBody.Scripts {
     public class ZombieBody : MonoBehaviour {
         public Quaternion RootStraightQuat { get; private set; }
         public JointConfig RootJointConfig { get; private set; }
