@@ -150,6 +150,7 @@ Transform:
   m_Children:
   - {fileID: 244669097}
   - {fileID: 1067998557}
+  - {fileID: 886061718}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &244669096
@@ -535,6 +536,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &886061717
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 886061718}
+  m_Layer: 0
+  m_Name: FenceContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &886061718
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886061717}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 164930732}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1030240872
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,18 +619,34 @@ MonoBehaviour:
   capsuleHeight: 32
   capsuleRadius: 1
   capsuleYOffset: 0.05
-  zombieSpawnDebugMaterial: {fileID: 0}
-  targetSpawnDebugMaterial: {fileID: 0}
+  zombieSpawnDebugMaterial: {fileID: 2100000, guid: 43448911d687eca46b018de80e6807e6, type: 2}
+  targetSpawnDebugMaterial: {fileID: 2100000, guid: 0b2e4bb07daf6344482cb2c44d472c60, type: 2}
   tintWithPropertyBlock: 1
-  width: 72
-  height: 72
+  width: 77
+  height: 77
   cellSize: 1
   wallSize: {x: 1, y: 5, z: 1}
-  initialWallFill: 0.39
+  initialWallFill: 0.468
   minSpawnManhattanDistance: 80
   loopDoorRatio: 0.25
   seed: 0
   useRandomSeed: 1
+  fenceParent: {fileID: 886061718}
+  fenceContainerName: FenceContainer
+  spawnFences: 1
+  fencesEnabled: 1
+  fencePrefab: {fileID: 0}
+  fenceHeight: 0.8
+  fenceThickness: 0.12
+  fenceYOffset: 0
+  pickOneDoorPerPair: 1
+  doorPickMode: 2
+  maxFenceCount: 33
+  deterministicFenceSeed: 0
+  fenceSeed: 341412
+  enableThroatFallback: 1
+  minFenceSpacingCells: 6
+  fenceLengthFactor: 1
 --- !u!1 &1067998556
 GameObject:
   m_ObjectHideFlags: 0
