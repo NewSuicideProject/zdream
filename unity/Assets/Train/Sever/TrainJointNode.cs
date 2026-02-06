@@ -20,12 +20,12 @@ namespace Train.Sever {
             base.Sever();
         }
 
-        public TrainJointNode(GameObject obj, JointNodeBase parent) : base(obj,
+        public TrainJointNode(GameObject gameObject, JointNodeBase parent) : base(gameObject,
             parent) {
-            Body = obj.GetComponent<ArticulationBody>();
-            _collider = obj.GetComponent<Collider>();
+            Body = gameObject.GetComponent<ArticulationBody>();
+            _collider = gameObject.GetComponent<Collider>();
             if (_collider == null) {
-                _collider = obj.GetComponentInChildren<Collider>();
+                _collider = gameObject.GetComponentInChildren<Collider>();
             }
 
             if (Body.dofCount <= 0) {

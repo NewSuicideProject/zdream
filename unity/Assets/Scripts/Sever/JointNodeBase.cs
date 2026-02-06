@@ -3,20 +3,20 @@ using UnityEngine;
 
 namespace Sever {
     public class JointNodeBase {
-        protected readonly GameObject Obj;
+        private readonly GameObject _gameObject;
         private bool _isSevered;
         public readonly List<JointNodeBase> Children = new();
         private readonly JointNodeBase _parent;
 
-        public JointNodeBase(GameObject obj, JointNodeBase parent) {
-            Obj = obj;
+        public JointNodeBase(GameObject gameObject, JointNodeBase parent) {
+            _gameObject = gameObject;
             _parent = parent;
             _isSevered = false;
         }
 
         public virtual void Sever() {
             _isSevered = true;
-            Obj.transform.localScale = Vector3.zero;
+            _gameObject.transform.localScale = Vector3.zero;
 
             foreach (JointNodeBase child in Children) {
                 child.Sever();
