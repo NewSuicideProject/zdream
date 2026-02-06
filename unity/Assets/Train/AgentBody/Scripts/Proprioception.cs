@@ -1,116 +1,43 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Train.AgentBody.Scripts {
-    public struct JointBlock {
-        public float[] Angles;
-        public float[] AngularVelocities;
-        public float IsSevered;
-    }
-
-
+    [RequireComponent(typeof(AgentBody))]
     public class Proprioception : MonoBehaviour {
-        [SerializeField] private float expectedMaxSpeed = 10f;
         private AgentBody _agentBody;
 
-        private void Awake() {
-            _agentBody = GetComponent<AgentBody>();
-            if (!_agentBody) {
-                Debug.LogError("ZombieBody component not found!");
-            }
-        }
+        private void Awake() => _agentBody = GetComponent<AgentBody>();
 
-        private static float[] GetJointAngles(ArticulationBody body) {
-            float[] angles = new float[body.dofCount];
+        public float[] GetJointBlocks(bool normalize = false) {
+            float[] jointBlocks = new float[(_agentBody.DoFCount * 2) + _agentBody.Configs.Count];
+            int index = 0;
 
-            for (int i = 0; i < body.dofCount; i++) {
-                angles[i] = body.jointPosition[i];
-            }
+            foreach (JointConfig config in _agentBody.Configs) {
+                if (config.IsSevered) {
+                    for (int i = 0; i < config.Body.dofCount; i++) {
+                        jointBlocks[index++] = 0.0f;
+                    }
 
-            return angles;
-        }
+                    for (int i = 0; i < config.Body.dofCount; i++) {
+                        jointBlocks[index++] = 0.0f;
+                    }
 
-        private static float[] GetJointAngularVelocities(ArticulationBody body) {
-            float[] velocities = new float[body.dofCount];
+                    jointBlocks[index++] = 1.0f;
+                } else {
+                    float[] jointPositions = config.GetJointPositions(normalize);
+                    foreach (float position in jointPositions) {
+                        jointBlocks[index++] = position;
+                    }
 
-            for (int i = 0; i < body.dofCount; i++) {
-                velocities[i] = body.jointVelocity[i];
-            }
+                    float[] jointVelocities = config.GetJointVelocities(normalize);
+                    foreach (float velocity in jointVelocities) {
+                        jointBlocks[index++] = velocity;
+                    }
 
-            return velocities;
-        }
-
-        private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, expectedMaxSpeed);
-
-        private static float[] GetNormJointAngles(ArticulationBody body, JointLimitCache[] limitCache) {
-            float[] normalizedAngles = new float[body.dofCount];
-
-            for (int i = 0; i < body.dofCount; i++) {
-                normalizedAngles[i] = Normalization.LinearMinMax(
-                    body.jointPosition[i],
-                    limitCache[i].LowerLimit,
-                    limitCache[i].UpperLimit
-                );
+                    jointBlocks[index++] = 0.0f;
+                }
             }
 
-            return normalizedAngles;
-        }
-
-        private float[] GetNormJointAngularVelocities(ArticulationBody body) {
-            float[] normalizedVelocities = new float[body.dofCount];
-
-            for (int i = 0; i < body.dofCount; i++) {
-                normalizedVelocities[i] = NormalizeSpeed(body.jointVelocity[i]);
-            }
-
-            return normalizedVelocities;
-        }
-
-
-        public JointBlock[] GetJointBlocks() {
-            List<JointBlock> result = new();
-
-            if (_agentBody?.RootJointConfig != null) {
-                CollectJointBlocks(_agentBody.RootJointConfig, result);
-            }
-
-            return result.ToArray();
-        }
-
-        private void CollectJointBlocks(JointConfig config, List<JointBlock> result) {
-            JointBlock block = new() {
-                Angles = GetJointAngles(config.ArticulationBody),
-                AngularVelocities = GetJointAngularVelocities(config.ArticulationBody),
-                IsSevered = config.IsSevered ? 1.0f : 0.0f
-            };
-            result.Add(block);
-
-            foreach (JointConfig child in config.Children) {
-                CollectJointBlocks(child, result);
-            }
-        }
-
-        public JointBlock[] GetNormJointBlocks() {
-            List<JointBlock> result = new();
-
-            if (_agentBody?.RootJointConfig != null) {
-                CollectNormJointBlocks(_agentBody.RootJointConfig, result);
-            }
-
-            return result.ToArray();
-        }
-
-        private void CollectNormJointBlocks(JointConfig config, List<JointBlock> result) {
-            JointBlock block = new() {
-                Angles = GetNormJointAngles(config.ArticulationBody, config.JointLimitCaches),
-                AngularVelocities = GetNormJointAngularVelocities(config.ArticulationBody),
-                IsSevered = config.IsSevered ? 1.0f : 0.0f
-            };
-            result.Add(block);
-
-            foreach (JointConfig child in config.Children) {
-                CollectNormJointBlocks(child, result);
-            }
+            return jointBlocks;
         }
 
         public Vector3 GetCoMDiff() =>
@@ -118,27 +45,27 @@ namespace Train.AgentBody.Scripts {
             Vector3.zero;
 
         public Vector3 GetGravity() =>
-            _agentBody.RootJointConfig.ArticulationBody.transform.InverseTransformDirection(Physics.gravity)
+            _agentBody.RootJointConfig.Body.transform.InverseTransformDirection(Physics.gravity)
                 .normalized;
 
         public Vector3 GetStraightGravity() =>
             Quaternion.Inverse(_agentBody.RootStraightQuat) * Physics.gravity.normalized;
 
         public Vector3 GetAngularVelocity() =>
-            _agentBody.RootJointConfig.ArticulationBody.angularVelocity;
+            _agentBody.RootJointConfig.Body.angularVelocity;
 
         public Vector3 GetLinearVelocity() =>
-            _agentBody.RootJointConfig.ArticulationBody.linearVelocity;
+            _agentBody.RootJointConfig.Body.linearVelocity;
 
         public Vector3 GetPosition() =>
-            _agentBody.RootJointConfig.ArticulationBody.transform.position;
+            _agentBody.RootJointConfig.Body.transform.position;
 
         public float GetIntegrity() =>
             // TODO
             1.0f;
 
         public Vector3 GetForward() =>
-            _agentBody.RootJointConfig.ArticulationBody.transform.forward;
+            _agentBody.RootJointConfig.Body.transform.forward;
 
         public float[] GetContacts() =>
             new float[4];
@@ -148,11 +75,11 @@ namespace Train.AgentBody.Scripts {
 
 
         private void OnDrawGizmos() {
-            if (!_agentBody.RootJointConfig.ArticulationBody) {
+            if (!_agentBody.RootJointConfig.Body) {
                 return;
             }
 
-            Vector3 pelvisPosition = _agentBody.RootJointConfig.ArticulationBody.transform.position;
+            Vector3 pelvisPosition = _agentBody.RootJointConfig.Body.transform.position;
 
             Vector3 gravityVector = GetGravity();
             Gizmos.color = Color.red;
