@@ -9,22 +9,47 @@ namespace Sever {
 
         protected virtual bool IsJoint(GameObject obj) => true;
 
-        protected GameObject[] GetChildrenJoint(GameObject obj) {
-            List<GameObject> children = new();
-            for (int i = 0; i < obj.transform.childCount; i++) {
-                GameObject child = obj.transform.GetChild(i).gameObject;
-                if (IsJoint(child)) {
-                    children.Add(child);
-                }
+        protected GameObject[] GetChildrenJoint(GameObject parent) {
+            List<GameObject> childrenJoint = new();
+
+            for (int i = 0; i < parent.transform.childCount; i++) {
+                GameObject child = parent.transform.GetChild(i).gameObject;
+                CollectChildren(child, childrenJoint);
             }
 
-            return children.ToArray();
+            return childrenJoint.ToArray();
+
+            void CollectChildren(GameObject obj, List<GameObject> children) {
+                if (IsJoint(obj)) {
+                    children.Add(obj);
+                    return;
+                }
+
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    GameObject child = obj.transform.GetChild(i).gameObject;
+                    CollectChildren(child, children);
+                }
+            }
         }
 
         protected virtual void Awake() {
-            GameObject rootObj = IsJoint(gameObject)
-                ? gameObject
-                : GetChildrenJoint(gameObject)[0];
+            GameObject rootObj;
+            if (IsJoint(gameObject)) {
+                rootObj = gameObject;
+            } else {
+                GameObject[] roots = GetChildrenJoint(gameObject);
+                if (roots.Length == 0) {
+                    Debug.LogError($"[JointHierarchyBase] No Joint found in children of {name}", this);
+                    return;
+                }
+
+                rootObj = roots[0];
+                if (roots.Length > 1) {
+                    Debug.LogWarning(
+                        $"[JointHierarchyBase] Multiple potential roots found under {name}. Using {rootObj.name}.",
+                        this);
+                }
+            }
 
             RootNode = GetJointNode(rootObj, null);
 

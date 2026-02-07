@@ -23,6 +23,15 @@ namespace Sever {
             }
         }
 
+        public virtual void Unsever() {
+            _isSevered = false;
+            _gameObject.transform.localScale = Vector3.one;
+
+            foreach (JointNodeBase child in Children) {
+                child.Unsever();
+            }
+        }
+
 
         public bool IsSevered {
             get {

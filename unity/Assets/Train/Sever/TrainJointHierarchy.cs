@@ -5,7 +5,7 @@ using Sever;
 using UnityEngine;
 
 namespace Train.Sever {
-    public class TrainJointHierachy : JointHierarchyBase {
+    public class TrainJointHierarchy : JointHierarchyBase {
         public Quaternion RootStraightQuat { get; private set; }
 
         [NonSerialized] public int TotalDoF;
@@ -16,11 +16,11 @@ namespace Train.Sever {
         protected override void Awake() {
             base.Awake();
 
+            RootTrainNode = (TrainJointNode)RootNode;
             RootStraightQuat = RootTrainNode.Body.transform.rotation;
 
             TrainNodes = Nodes.Cast<TrainJointNode>().ToList();
             TotalDoF = TrainNodes.Sum(node => node.Body.dofCount);
-            RootTrainNode = (TrainJointNode)RootNode;
         }
 
         protected override bool IsJoint(GameObject obj) => obj.GetComponent<ArticulationBody>() != null;

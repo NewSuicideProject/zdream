@@ -5,9 +5,9 @@ using UnityEngine;
 namespace Train {
     [RequireComponent(typeof(JointHierarchyBase))]
     public class Proprioception : MonoBehaviour {
-        private TrainJointHierachy _jointHierarchy;
+        private TrainJointHierarchy _jointHierarchy;
 
-        private void Awake() => _jointHierarchy = GetComponent<TrainJointHierachy>();
+        private void Awake() => _jointHierarchy = GetComponent<TrainJointHierarchy>();
 
         public float[] GetJointBlocks(bool normalize = false) {
             float[] jointBlocks = new float[(_jointHierarchy.TotalDoF * 2) + _jointHierarchy.Nodes.Count];

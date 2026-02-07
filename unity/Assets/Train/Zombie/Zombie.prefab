@@ -2746,7 +2746,7 @@ ArticulationBody:
   m_XDrive:
     lowerLimit: -30
     upperLimit: 60
-    stiffness: 8000
+    stiffness: 16000
     damping: 400
     forceLimit: 3.4028235e+38
     target: 0
@@ -2755,7 +2755,7 @@ ArticulationBody:
   m_YDrive:
     lowerLimit: -45
     upperLimit: 45
-    stiffness: 8000
+    stiffness: 16000
     damping: 400
     forceLimit: 3.4028235e+38
     target: 0
@@ -2764,7 +2764,7 @@ ArticulationBody:
   m_ZDrive:
     lowerLimit: -30
     upperLimit: 30
-    stiffness: 8000
+    stiffness: 16000
     damping: 400
     forceLimit: 3.4028235e+38
     target: 0
@@ -2845,7 +2845,7 @@ ArticulationBody:
   m_XDrive:
     lowerLimit: -30
     upperLimit: 60
-    stiffness: 8000
+    stiffness: 16000
     damping: 400
     forceLimit: 3.4028235e+38
     target: 0
@@ -2854,7 +2854,7 @@ ArticulationBody:
   m_YDrive:
     lowerLimit: -45
     upperLimit: 45
-    stiffness: 8000
+    stiffness: 16000
     damping: 400
     forceLimit: 3.4028235e+38
     target: 0
@@ -2863,7 +2863,7 @@ ArticulationBody:
   m_ZDrive:
     lowerLimit: -30
     upperLimit: 30
-    stiffness: 8000
+    stiffness: 16000
     damping: 400
     forceLimit: 3.4028235e+38
     target: 0

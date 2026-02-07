@@ -20,6 +20,13 @@ namespace Train.Sever {
             base.Sever();
         }
 
+        public override void Unsever() {
+            _collider.enabled = true;
+            Body.enabled = true;
+
+            base.Unsever();
+        }
+
         public TrainJointNode(GameObject gameObject, JointNodeBase parent) : base(gameObject,
             parent) {
             Body = gameObject.GetComponent<ArticulationBody>();
