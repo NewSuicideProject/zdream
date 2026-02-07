@@ -44,5 +44,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b5e0faff5ab4403a0088fab3ac3b6a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Test.Scripts.TestManager
-  testEnvironmentPrefab: {fileID: 4634089905413009483, guid: d85e26795611a1c4aaa86b72ea420386, type: 3}
+  environmentPrefab: {fileID: 4634089905413009483, guid: d85e26795611a1c4aaa86b72ea420386, type: 3}
   timeScale: 2

@@ -160,5 +160,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Test.Scripts.TestEnvironment
   spawnRange: 20
   minSpawnDistance: 5
-  testAgentPrefab: {fileID: 1773494241456120922, guid: 005eaedd4001466479828c32f826406a, type: 3}
-  testTargetPrefab: {fileID: 7024144856309663006, guid: 7d9dfa717f308514d9ea74d0d0712e21, type: 3}
+  agentPrefab: {fileID: 1773494241456120922, guid: 005eaedd4001466479828c32f826406a, type: 3}
+  targetPrefab: {fileID: 7024144856309663006, guid: 7d9dfa717f308514d9ea74d0d0712e21, type: 3}
