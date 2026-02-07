@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Sever;
 using UnityEngine;
 
 namespace Train.Sever {
     public class TrainJointHierarchy : JointHierarchyBase {
-        public Quaternion RootStraightQuat { get; private set; }
-
-        [NonSerialized] public int TotalDoF;
-
         public TrainJointNode RootTrainNode;
         public List<TrainJointNode> TrainNodes;
 
@@ -17,10 +12,8 @@ namespace Train.Sever {
             base.Awake();
 
             RootTrainNode = (TrainJointNode)RootNode;
-            RootStraightQuat = RootTrainNode.Body.transform.rotation;
 
             TrainNodes = Nodes.Cast<TrainJointNode>().ToList();
-            TotalDoF = TrainNodes.Sum(node => node.Body.dofCount);
         }
 
         protected override bool IsJoint(GameObject obj) => obj.GetComponent<ArticulationBody>() != null;

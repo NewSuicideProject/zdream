@@ -20,11 +20,11 @@ namespace Train.Sever {
             base.Sever();
         }
 
-        public override void Unsever() {
+        public override void Join() {
             _collider.enabled = true;
             Body.enabled = true;
 
-            base.Unsever();
+            base.Join();
         }
 
         public TrainJointNode(GameObject gameObject, JointNodeBase parent) : base(gameObject,
@@ -51,7 +51,7 @@ namespace Train.Sever {
         private static float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _expectedMaxSpeed);
 
 
-        private ArticulationDrive GetDrive(int axisIndex) =>
+        public ArticulationDrive GetDrive(int axisIndex) =>
             axisIndex switch {
                 0 => Body.xDrive,
                 1 => Body.yDrive,
