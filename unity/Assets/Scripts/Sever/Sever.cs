@@ -3,6 +3,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Sever {
+    [RequireComponent(typeof(JointHierarchyBase))]
     public class Sever : MonoBehaviour {
         private JointHierarchyBase _hierarchy;
         private List<JointNodeBase> _severedNodes;
