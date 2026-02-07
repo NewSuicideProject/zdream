@@ -15,7 +15,7 @@ namespace Sever {
 
 
         [ContextMenu("Random Sever Random Count")]
-        public void RandomSeverRandomCount() => RandomSever(Random.Range(0, 3));
+        public void RandomSeverRandomCount() => RandomSever(Random.Range(1, 4));
 
 
         public void RandomSever(int count = 1) {

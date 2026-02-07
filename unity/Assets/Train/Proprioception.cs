@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Sever;
 using Train.Sever;
@@ -8,16 +7,16 @@ namespace Train {
     [RequireComponent(typeof(JointHierarchyBase))]
     public class Proprioception : MonoBehaviour {
         private TrainJointHierarchy _hierarchy;
-        private Quaternion _rootInitialQuat;
-        private Vector3 _rootInitialCoM;
-        [NonSerialized] private int _totalDoF;
+        public Vector3 InitialGravity { get; private set; }
+        public Vector3 InitialCoM { get; private set; }
+        private int _totalDoF;
 
         private void Awake() => _hierarchy = GetComponent<TrainJointHierarchy>();
 
         private void Start() {
-            _rootInitialQuat = _hierarchy.RootTrainNode.Body.transform.rotation;
-            _rootInitialCoM = _hierarchy.RootTrainNode.Body.centerOfMass;
             _totalDoF = _hierarchy.TrainNodes.Sum(node => node.Body.dofCount);
+            InitialCoM = GetCoM();
+            InitialGravity = GetGravity();
         }
 
         public float[] GetJointBlocks(bool normalize = false) {
@@ -53,15 +52,23 @@ namespace Train {
             return jointBlocks;
         }
 
-        public Vector3 GetCoMDiff() =>
-            _hierarchy.RootTrainNode.Body.centerOfMass - _rootInitialCoM;
+        public Vector3 GetCoM() {
+            Vector3 totalWeightedPos = Vector3.zero;
+            float totalMass = 0f;
+
+            foreach (TrainJointNode node in _hierarchy.TrainNodes.Where(node => !node.IsSevered)) {
+                totalWeightedPos += node.Body.worldCenterOfMass * node.Body.mass;
+                totalMass += node.Body.mass;
+            }
+
+            Vector3 joinedCom = totalMass > 0f ? totalWeightedPos / totalMass : Vector3.zero;
+
+            return _hierarchy.RootTrainNode.Body.transform.InverseTransformPoint(joinedCom);
+        }
 
         public Vector3 GetGravity() =>
             _hierarchy.RootTrainNode.Body.transform.InverseTransformDirection(Physics.gravity)
                 .normalized;
-
-        public Vector3 GetInitialGravity() =>
-            Quaternion.Inverse(_rootInitialQuat) * Physics.gravity.normalized;
 
         public Vector3 GetAngularVelocity() =>
             _hierarchy.RootTrainNode.Body.angularVelocity;
@@ -104,16 +111,21 @@ namespace Train {
             Vector3 pelvisPosition = _hierarchy.RootTrainNode.Body.transform.position;
 
             Vector3 gravity = GetGravity();
-            Gizmos.color = Color.red;
+            Gizmos.color = Color.green;
             Gizmos.DrawRay(pelvisPosition, gravity);
 
-            Vector3 initialGravity = GetInitialGravity();
-            Gizmos.color = Color.green;
-            Gizmos.DrawRay(pelvisPosition, initialGravity);
+            Gizmos.color = Color.darkGreen;
+            Gizmos.DrawRay(pelvisPosition, InitialGravity);
 
-            Vector3 comDiff = GetCoMDiff();
+            Vector3 com = GetCoM();
             Gizmos.color = Color.blue;
-            Gizmos.DrawRay(pelvisPosition, comDiff);
+            Gizmos.DrawRay(pelvisPosition, com);
+
+            Gizmos.color = Color.darkBlue;
+            Gizmos.DrawRay(pelvisPosition, InitialCoM);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(pelvisPosition, com - InitialCoM);
         }
     }
 }
