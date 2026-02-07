@@ -3,20 +3,24 @@ using UnityEngine;
 
 namespace Sever {
     public class JointNodeBase {
-        private readonly GameObject _gameObject;
-        private bool _isSevered;
+        protected readonly GameObject GameObject;
         public readonly List<JointNodeBase> Children = new();
         private readonly JointNodeBase _parent;
 
+        public bool IsSevered { get; protected set; }
+
         public JointNodeBase(GameObject gameObject, JointNodeBase parent) {
-            _gameObject = gameObject;
+            GameObject = gameObject;
             _parent = parent;
-            _isSevered = false;
         }
 
         public virtual void Sever() {
-            _isSevered = true;
-            _gameObject.transform.localScale = Vector3.zero;
+            if (IsSevered) {
+                return;
+            }
+
+            IsSevered = true;
+            GameObject.transform.localScale = Vector3.zero;
 
             foreach (JointNodeBase child in Children) {
                 child.Sever();
@@ -24,22 +28,15 @@ namespace Sever {
         }
 
         public virtual void Join() {
-            _isSevered = false;
-            _gameObject.transform.localScale = Vector3.one;
+            if (!IsSevered) {
+                return;
+            }
+
+            IsSevered = false;
+            GameObject.transform.localScale = Vector3.one;
 
             foreach (JointNodeBase child in Children) {
                 child.Join();
-            }
-        }
-
-
-        public bool IsSevered {
-            get {
-                if (_isSevered) {
-                    return true;
-                }
-
-                return _parent is { IsSevered: true };
             }
         }
     }

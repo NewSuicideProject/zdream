@@ -14,17 +14,34 @@ namespace Train.Sever {
         private const float _expectedMaxSpeed = 10f;
 
         public override void Sever() {
+            if (IsSevered) {
+                return;
+            }
+
+            IsSevered = true;
             _collider.enabled = false;
             Body.enabled = false;
+            GameObject.transform.localScale = Vector3.zero;
 
-            base.Sever();
+
+            foreach (JointNodeBase child in Children) {
+                child.Sever();
+            }
         }
 
         public override void Join() {
+            if (!IsSevered) {
+                return;
+            }
+
+            IsSevered = false;
+            GameObject.transform.localScale = Vector3.one;
             _collider.enabled = true;
             Body.enabled = true;
 
-            base.Join();
+            foreach (JointNodeBase child in Children) {
+                child.Join();
+            }
         }
 
         public TrainJointNode(GameObject gameObject, JointNodeBase parent) : base(gameObject,
