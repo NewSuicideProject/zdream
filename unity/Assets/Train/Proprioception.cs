@@ -55,27 +55,22 @@ namespace Train {
             Vector3 totalWeightedPos = Vector3.zero;
             float totalMass = 0f;
             float totalJoinedMass = 0f;
-            int index = 0;
+            int baseIndex = 0;
 
             foreach (TrainJointNode node in _hierarchy.TrainNodes) {
+                jointBlocks[baseIndex] = node.IsSevered ? 1.0f : 0.0f;
+                normalizedJointBlocks[baseIndex++] = node.IsSevered ? 1.0f : 0.0f;
+
+                node.GetJointPositions(jointBlocks, baseIndex);
+                node.GetJointPositions(normalizedJointBlocks, baseIndex, true);
+                baseIndex += node.DoF;
+
+                node.GetJointVelocities(jointBlocks, baseIndex);
+                node.GetJointVelocities(normalizedJointBlocks, baseIndex, true);
+                baseIndex += node.DoF;
+
                 float mass = node.Body.mass;
                 totalMass += mass;
-
-                jointBlocks[index] = node.IsSevered ? 1.0f : 0.0f;
-                normalizedJointBlocks[index++] = node.IsSevered ? 1.0f : 0.0f;
-                float[] jointPositions = node.GetJointPositions();
-                float[] normalizedJointPositions = node.GetJointPositions(true);
-                for (int i = 0; i < node.DoF; i++) {
-                    jointBlocks[index] = jointPositions[i];
-                    normalizedJointBlocks[index++] = normalizedJointPositions[i];
-                }
-
-                float[] jointVelocities = node.GetJointVelocities();
-                float[] normalizedJointVelocities = node.GetJointVelocities(true);
-                for (int i = 0; i < node.DoF; i++) {
-                    jointBlocks[index] = jointVelocities[i];
-                    normalizedJointBlocks[index++] = normalizedJointVelocities[i];
-                }
 
                 if (node.IsSevered) {
                     continue;
@@ -104,21 +99,22 @@ namespace Train {
             }
 
             Vector3 pelvisPosition = _hierarchy.RootTrainNode.Body.transform.position;
+            Transform pelvisTransform = _hierarchy.RootTrainNode.Body.transform;
 
             Gizmos.color = Color.green;
-            Gizmos.DrawRay(pelvisPosition, gravity * 0.25f);
+            Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(gravity) * 0.25f);
 
             Gizmos.color = Color.darkGreen;
-            Gizmos.DrawRay(pelvisPosition, initialGravity * 0.25f);
+            Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(initialGravity) * 0.25f);
 
             Gizmos.color = Color.blue;
-            Gizmos.DrawRay(pelvisPosition, com);
+            Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com));
 
             Gizmos.color = Color.darkBlue;
-            Gizmos.DrawRay(pelvisPosition, initialCoM);
+            Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(initialCoM));
 
-            Gizmos.color = Color.lightBlue;
-            Gizmos.DrawRay(pelvisPosition, com - initialCoM);
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com - initialCoM));
         }
     }
 }

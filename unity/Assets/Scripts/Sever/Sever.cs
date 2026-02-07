@@ -28,10 +28,11 @@ namespace Sever {
             }
 
             for (int i = 0; i < count; i++) {
+                int trial = 0;
                 JointNodeBase node;
                 do {
                     node = _hierarchy.Nodes[Random.Range(1, _hierarchy.Nodes.Count)];
-                } while (node.IsSevered);
+                } while (node.IsSevered && trial++ < 10);
 
                 node.Sever();
                 _severedNodes.Add(node);

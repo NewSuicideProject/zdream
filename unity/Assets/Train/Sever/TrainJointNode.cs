@@ -81,15 +81,15 @@ namespace Train.Sever {
             };
 
 
-        public float[] GetJointPositions(bool normalize = false) {
+        public void GetJointPositions(float[] buffer, int baseIndex = 0, bool normalize = false) {
             if (IsSevered) {
-                return new float[DoF];
+                System.Array.Clear(buffer, baseIndex, DoF);
+                return;
             }
 
-            float[] angles = new float[DoF];
-
+            ArticulationReducedSpace positions = Body.jointPosition;
             for (int i = 0; i < DoF; i++) {
-                float value = Body.jointPosition[i];
+                float value = positions[i];
                 if (normalize) {
                     value = Normalization.LinearMinMax(
                         value,
@@ -98,30 +98,38 @@ namespace Train.Sever {
                     );
                 }
 
-                angles[i] = value;
+                buffer[baseIndex + i] = value;
             }
+        }
 
-            return angles;
+        public float[] GetJointPositions(bool normalize = false) {
+            float[] buffer = new float[DoF];
+            GetJointPositions(buffer, 0, normalize);
+            return buffer;
         }
 
 
-        public float[] GetJointVelocities(bool normalize = false) {
+        public void GetJointVelocities(float[] buffer, int baseIndex = 0, bool normalize = false) {
             if (IsSevered) {
-                return new float[DoF];
+                System.Array.Clear(buffer, baseIndex, DoF);
+                return;
             }
 
-            float[] velocities = new float[DoF];
-
+            ArticulationReducedSpace velocities = Body.jointVelocity;
             for (int i = 0; i < DoF; i++) {
-                float value = Body.jointVelocity[i];
+                float value = velocities[i];
                 if (normalize) {
                     value = NormalizeSpeed(value);
                 }
 
-                velocities[i] = value;
+                buffer[baseIndex + i] = value;
             }
+        }
 
-            return velocities;
+        public float[] GetJointVelocities(bool normalize = false) {
+            float[] buffer = new float[DoF];
+            GetJointVelocities(buffer, 0, normalize);
+            return buffer;
         }
     }
 }
