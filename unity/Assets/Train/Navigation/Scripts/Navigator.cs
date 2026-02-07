@@ -1,9 +1,9 @@
 using System;
+using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.AI;
-using Unity.AI.Navigation;
 
-namespace Train.Navigation {
+namespace Train.Navigation.Scripts {
     public class Navigator : MonoBehaviour {
         [SerializeField] private Transform targetTransform;
         [SerializeField] private Transform agentTransform;
