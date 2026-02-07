@@ -14,10 +14,8 @@ namespace Train {
         private int _totalDoF;
         [SerializeField] [ReadOnly] private Vector3 com;
         public Vector3 Com => com;
-
         [SerializeField] [ReadOnly] private Vector3 gravity;
         public Vector3 Gravity => gravity;
-
         [SerializeField] [ReadOnly] private Vector3 angularVelocity;
         public Vector3 AngularVelocity => angularVelocity;
         [SerializeField] [ReadOnly] private Vector3 linearVelocity;
@@ -32,8 +30,10 @@ namespace Train {
         public float[] Contacts => contacts;
         [SerializeField] [ReadOnly] private float[] attaches;
         public float[] Attaches => attaches;
-
-        private float[] _jointBlocks;
+        [SerializeField] [ReadOnly] private float[] jointBlocks;
+        public float[] JointBlocks => jointBlocks;
+        [SerializeField] [ReadOnly] private float[] normalizedJointBlocks;
+        public float[] NormalizedJointBlocks => normalizedJointBlocks;
 
         private void Awake() => _hierarchy = GetComponent<TrainJointHierarchy>();
 
@@ -41,7 +41,8 @@ namespace Train {
             _totalDoF = _hierarchy.TrainNodes.Sum(node => node.Body.dofCount);
             contacts = new float[4];
             attaches = new float[4];
-            _jointBlocks = new float[(_totalDoF * 2) + _hierarchy.Nodes.Count];
+            jointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count];
+            normalizedJointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count];
 
             Update();
             initialCoM = com;
@@ -54,17 +55,42 @@ namespace Train {
             Vector3 totalWeightedPos = Vector3.zero;
             float totalMass = 0f;
             float totalJoinedMass = 0f;
+            int index = 0;
 
             foreach (TrainJointNode node in _hierarchy.TrainNodes) {
                 float mass = node.Body.mass;
                 totalMass += mass;
 
-                if (node.IsSevered) {
-                    continue;
-                }
+                jointBlocks[index] = node.IsSevered ? 1.0f : 0.0f;
+                normalizedJointBlocks[index++] = node.IsSevered ? 1.0f : 0.0f;
 
-                totalWeightedPos += node.Body.worldCenterOfMass * mass;
-                totalJoinedMass += mass;
+                if (node.IsSevered) {
+                    for (int i = 0; i < node.Body.dofCount; i++) {
+                        jointBlocks[index] = 0.0f;
+                        normalizedJointBlocks[index++] = 0.0f;
+                    }
+
+                    for (int i = 0; i < node.Body.dofCount; i++) {
+                        jointBlocks[index] = 0.0f;
+                        normalizedJointBlocks[index++] = 0.0f;
+                    }
+                } else {
+                    totalWeightedPos += node.Body.worldCenterOfMass * mass;
+                    totalJoinedMass += mass;
+                    float[] jointPositions = node.GetJointPositions();
+                    float[] normalizedJointPositions = node.GetJointPositions(true);
+                    for (int i = 0; i < node.Body.dofCount; i++) {
+                        jointBlocks[index] = jointPositions[i];
+                        normalizedJointBlocks[index++] = normalizedJointPositions[i];
+                    }
+
+                    float[] jointVelocities = node.GetJointVelocities();
+                    float[] normalizedJointVelocities = node.GetJointVelocities(true);
+                    for (int i = 0; i < node.Body.dofCount; i++) {
+                        jointBlocks[index] = jointVelocities[i];
+                        normalizedJointBlocks[index++] = normalizedJointVelocities[i];
+                    }
+                }
             }
 
             com = _hierarchy.RootTrainNode.Body.transform.InverseTransformPoint(
@@ -78,38 +104,6 @@ namespace Train {
             forward = _hierarchy.RootTrainNode.Body.transform.forward;
 
             integrity = totalMass > 0f ? totalJoinedMass / totalMass : 0f;
-        }
-
-        public float[] GetJointBlocks(bool normalize = false) {
-            int index = 0;
-
-            foreach (TrainJointNode node in _hierarchy.TrainNodes) {
-                if (node.IsSevered) {
-                    for (int i = 0; i < node.Body.dofCount; i++) {
-                        _jointBlocks[index++] = 0.0f;
-                    }
-
-                    for (int i = 0; i < node.Body.dofCount; i++) {
-                        _jointBlocks[index++] = 0.0f;
-                    }
-
-                    _jointBlocks[index++] = 1.0f;
-                } else {
-                    float[] jointPositions = node.GetJointPositions(normalize);
-                    foreach (float pos in jointPositions) {
-                        _jointBlocks[index++] = pos;
-                    }
-
-                    float[] jointVelocities = node.GetJointVelocities(normalize);
-                    foreach (float vel in jointVelocities) {
-                        _jointBlocks[index++] = vel;
-                    }
-
-                    _jointBlocks[index++] = 0.0f;
-                }
-            }
-
-            return _jointBlocks;
         }
 
         private void OnDrawGizmos() {
