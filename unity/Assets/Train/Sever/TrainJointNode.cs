@@ -12,6 +12,7 @@ namespace Train.Sever {
         private readonly Collider _collider;
         private readonly JointLimitCache[] _jointLimitCache;
         private const float _expectedMaxSpeed = 10f;
+        public readonly int DoF;
 
         public override void Sever() {
             if (IsSevered) {
@@ -52,12 +53,14 @@ namespace Train.Sever {
                 _collider = gameObject.GetComponentInChildren<Collider>();
             }
 
-            if (Body.dofCount <= 0) {
+            DoF = Body.dofCount;
+
+            if (DoF <= 0) {
                 return;
             }
 
-            _jointLimitCache = new JointLimitCache[Body.dofCount];
-            for (int i = 0; i < Body.dofCount; i++) {
+            _jointLimitCache = new JointLimitCache[DoF];
+            for (int i = 0; i < DoF; i++) {
                 ArticulationDrive drive = GetDrive(i);
                 _jointLimitCache[i] = new JointLimitCache {
                     LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
@@ -79,9 +82,9 @@ namespace Train.Sever {
 
 
         public float[] GetJointPositions(bool normalize = false) {
-            float[] angles = new float[Body.dofCount];
+            float[] angles = new float[DoF];
 
-            for (int i = 0; i < Body.dofCount; i++) {
+            for (int i = 0; i < DoF; i++) {
                 float value = Body.jointPosition[i];
                 if (normalize) {
                     value = Normalization.LinearMinMax(
@@ -99,9 +102,9 @@ namespace Train.Sever {
 
 
         public float[] GetJointVelocities(bool normalize = false) {
-            float[] velocities = new float[Body.dofCount];
+            float[] velocities = new float[DoF];
 
-            for (int i = 0; i < Body.dofCount; i++) {
+            for (int i = 0; i < DoF; i++) {
                 float value = Body.jointVelocity[i];
                 if (normalize) {
                     value = NormalizeSpeed(value);

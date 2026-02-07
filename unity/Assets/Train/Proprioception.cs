@@ -38,7 +38,7 @@ namespace Train {
         private void Awake() => _hierarchy = GetComponent<TrainJointHierarchy>();
 
         private void Start() {
-            _totalDoF = _hierarchy.TrainNodes.Sum(node => node.Body.dofCount);
+            _totalDoF = _hierarchy.TrainNodes.Sum(node => node.DoF);
             contacts = new float[4];
             attaches = new float[4];
             jointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count];
@@ -65,12 +65,12 @@ namespace Train {
                 normalizedJointBlocks[index++] = node.IsSevered ? 1.0f : 0.0f;
 
                 if (node.IsSevered) {
-                    for (int i = 0; i < node.Body.dofCount; i++) {
+                    for (int i = 0; i < node.DoF; i++) {
                         jointBlocks[index] = 0.0f;
                         normalizedJointBlocks[index++] = 0.0f;
                     }
 
-                    for (int i = 0; i < node.Body.dofCount; i++) {
+                    for (int i = 0; i < node.DoF; i++) {
                         jointBlocks[index] = 0.0f;
                         normalizedJointBlocks[index++] = 0.0f;
                     }
@@ -79,14 +79,14 @@ namespace Train {
                     totalJoinedMass += mass;
                     float[] jointPositions = node.GetJointPositions();
                     float[] normalizedJointPositions = node.GetJointPositions(true);
-                    for (int i = 0; i < node.Body.dofCount; i++) {
+                    for (int i = 0; i < node.DoF; i++) {
                         jointBlocks[index] = jointPositions[i];
                         normalizedJointBlocks[index++] = normalizedJointPositions[i];
                     }
 
                     float[] jointVelocities = node.GetJointVelocities();
                     float[] normalizedJointVelocities = node.GetJointVelocities(true);
-                    for (int i = 0; i < node.Body.dofCount; i++) {
+                    for (int i = 0; i < node.DoF; i++) {
                         jointBlocks[index] = jointVelocities[i];
                         normalizedJointBlocks[index++] = normalizedJointVelocities[i];
                     }
