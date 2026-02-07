@@ -72,9 +72,19 @@ namespace Train {
         public Vector3 GetPosition() =>
             _jointHierarchy.RootTrainNode.Body.transform.position;
 
-        public float GetIntegrity() =>
-            // TODO
-            1.0f;
+        public float GetIntegrity() {
+            float totalMass = 0f;
+            float intactMass = 0f;
+
+            foreach (TrainJointNode node in _jointHierarchy.TrainNodes) {
+                totalMass += node.Body.mass;
+                if (!node.IsSevered) {
+                    intactMass += node.Body.mass;
+                }
+            }
+
+            return totalMass > 0f ? intactMass / totalMass : 0f;
+        }
 
         public Vector3 GetForward() =>
             _jointHierarchy.RootTrainNode.Body.transform.forward;

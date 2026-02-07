@@ -811,9 +811,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1360753485437142722}
-  - component: {fileID: 4900605519316049080}
   - component: {fileID: 8780102705714806888}
   - component: {fileID: 5254583176159503731}
+  - component: {fileID: 1393156304446174912}
   m_Layer: 0
   m_Name: Zombie
   m_TagString: Untagged
@@ -838,28 +838,6 @@ Transform:
   - {fileID: 3360759857597784372}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &4900605519316049080
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1849166048388668536}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 6de14d6ed72845c4aacb93ec3ecb4afe, type: 3}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 1
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 1
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &8780102705714806888
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -884,6 +862,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edd8c6e696df1a94eae76f3e8556b123, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Train.Proprioception
+--- !u!114 &1393156304446174912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1849166048388668536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c67fb62bd3d64e43a2d39aea5698705, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Train.Zombie.ZombieTest
+  severInterval: 2
 --- !u!1 &1922574190645850265
 GameObject:
   m_ObjectHideFlags: 0
