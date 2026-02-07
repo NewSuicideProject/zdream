@@ -82,6 +82,10 @@ namespace Train.Sever {
 
 
         public float[] GetJointPositions(bool normalize = false) {
+            if (IsSevered) {
+                return new float[DoF];
+            }
+
             float[] angles = new float[DoF];
 
             for (int i = 0; i < DoF; i++) {
@@ -102,6 +106,10 @@ namespace Train.Sever {
 
 
         public float[] GetJointVelocities(bool normalize = false) {
+            if (IsSevered) {
+                return new float[DoF];
+            }
+
             float[] velocities = new float[DoF];
 
             for (int i = 0; i < DoF; i++) {

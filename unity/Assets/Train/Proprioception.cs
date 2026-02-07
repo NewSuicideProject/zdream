@@ -63,34 +63,26 @@ namespace Train {
 
                 jointBlocks[index] = node.IsSevered ? 1.0f : 0.0f;
                 normalizedJointBlocks[index++] = node.IsSevered ? 1.0f : 0.0f;
+                float[] jointPositions = node.GetJointPositions();
+                float[] normalizedJointPositions = node.GetJointPositions(true);
+                for (int i = 0; i < node.DoF; i++) {
+                    jointBlocks[index] = jointPositions[i];
+                    normalizedJointBlocks[index++] = normalizedJointPositions[i];
+                }
+
+                float[] jointVelocities = node.GetJointVelocities();
+                float[] normalizedJointVelocities = node.GetJointVelocities(true);
+                for (int i = 0; i < node.DoF; i++) {
+                    jointBlocks[index] = jointVelocities[i];
+                    normalizedJointBlocks[index++] = normalizedJointVelocities[i];
+                }
 
                 if (node.IsSevered) {
-                    for (int i = 0; i < node.DoF; i++) {
-                        jointBlocks[index] = 0.0f;
-                        normalizedJointBlocks[index++] = 0.0f;
-                    }
-
-                    for (int i = 0; i < node.DoF; i++) {
-                        jointBlocks[index] = 0.0f;
-                        normalizedJointBlocks[index++] = 0.0f;
-                    }
-                } else {
-                    totalWeightedPos += node.Body.worldCenterOfMass * mass;
-                    totalJoinedMass += mass;
-                    float[] jointPositions = node.GetJointPositions();
-                    float[] normalizedJointPositions = node.GetJointPositions(true);
-                    for (int i = 0; i < node.DoF; i++) {
-                        jointBlocks[index] = jointPositions[i];
-                        normalizedJointBlocks[index++] = normalizedJointPositions[i];
-                    }
-
-                    float[] jointVelocities = node.GetJointVelocities();
-                    float[] normalizedJointVelocities = node.GetJointVelocities(true);
-                    for (int i = 0; i < node.DoF; i++) {
-                        jointBlocks[index] = jointVelocities[i];
-                        normalizedJointBlocks[index++] = normalizedJointVelocities[i];
-                    }
+                    continue;
                 }
+
+                totalWeightedPos += node.Body.worldCenterOfMass * mass;
+                totalJoinedMass += mass;
             }
 
             com = _hierarchy.RootTrainNode.Body.transform.InverseTransformPoint(
