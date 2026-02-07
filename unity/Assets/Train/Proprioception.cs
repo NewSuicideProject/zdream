@@ -7,101 +7,110 @@ namespace Train {
     [RequireComponent(typeof(JointHierarchyBase))]
     public class Proprioception : MonoBehaviour {
         private TrainJointHierarchy _hierarchy;
-        public Vector3 InitialGravity { get; private set; }
-        public Vector3 InitialCoM { get; private set; }
+        [SerializeField] [ReadOnly] private Vector3 initialGravity;
+        public Vector3 InitialGravity => initialGravity;
+        [SerializeField] [ReadOnly] private Vector3 initialCoM;
+        public Vector3 InitialCoM => initialCoM;
         private int _totalDoF;
+        [SerializeField] [ReadOnly] private Vector3 com;
+        public Vector3 Com => com;
+
+        [SerializeField] [ReadOnly] private Vector3 gravity;
+        public Vector3 Gravity => gravity;
+
+        [SerializeField] [ReadOnly] private Vector3 angularVelocity;
+        public Vector3 AngularVelocity => angularVelocity;
+        [SerializeField] [ReadOnly] private Vector3 linearVelocity;
+        public Vector3 LinearVelocity => linearVelocity;
+        [SerializeField] [ReadOnly] private Vector3 position;
+        public Vector3 Position => position;
+        [SerializeField] [ReadOnly] private float integrity;
+        public float Integrity => integrity;
+        [SerializeField] [ReadOnly] private Vector3 forward;
+        public Vector3 Forward => forward;
+        [SerializeField] [ReadOnly] private float[] contacts;
+        public float[] Contacts => contacts;
+        [SerializeField] [ReadOnly] private float[] attaches;
+        public float[] Attaches => attaches;
+
+        private float[] _jointBlocks;
 
         private void Awake() => _hierarchy = GetComponent<TrainJointHierarchy>();
 
         private void Start() {
             _totalDoF = _hierarchy.TrainNodes.Sum(node => node.Body.dofCount);
-            InitialCoM = GetCoM();
-            InitialGravity = GetGravity();
+            contacts = new float[4];
+            attaches = new float[4];
+            _jointBlocks = new float[(_totalDoF * 2) + _hierarchy.Nodes.Count];
+
+            Update();
+            initialCoM = com;
+            initialGravity = gravity;
+        }
+
+        private void Update() {
+            gravity = _hierarchy.RootTrainNode.Body.transform.InverseTransformDirection(Physics.gravity).normalized;
+
+            Vector3 totalWeightedPos = Vector3.zero;
+            float totalMass = 0f;
+            float totalJoinedMass = 0f;
+
+            foreach (TrainJointNode node in _hierarchy.TrainNodes) {
+                float mass = node.Body.mass;
+                totalMass += mass;
+
+                if (node.IsSevered) {
+                    continue;
+                }
+
+                totalWeightedPos += node.Body.worldCenterOfMass * mass;
+                totalJoinedMass += mass;
+            }
+
+            com = _hierarchy.RootTrainNode.Body.transform.InverseTransformPoint(
+                totalJoinedMass > 0f
+                    ? totalWeightedPos / totalJoinedMass
+                    : Vector3.zero);
+
+            angularVelocity = _hierarchy.RootTrainNode.Body.angularVelocity;
+            linearVelocity = _hierarchy.RootTrainNode.Body.linearVelocity;
+            position = _hierarchy.RootTrainNode.Body.transform.position;
+            forward = _hierarchy.RootTrainNode.Body.transform.forward;
+
+            integrity = totalMass > 0f ? totalJoinedMass / totalMass : 0f;
         }
 
         public float[] GetJointBlocks(bool normalize = false) {
-            float[] jointBlocks = new float[(_totalDoF * 2) + _hierarchy.Nodes.Count];
             int index = 0;
 
             foreach (TrainJointNode node in _hierarchy.TrainNodes) {
                 if (node.IsSevered) {
                     for (int i = 0; i < node.Body.dofCount; i++) {
-                        jointBlocks[index++] = 0.0f;
+                        _jointBlocks[index++] = 0.0f;
                     }
 
                     for (int i = 0; i < node.Body.dofCount; i++) {
-                        jointBlocks[index++] = 0.0f;
+                        _jointBlocks[index++] = 0.0f;
                     }
 
-                    jointBlocks[index++] = 1.0f;
+                    _jointBlocks[index++] = 1.0f;
                 } else {
                     float[] jointPositions = node.GetJointPositions(normalize);
-                    foreach (float position in jointPositions) {
-                        jointBlocks[index++] = position;
+                    foreach (float pos in jointPositions) {
+                        _jointBlocks[index++] = pos;
                     }
 
                     float[] jointVelocities = node.GetJointVelocities(normalize);
-                    foreach (float velocity in jointVelocities) {
-                        jointBlocks[index++] = velocity;
+                    foreach (float vel in jointVelocities) {
+                        _jointBlocks[index++] = vel;
                     }
 
-                    jointBlocks[index++] = 0.0f;
+                    _jointBlocks[index++] = 0.0f;
                 }
             }
 
-            return jointBlocks;
+            return _jointBlocks;
         }
-
-        public Vector3 GetCoM() {
-            Vector3 totalWeightedPos = Vector3.zero;
-            float totalMass = 0f;
-
-            foreach (TrainJointNode node in _hierarchy.TrainNodes.Where(node => !node.IsSevered)) {
-                totalWeightedPos += node.Body.worldCenterOfMass * node.Body.mass;
-                totalMass += node.Body.mass;
-            }
-
-            Vector3 joinedCom = totalMass > 0f ? totalWeightedPos / totalMass : Vector3.zero;
-
-            return _hierarchy.RootTrainNode.Body.transform.InverseTransformPoint(joinedCom);
-        }
-
-        public Vector3 GetGravity() =>
-            _hierarchy.RootTrainNode.Body.transform.InverseTransformDirection(Physics.gravity)
-                .normalized;
-
-        public Vector3 GetAngularVelocity() =>
-            _hierarchy.RootTrainNode.Body.angularVelocity;
-
-        public Vector3 GetLinearVelocity() =>
-            _hierarchy.RootTrainNode.Body.linearVelocity;
-
-        public Vector3 GetPosition() =>
-            _hierarchy.RootTrainNode.Body.transform.position;
-
-        public float GetIntegrity() {
-            float totalMass = 0f;
-            float intactMass = 0f;
-
-            foreach (TrainJointNode node in _hierarchy.TrainNodes) {
-                totalMass += node.Body.mass;
-                if (!node.IsSevered) {
-                    intactMass += node.Body.mass;
-                }
-            }
-
-            return totalMass > 0f ? intactMass / totalMass : 0f;
-        }
-
-        public Vector3 GetForward() =>
-            _hierarchy.RootTrainNode.Body.transform.forward;
-
-        public float[] GetContacts() =>
-            new float[4];
-
-        public float[] GetAttaches() =>
-            new float[4];
-
 
         private void OnDrawGizmos() {
             if (!_hierarchy) {
@@ -110,22 +119,20 @@ namespace Train {
 
             Vector3 pelvisPosition = _hierarchy.RootTrainNode.Body.transform.position;
 
-            Vector3 gravity = GetGravity();
             Gizmos.color = Color.green;
-            Gizmos.DrawRay(pelvisPosition, gravity);
+            Gizmos.DrawRay(pelvisPosition, gravity * 0.25f);
 
             Gizmos.color = Color.darkGreen;
-            Gizmos.DrawRay(pelvisPosition, InitialGravity);
+            Gizmos.DrawRay(pelvisPosition, initialGravity * 0.25f);
 
-            Vector3 com = GetCoM();
             Gizmos.color = Color.blue;
             Gizmos.DrawRay(pelvisPosition, com);
 
             Gizmos.color = Color.darkBlue;
-            Gizmos.DrawRay(pelvisPosition, InitialCoM);
+            Gizmos.DrawRay(pelvisPosition, initialCoM);
 
-            Gizmos.color = Color.red;
-            Gizmos.DrawRay(pelvisPosition, com - InitialCoM);
+            Gizmos.color = Color.lightBlue;
+            Gizmos.DrawRay(pelvisPosition, com - initialCoM);
         }
     }
 }
