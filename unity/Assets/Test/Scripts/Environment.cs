@@ -2,23 +2,23 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Test.Scripts {
-    public class TestEnvironment : MonoBehaviour {
+    public class Environment : MonoBehaviour {
         [SerializeField] private float spawnRange = 20f;
 
         [SerializeField] private float minSpawnDistance = 5f;
 
-        [SerializeField] private GameObject testAgentPrefab;
-        [SerializeField] public GameObject testTargetPrefab;
+        [SerializeField] private GameObject agentPrefab;
+        [SerializeField] public GameObject targetPrefab;
 
 
         private Transform _agentTransform;
         public Transform TargetTransform { get; private set; }
 
         private void Awake() {
-            GameObject agentInstance = Instantiate(testAgentPrefab, Vector3.zero, Quaternion.identity, transform);
+            GameObject agentInstance = Instantiate(agentPrefab, Vector3.zero, Quaternion.identity, transform);
             _agentTransform = agentInstance.transform;
 
-            GameObject targetInstance = Instantiate(testTargetPrefab, Vector3.zero, Quaternion.identity, transform);
+            GameObject targetInstance = Instantiate(targetPrefab, Vector3.zero, Quaternion.identity, transform);
             TargetTransform = targetInstance.transform;
         }
 

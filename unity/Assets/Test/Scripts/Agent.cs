@@ -1,11 +1,10 @@
-using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Test.Scripts {
-    public class TestAgent : Agent {
+    public class Agent : Unity.MLAgents.Agent {
         [SerializeField] private InputActionAsset inputActions;
 
         [SerializeField] private float expectedMaxSpeed = 20;
@@ -20,7 +19,7 @@ namespace Test.Scripts {
 
         [SerializeField] private float actionMultiplier = 10f;
 
-        private TestEnvironment _testEnvironment;
+        private Environment _environment;
 
         private float _distanceNormalizationFactor;
         private InputAction _moveAction;
@@ -34,7 +33,7 @@ namespace Test.Scripts {
             base.Awake();
 
             _rigidbody = GetComponent<Rigidbody>();
-            _testEnvironment = GetComponentInParent<TestEnvironment>();
+            _environment = GetComponentInParent<Environment>();
 
             _distanceNormalizationFactor = 1f / expectedMaxDistance;
             _speedNormalizationFactor = 1f / expectedMaxSpeed;
@@ -47,7 +46,7 @@ namespace Test.Scripts {
             _moveAction = playerMap?.FindAction("Move");
         }
 
-        private void Start() => _targetTransform = _testEnvironment.TargetTransform;
+        private void Start() => _targetTransform = _environment.TargetTransform;
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -99,7 +98,7 @@ namespace Test.Scripts {
             _rigidbody.angularVelocity = Vector3.zero;
             _rigidbody.linearVelocity = Vector3.zero;
 
-            _testEnvironment.Reset();
+            _environment.Reset();
         }
 
         public override void CollectObservations(VectorSensor sensor) {
