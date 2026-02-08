@@ -101,13 +101,13 @@ namespace Train {
             Vector3 pelvisPosition = _hierarchy.RootTrainNode.Body.transform.position;
             Transform pelvisTransform = _hierarchy.RootTrainNode.Body.transform;
 
-            Gizmos.color = Color.green;
+            Gizmos.color = Color.lightGreen;
             Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(gravity) * 0.25f);
 
             Gizmos.color = Color.darkGreen;
             Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(initialGravity) * 0.25f);
 
-            Gizmos.color = Color.blue;
+            Gizmos.color = Color.lightBlue;
             Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com));
 
             Gizmos.color = Color.darkBlue;

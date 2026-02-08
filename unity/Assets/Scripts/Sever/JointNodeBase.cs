@@ -5,14 +5,10 @@ namespace Sever {
     public class JointNodeBase {
         protected readonly GameObject GameObject;
         public readonly List<JointNodeBase> Children = new();
-        private readonly JointNodeBase _parent;
 
         public bool IsSevered { get; protected set; }
 
-        public JointNodeBase(GameObject gameObject, JointNodeBase parent) {
-            GameObject = gameObject;
-            _parent = parent;
-        }
+        public JointNodeBase(GameObject gameObject) => GameObject = gameObject;
 
         public virtual void Sever() {
             if (IsSevered) {

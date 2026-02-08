@@ -14,6 +14,28 @@ namespace Train.Sever {
         private const float _expectedMaxSpeed = 10f;
         public readonly int DoF;
 
+        public TrainJointNode(GameObject gameObject) : base(gameObject) {
+            Body = gameObject.GetComponent<ArticulationBody>();
+            _collider = gameObject.GetComponent<Collider>();
+            if (_collider == null) {
+                _collider = gameObject.GetComponentInChildren<Collider>();
+            }
+
+            DoF = Body.dofCount;
+
+            if (DoF <= 0) {
+                return;
+            }
+
+            _jointLimitCache = new JointLimitCache[DoF];
+            for (int i = 0; i < DoF; i++) {
+                ArticulationDrive drive = GetDrive(i);
+                _jointLimitCache[i] = new JointLimitCache {
+                    LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
+                };
+            }
+        }
+
         public override void Sever() {
             if (IsSevered) {
                 return;
@@ -45,31 +67,7 @@ namespace Train.Sever {
             }
         }
 
-        public TrainJointNode(GameObject gameObject, JointNodeBase parent) : base(gameObject,
-            parent) {
-            Body = gameObject.GetComponent<ArticulationBody>();
-            _collider = gameObject.GetComponent<Collider>();
-            if (_collider == null) {
-                _collider = gameObject.GetComponentInChildren<Collider>();
-            }
-
-            DoF = Body.dofCount;
-
-            if (DoF <= 0) {
-                return;
-            }
-
-            _jointLimitCache = new JointLimitCache[DoF];
-            for (int i = 0; i < DoF; i++) {
-                ArticulationDrive drive = GetDrive(i);
-                _jointLimitCache[i] = new JointLimitCache {
-                    LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
-                };
-            }
-        }
-
         private static float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _expectedMaxSpeed);
-
 
         public ArticulationDrive GetDrive(int axisIndex) =>
             axisIndex switch {
@@ -79,7 +77,6 @@ namespace Train.Sever {
                 _ => throw new System.ArgumentOutOfRangeException(nameof(axisIndex),
                     $"Invalid axis index {axisIndex}")
             };
-
 
         public void GetJointPositions(float[] buffer, int baseIndex = 0, bool normalize = false) {
             if (IsSevered) {
@@ -107,7 +104,6 @@ namespace Train.Sever {
             GetJointPositions(buffer, 0, normalize);
             return buffer;
         }
-
 
         public void GetJointVelocities(float[] buffer, int baseIndex = 0, bool normalize = false) {
             if (IsSevered) {
