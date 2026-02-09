@@ -8,27 +8,24 @@ class NavigationEncoder(nn.Module):
         input_dim,
         d_model=128,
         activation_fn=None,
-        num_layers=3,
-        max_token=10,
+        num_layers=1,
+        max_token=3,
+        nhead=1,
     ):
         super().__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers
         self.max_token = max_token
+        self.nhead = nhead
 
-        if self.d_model % 4 == 0:
-            self.nhead = 4
-        else:
-            self.nhead = 2 if self.d_model % 2 == 0 else 1
+        if activation_fn is None:
+            activation_fn = nn.ReLU()
 
         self.input_projection = nn.Linear(input_dim, self.d_model)
         self.pos_embedding = nn.Parameter(
             th.randn(1, self.max_token, self.d_model) * 0.02
         )
-
-        if activation_fn is None:
-            activation_fn = nn.ReLU()
 
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=self.d_model,
