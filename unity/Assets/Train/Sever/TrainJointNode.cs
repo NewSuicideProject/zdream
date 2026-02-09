@@ -12,6 +12,29 @@ namespace Train.Sever {
         private readonly Collider _collider;
         private readonly JointLimitCache[] _jointLimitCache;
         private const float _expectedMaxSpeed = 10f;
+        public readonly int DoF;
+
+        public TrainJointNode(GameObject gameObject) : base(gameObject) {
+            Body = gameObject.GetComponent<ArticulationBody>();
+            _collider = gameObject.GetComponent<Collider>();
+            if (_collider == null) {
+                _collider = gameObject.GetComponentInChildren<Collider>();
+            }
+
+            DoF = Body.dofCount;
+
+            if (DoF <= 0) {
+                return;
+            }
+
+            _jointLimitCache = new JointLimitCache[DoF];
+            for (int i = 0; i < DoF; i++) {
+                ArticulationDrive drive = GetDrive(i);
+                _jointLimitCache[i] = new JointLimitCache {
+                    LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
+                };
+            }
+        }
 
         public override void Sever() {
             if (IsSevered) {
@@ -44,29 +67,7 @@ namespace Train.Sever {
             }
         }
 
-        public TrainJointNode(GameObject gameObject, JointNodeBase parent) : base(gameObject,
-            parent) {
-            Body = gameObject.GetComponent<ArticulationBody>();
-            _collider = gameObject.GetComponent<Collider>();
-            if (_collider == null) {
-                _collider = gameObject.GetComponentInChildren<Collider>();
-            }
-
-            if (Body.dofCount <= 0) {
-                return;
-            }
-
-            _jointLimitCache = new JointLimitCache[Body.dofCount];
-            for (int i = 0; i < Body.dofCount; i++) {
-                ArticulationDrive drive = GetDrive(i);
-                _jointLimitCache[i] = new JointLimitCache {
-                    LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
-                };
-            }
-        }
-
         private static float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _expectedMaxSpeed);
-
 
         public ArticulationDrive GetDrive(int axisIndex) =>
             axisIndex switch {
@@ -77,12 +78,15 @@ namespace Train.Sever {
                     $"Invalid axis index {axisIndex}")
             };
 
+        public void GetJointPositions(float[] buffer, int baseIndex = 0, bool normalize = false) {
+            if (IsSevered) {
+                System.Array.Clear(buffer, baseIndex, DoF);
+                return;
+            }
 
-        public float[] GetJointPositions(bool normalize = false) {
-            float[] angles = new float[Body.dofCount];
-
-            for (int i = 0; i < Body.dofCount; i++) {
-                float value = Body.jointPosition[i];
+            ArticulationReducedSpace positions = Body.jointPosition;
+            for (int i = 0; i < DoF; i++) {
+                float value = positions[i];
                 if (normalize) {
                     value = Normalization.LinearMinMax(
                         value,
@@ -91,26 +95,37 @@ namespace Train.Sever {
                     );
                 }
 
-                angles[i] = value;
+                buffer[baseIndex + i] = value;
             }
-
-            return angles;
         }
 
+        public float[] GetJointPositions(bool normalize = false) {
+            float[] buffer = new float[DoF];
+            GetJointPositions(buffer, 0, normalize);
+            return buffer;
+        }
 
-        public float[] GetJointVelocities(bool normalize = false) {
-            float[] velocities = new float[Body.dofCount];
+        public void GetJointVelocities(float[] buffer, int baseIndex = 0, bool normalize = false) {
+            if (IsSevered) {
+                System.Array.Clear(buffer, baseIndex, DoF);
+                return;
+            }
 
-            for (int i = 0; i < Body.dofCount; i++) {
-                float value = Body.jointVelocity[i];
+            ArticulationReducedSpace velocities = Body.jointVelocity;
+            for (int i = 0; i < DoF; i++) {
+                float value = velocities[i];
                 if (normalize) {
                     value = NormalizeSpeed(value);
                 }
 
-                velocities[i] = value;
+                buffer[baseIndex + i] = value;
             }
+        }
 
-            return velocities;
+        public float[] GetJointVelocities(bool normalize = false) {
+            float[] buffer = new float[DoF];
+            GetJointVelocities(buffer, 0, normalize);
+            return buffer;
         }
     }
 }

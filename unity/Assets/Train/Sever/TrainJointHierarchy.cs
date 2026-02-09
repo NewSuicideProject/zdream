@@ -16,14 +16,14 @@ namespace Train.Sever {
             TrainNodes = Nodes.Cast<TrainJointNode>().ToList();
         }
 
-        protected override bool IsJoint(GameObject obj) => obj.GetComponent<ArticulationBody>() != null;
+        protected override bool IsJoint(GameObject candidate) => candidate.GetComponent<ArticulationBody>() != null;
 
-        protected override JointNodeBase GetJointNode(GameObject obj, JointNodeBase parent) {
-            TrainJointNode node = new(obj, parent);
+        protected override JointNodeBase GetJointNode(GameObject joint) {
+            TrainJointNode node = new(joint);
 
-            GameObject[] childrenJoint = GetChildrenJoint(obj);
+            GameObject[] childrenJoint = GetChildrenJoint(joint);
             foreach (GameObject childJoint in childrenJoint) {
-                node.Children.Add(GetJointNode(childJoint, node));
+                node.Children.Add(GetJointNode(childJoint));
             }
 
             return node;

@@ -4,10 +4,9 @@ using UnityEngine;
 namespace Sever {
     public class JointHierarchyBase : MonoBehaviour {
         protected JointNodeBase RootNode { get; private set; }
-
         public List<JointNodeBase> Nodes;
 
-        protected virtual bool IsJoint(GameObject obj) => true;
+        protected virtual bool IsJoint(GameObject candidate) => true;
 
         protected GameObject[] GetChildrenJoint(GameObject parent) {
             List<GameObject> childrenJoint = new();
@@ -33,9 +32,9 @@ namespace Sever {
         }
 
         protected virtual void Awake() {
-            GameObject rootObj;
+            GameObject rootJoint;
             if (IsJoint(gameObject)) {
-                rootObj = gameObject;
+                rootJoint = gameObject;
             } else {
                 GameObject[] roots = GetChildrenJoint(gameObject);
                 if (roots.Length == 0) {
@@ -43,15 +42,15 @@ namespace Sever {
                     return;
                 }
 
-                rootObj = roots[0];
+                rootJoint = roots[0];
                 if (roots.Length > 1) {
                     Debug.LogWarning(
-                        $"[JointHierarchyBase] Multiple potential roots found under {name}. Using {rootObj.name}.",
+                        $"[JointHierarchyBase] Multiple potential roots found under {name}. Using {rootJoint.name}.",
                         this);
                 }
             }
 
-            RootNode = GetJointNode(rootObj, null);
+            RootNode = GetJointNode(rootJoint);
 
             Nodes = new List<JointNodeBase>();
             GetNodes(RootNode);
@@ -65,13 +64,12 @@ namespace Sever {
             }
         }
 
-
-        protected virtual JointNodeBase GetJointNode(GameObject obj, JointNodeBase parent) {
-            JointNodeBase node = new(obj, parent);
-            GameObject[] childrenJoint = GetChildrenJoint(obj);
+        protected virtual JointNodeBase GetJointNode(GameObject joint) {
+            JointNodeBase node = new(joint);
+            GameObject[] childrenJoint = GetChildrenJoint(joint);
 
             foreach (GameObject childJoint in childrenJoint) {
-                node.Children.Add(GetJointNode(childJoint, node));
+                node.Children.Add(GetJointNode(childJoint));
             }
 
             return node;
