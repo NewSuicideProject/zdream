@@ -266,9 +266,9 @@ public sealed class RoomMstMainGen : MonoBehaviour {
         public readonly int a, b, w;
 
         public Edge(int a, int b, int w) {
-            this.a = a;
-            this.b = b;
-            this.w = w;
+            this.a = a; //fir room index
+            this.b = b; //sec room index
+            this.w = w; // weight
         }
     }
 
