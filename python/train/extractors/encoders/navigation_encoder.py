@@ -7,7 +7,6 @@ class NavigationEncoder(nn.Module):
         input_dim,
         hidden_dims=None,
         activation_fn=None,
-        #max_t=10,
     ):
         super().__init__()
 
@@ -17,7 +16,6 @@ class NavigationEncoder(nn.Module):
         self.d_model = hidden_dims[-1]
         self.num_layers = len(hidden_dims)
         self.max_t = 10
-        #self.max_t = max_t
 
         if self.d_model % 4 == 0:
             self.nhead = 4
