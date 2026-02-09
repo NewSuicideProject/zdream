@@ -3,76 +3,50 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class Environment : MonoBehaviour {
-    [Header("Scene refs")] [SerializeField]
-    private Transform basePart; // Optional. Used as center reference (grid origin).
+    [SerializeField] private Transform basePart;
 
-    [Header("Wall visuals")] [SerializeField]
-    private Transform wallParent;
-
+    [SerializeField] private Transform wallParent;
     [SerializeField] private GameObject wallPrefab;
     [SerializeField] private float wallCenterY = 2.5f;
 
-    [Header("Spawn markers (existing EmptyObjects)")] [SerializeField]
-    private Transform zombieSpawnMarker;
-
+    [SerializeField] private Transform zombieSpawnMarker;
     [SerializeField] private Transform targetSpawnMarker;
 
-    [Header("Grid")] [Min(8)] [SerializeField]
-    private int gridWidth = 64;
-
+    [Min(8)] [SerializeField] private int gridWidth = 64;
     [Min(8)] [SerializeField] private int gridHeight = 64;
     [Min(0.1f)] [SerializeField] private float cellSize = 1f;
 
-    [Header("Generation")] [SerializeField]
-    private bool autoGenerateOnPlay = true;
-
+    [SerializeField] private bool autoGenerateOnPlay = true;
     [SerializeField] private int seed = 0; // 0 => random each play
     [SerializeField] private bool keepBorderWalls = true;
 
-    [Header("Rooms")] [Min(2)] [SerializeField]
-    private int roomCount = 14;
-
+    [Min(2)] [SerializeField] private int roomCount = 14;
     [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
     [Range(0f, 1f)] [SerializeField] private float circleRoomChance = 0.35f;
 
-    [Header("Rect room size")] [Min(3)] [SerializeField]
-    private int rectMinW = 5;
-
+    [Min(3)] [SerializeField] private int rectMinW = 5;
     [Min(3)] [SerializeField] private int rectMaxW = 12;
     [Min(3)] [SerializeField] private int rectMinH = 5;
     [Min(3)] [SerializeField] private int rectMaxH = 12;
 
-    [Header("Circle room radius")] [Min(2)] [SerializeField]
-    private int circleMinR = 3;
-
+    [Min(2)] [SerializeField] private int circleMinR = 3;
     [Min(2)] [SerializeField] private int circleMaxR = 7;
 
-    [Header("Room spacing")] [Min(0)] [SerializeField]
-    private int roomPadding = 1;
+    [Min(0)] [SerializeField] private int roomPadding = 1;
 
-
-    [Header("Corridors")] [Min(1)] [SerializeField]
-    private int corridorWidth = 1;
-
+    [Min(1)] [SerializeField] private int corridorWidth = 1;
     [SerializeField] private bool randomizeLTurnOrder = true;
 
-
-    [Header("Organic (light, in-bounds only)")] [Range(0, 3)] [SerializeField]
-    private int organicIterations = 1;
-
+    [Range(0, 3)] [SerializeField] private int organicIterations = 1;
     [Range(0f, 0.25f)] [SerializeField] private float organicCarveRatio = 0.06f;
     [Range(0f, 0.25f)] [SerializeField] private float organicGrowRatio = 0.05f;
     [Min(1)] [SerializeField] private int organicGrowMaxTriesPerCell = 6;
 
+    private MapData _map;
+    private System.Random _rng;
 
-    private bool[,] wallMatrix; // true=wall, false=floor
-    private int[,] roomIdMatrix; // -1 if not room (room cells only; corridors remain -1)
-    private readonly List<Room> rooms = new();
-    private System.Random rng;
-
-    private OrganicShaper organicShaper;
-    private Visualizer visualizer;
-
+    private OrganicShaper _organicShaper;
+    private Visualizer _visualizer;
 
     public readonly struct Cell {
         public readonly int x, y;
@@ -86,38 +60,30 @@ public sealed class Environment : MonoBehaviour {
     [Serializable]
     public sealed class Room {
         public int id;
-        public RectInt bounds; // organic must NOT exceed
-        public Vector2Int center; // seed center (optional to recompute)
-        public readonly List<Cell> cells = new();
-        public readonly HashSet<int> floorSet = new(); // membership cache / primary source for organic
+        public RectInt bounds; // organic must stay inside
+        public Vector2Int center; // seed center (can be recomputed later if you want)
+        public readonly List<Cell> Cells = new();
+        public readonly HashSet<int> FloorSet = new(); // source of truth for organic boundary tests
     }
 
-    public readonly struct MapData {
-        public readonly int width;
-        public readonly int height;
-        public readonly float cellSize;
-        public readonly Vector3 origin; // bottom-left world origin (XZ)
-        public readonly bool[,] wallMatrix;
-        public readonly List<Room> rooms;
+    public sealed class MapData {
+        public int width;
+        public int height;
+        public float cellSize;
+        public Vector3 origin; // bottom-left world origin (XZ)
 
-        public MapData(int width, int height, float cellSize, Vector3 origin, bool[,] wallMatrix, List<Room> rooms) {
-            this.width = width;
-            this.height = height;
-            this.cellSize = cellSize;
-            this.origin = origin;
-            this.wallMatrix = wallMatrix;
-            this.rooms = rooms;
-        }
+        public bool[,] wallMatrix; // true=wall, false=floor
+        public int[,] roomIdMatrix; // -1 if not room (corridors remain -1)
+        public List<Room> rooms;
     }
-
 
     private void Awake() {
         if (wallParent == null) {
             wallParent = transform;
         }
 
-        organicShaper = new OrganicShaper();
-        visualizer = new Visualizer(wallParent, wallPrefab, wallCenterY);
+        _organicShaper = new OrganicShaper();
+        _visualizer = new Visualizer(wallParent, wallPrefab, wallCenterY);
     }
 
     private void Start() {
@@ -126,39 +92,41 @@ public sealed class Environment : MonoBehaviour {
         }
     }
 
-
     public void Generate() {
         int actualSeed = seed == 0 ? System.Environment.TickCount : seed;
-        rng = new System.Random(actualSeed);
+        _rng = new System.Random(actualSeed);
 
-        rooms.Clear();
-        BuildEmptyMatrices();
+        _map = new MapData {
+            width = gridWidth,
+            height = gridHeight,
+            cellSize = cellSize,
+            origin = GetGridOrigin(gridWidth, gridHeight, cellSize),
+            wallMatrix = new bool[gridHeight, gridWidth],
+            roomIdMatrix = new int[gridHeight, gridWidth],
+            rooms = new List<Room>(roomCount)
+        };
 
-        PlaceRooms(); // includes light organic (bounded)
-        CarveRoomsIntoGrid(); // room cells -> wallMatrix + roomIdMatrix
-        ConnectRoomsMst(); // corridors -> wallMatrix
+        InitializeMatrices();
+
+        PlaceRooms();
+        WriteRoomsToGrid();
+
+        ConnectRoomsMst();
         ApplyBorderWallsIfNeeded();
 
-        Vector3 origin = GetGridOrigin();
-        MapData data = new(gridWidth, gridHeight, cellSize, origin, wallMatrix, rooms);
-
-        visualizer.RebuildWalls(data);
-        visualizer.PlaceSpawnMarkers(data, zombieSpawnMarker, targetSpawnMarker); // 캡슐 없음 (EmptyObject만 이동)
+        _visualizer.RebuildWalls(_map);
+        _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
     }
 
-
-    private void BuildEmptyMatrices() {
-        wallMatrix = new bool[gridHeight, gridWidth];
-        roomIdMatrix = new int[gridHeight, gridWidth];
-
-        for (int y = 0; y < gridHeight; y++)
-        for (int x = 0; x < gridWidth; x++) {
-            wallMatrix[y, x] = true;
-            roomIdMatrix[y, x] = -1;
+    private void InitializeMatrices() {
+        for (int y = 0; y < _map.height; y++)
+        for (int x = 0; x < _map.width; x++) {
+            _map.wallMatrix[y, x] = true;
+            _map.roomIdMatrix[y, x] = -1;
         }
     }
 
-    private bool InBounds(int x, int y) => x >= 0 && x < gridWidth && y >= 0 && y < gridHeight;
+    private bool InBounds(int x, int y) => x >= 0 && x < _map.width && y >= 0 && y < _map.height;
 
     private static RectInt ExpandRect(RectInt r, int pad) =>
         new(r.xMin - pad, r.yMin - pad, r.width + (pad * 2), r.height + (pad * 2));
@@ -178,7 +146,7 @@ public sealed class Environment : MonoBehaviour {
         while (placed < roomCount && tries < maxTries) {
             tries++;
 
-            bool makeCircle = rng.NextDouble() < circleRoomChance;
+            bool makeCircle = _rng.NextDouble() < circleRoomChance;
             Room room = makeCircle ? CreateCircleRoom(placed) : CreateRectRoom(placed);
             if (room == null) {
                 continue;
@@ -188,73 +156,91 @@ public sealed class Environment : MonoBehaviour {
                 continue;
             }
 
-            // Build initial floorSet from initial cells
             BuildRoomFloorSet(room);
+            _organicShaper.ApplyLightOrganic(room, _rng, organicCfg);
 
-            // Organic modifies floorSet and rewrites cells from floorSet
-            organicShaper.ApplyLightOrganic(room, rng, organicCfg);
-
-            rooms.Add(room);
+            _map.rooms.Add(room);
             placed++;
         }
 
-        if (rooms.Count < 2) {
+        if (_map.rooms.Count < 2) {
             Debug.LogWarning(
-                $"[Environment] Only {rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
+                $"[Environment] Only {_map.rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
         }
     }
 
     private Room CreateRectRoom(int id) {
-        int w = RandInt(rectMinW, rectMaxW);
-        int h = RandInt(rectMinH, rectMaxH);
+        int roomWidthCells = _rng.Next(rectMinW, rectMaxW + 1);
+        int roomHeightCells = _rng.Next(rectMinH, rectMaxH + 1);
 
-        int minX = 1;
-        int minY = 1;
-        int maxX = gridWidth - w - 1;
-        int maxY = gridHeight - h - 1;
-        if (maxX < minX || maxY < minY) {
+        const int border = 1; // keep at least 1-cell margin for border walls
+        int minLeftX = border;
+        int minBottomY = border;
+
+        int maxLeftX = _map.width - roomWidthCells - border;
+        int maxBottomY = _map.height - roomHeightCells - border;
+        if (maxLeftX < minLeftX || maxBottomY < minBottomY) {
             return null;
         }
 
-        int x0 = RandInt(minX, maxX);
-        int y0 = RandInt(minY, maxY);
+        int leftX = _rng.Next(minLeftX, maxLeftX + 1);
+        int bottomY = _rng.Next(minBottomY, maxBottomY + 1);
 
-        Room r = new() {
-            id = id, bounds = new RectInt(x0, y0, w, h), center = new Vector2Int(x0 + (w / 2), y0 + (h / 2))
+        int centerX = leftX + (roomWidthCells / 2);
+        int centerY = bottomY + (roomHeightCells / 2);
+
+        Room room = new() {
+            id = id,
+            bounds = new RectInt(leftX, bottomY, roomWidthCells, roomHeightCells),
+            center = new Vector2Int(centerX, centerY)
         };
 
-        for (int y = y0; y < y0 + h; y++)
-        for (int x = x0; x < x0 + w; x++) {
-            r.cells.Add(new Cell(x, y));
+        int rightXExclusive = leftX + roomWidthCells;
+        int topYExclusive = bottomY + roomHeightCells;
+
+        for (int y = bottomY; y < topYExclusive; y++)
+        for (int x = leftX; x < rightXExclusive; x++) {
+            room.Cells.Add(new Cell(x, y));
         }
 
-        return r;
+        return room;
     }
 
     private Room CreateCircleRoom(int id) {
-        int r = RandInt(circleMinR, circleMaxR);
-        int d = (r * 2) + 1;
+        int radiusCells = _rng.Next(circleMinR, circleMaxR + 1);
+        int diameterCells = (radiusCells * 2) + 1;
 
-        int minX = 1 + r;
-        int minY = 1 + r;
-        int maxX = gridWidth - r - 2;
-        int maxY = gridHeight - r - 2;
-        if (maxX < minX || maxY < minY) {
+        const int border = 1;
+        int minCenterX = border + radiusCells;
+        int minCenterY = border + radiusCells;
+
+        int maxCenterX = _map.width - border - radiusCells - 1;
+        int maxCenterY = _map.height - border - radiusCells - 1;
+        if (maxCenterX < minCenterX || maxCenterY < minCenterY) {
             return null;
         }
 
-        int cx = RandInt(minX, maxX);
-        int cy = RandInt(minY, maxY);
+        int centerX = _rng.Next(minCenterX, maxCenterX + 1);
+        int centerY = _rng.Next(minCenterY, maxCenterY + 1);
 
-        Room room = new() { id = id, bounds = new RectInt(cx - r, cy - r, d, d), center = new Vector2Int(cx, cy) };
+        int boundsLeftX = centerX - radiusCells;
+        int boundsBottomY = centerY - radiusCells;
 
-        int rr = r * r;
-        for (int y = cy - r; y <= cy + r; y++)
-        for (int x = cx - r; x <= cx + r; x++) {
-            int dx = x - cx;
-            int dy = y - cy;
-            if ((dx * dx) + (dy * dy) <= rr) {
-                room.cells.Add(new Cell(x, y));
+        Room room = new() {
+            id = id,
+            bounds = new RectInt(boundsLeftX, boundsBottomY, diameterCells, diameterCells),
+            center = new Vector2Int(centerX, centerY)
+        };
+
+        int radiusSq = radiusCells * radiusCells;
+
+        for (int y = centerY - radiusCells; y <= centerY + radiusCells; y++)
+        for (int x = centerX - radiusCells; x <= centerX + radiusCells; x++) {
+            int offsetX = x - centerX;
+            int offsetY = y - centerY;
+
+            if ((offsetX * offsetX) + (offsetY * offsetY) <= radiusSq) {
+                room.Cells.Add(new Cell(x, y));
             }
         }
 
@@ -262,15 +248,15 @@ public sealed class Environment : MonoBehaviour {
     }
 
     private bool RoomFitsAndDoesntOverlap(Room room) {
-        RectInt b = room.bounds;
-        if (b.xMin < 0 || b.yMin < 0 || b.xMax > gridWidth || b.yMax > gridHeight) {
+        RectInt expanded = ExpandRect(room.bounds, roomPadding);
+
+        if (expanded.xMin < 0 || expanded.yMin < 0 || expanded.xMax > _map.width || expanded.yMax > _map.height) {
             return false;
         }
 
-        RectInt expanded = ExpandRect(b, roomPadding);
-        for (int i = 0; i < rooms.Count; i++) {
-            RectInt other = ExpandRect(rooms[i].bounds, roomPadding);
-            if (expanded.Overlaps(other)) {
+        for (int i = 0; i < _map.rooms.Count; i++) {
+            RectInt otherExpanded = ExpandRect(_map.rooms[i].bounds, roomPadding);
+            if (expanded.Overlaps(otherExpanded)) {
                 return false;
             }
         }
@@ -279,31 +265,30 @@ public sealed class Environment : MonoBehaviour {
     }
 
     private void BuildRoomFloorSet(Room room) {
-        room.floorSet.Clear();
-        for (int i = 0; i < room.cells.Count; i++) {
-            Cell c = room.cells[i];
-            room.floorSet.Add(Pack(c.x, c.y));
+        room.FloorSet.Clear();
+        for (int i = 0; i < room.Cells.Count; i++) {
+            Cell c = room.Cells[i];
+            room.FloorSet.Add(Utility.Pack(c.x, c.y));
         }
     }
 
-    private void CarveRoomsIntoGrid() {
-        for (int i = 0; i < rooms.Count; i++) {
-            Room r = rooms[i];
-            for (int k = 0; k < r.cells.Count; k++) {
-                Cell c = r.cells[k];
+    private void WriteRoomsToGrid() {
+        for (int i = 0; i < _map.rooms.Count; i++) {
+            Room r = _map.rooms[i];
+            for (int k = 0; k < r.Cells.Count; k++) {
+                Cell c = r.Cells[k];
                 if (!InBounds(c.x, c.y)) {
                     continue;
                 }
 
-                wallMatrix[c.y, c.x] = false;
-                roomIdMatrix[c.y, c.x] = r.id;
+                _map.wallMatrix[c.y, c.x] = false;
+                _map.roomIdMatrix[c.y, c.x] = r.id;
             }
         }
     }
 
-
     private readonly struct Edge {
-        public readonly int a, b, w;
+        public readonly int a, b, w; // indices in map.rooms
 
         public Edge(int a, int b, int w) {
             this.a = a;
@@ -313,18 +298,19 @@ public sealed class Environment : MonoBehaviour {
     }
 
     private void ConnectRoomsMst() {
-        int n = rooms.Count;
+        int n = _map.rooms.Count;
         if (n <= 1) {
             return;
         }
 
         List<Edge> edges = new(n * (n - 1) / 2);
+
         for (int i = 0; i < n; i++) {
-            Vector2Int ca = rooms[i].center;
+            Vector2Int ca = _map.rooms[i].center;
             for (int j = i + 1; j < n; j++) {
-                Vector2Int cb = rooms[j].center;
-                int w = Mathf.Abs(ca.x - cb.x) + Mathf.Abs(ca.y - cb.y);
-                edges.Add(new Edge(i, j, w));
+                Vector2Int cb = _map.rooms[j].center;
+                int manhattan = Mathf.Abs(ca.x - cb.x) + Mathf.Abs(ca.y - cb.y);
+                edges.Add(new Edge(i, j, manhattan));
             }
         }
 
@@ -340,7 +326,7 @@ public sealed class Environment : MonoBehaviour {
             }
 
             picked++;
-            CarveCorridorBetweenRooms(rooms[e.a], rooms[e.b]);
+            CarveCorridorBetweenRooms(_map.rooms[e.a], _map.rooms[e.b]);
         }
     }
 
@@ -388,7 +374,7 @@ public sealed class Environment : MonoBehaviour {
         Cell doorA = PickBestDoorCell(a, b.center);
         Cell doorB = PickBestDoorCell(b, a.center);
 
-        bool xThenY = randomizeLTurnOrder ? rng.NextDouble() < 0.5 : true;
+        bool xThenY = randomizeLTurnOrder ? _rng.NextDouble() < 0.5 : true;
 
         if (xThenY) {
             CarveLine(doorA.x, doorA.y, doorB.x, doorA.y);
@@ -400,17 +386,17 @@ public sealed class Environment : MonoBehaviour {
     }
 
     private static Cell PickBestDoorCell(Room room, Vector2Int toward) {
-        Cell best = room.cells[0];
+        Cell best = room.Cells[0];
         int bestScore = int.MaxValue;
 
-        for (int i = 0; i < room.cells.Count; i++) {
-            Cell c = room.cells[i];
+        for (int i = 0; i < room.Cells.Count; i++) {
+            Cell c = room.Cells[i];
 
             bool isBoundary =
-                !room.floorSet.Contains(Pack(c.x + 1, c.y)) ||
-                !room.floorSet.Contains(Pack(c.x - 1, c.y)) ||
-                !room.floorSet.Contains(Pack(c.x, c.y + 1)) ||
-                !room.floorSet.Contains(Pack(c.x, c.y - 1));
+                !room.FloorSet.Contains(Utility.Pack(c.x + 1, c.y)) ||
+                !room.FloorSet.Contains(Utility.Pack(c.x - 1, c.y)) ||
+                !room.FloorSet.Contains(Utility.Pack(c.x, c.y + 1)) ||
+                !room.FloorSet.Contains(Utility.Pack(c.x, c.y - 1));
 
             if (!isBoundary) {
                 continue;
@@ -458,51 +444,32 @@ public sealed class Environment : MonoBehaviour {
                 continue;
             }
 
-            wallMatrix[y, x] = false;
+            _map.wallMatrix[y, x] = false;
         }
     }
-
 
     private void ApplyBorderWallsIfNeeded() {
         if (!keepBorderWalls) {
             return;
         }
 
-        for (int x = 0; x < gridWidth; x++) {
-            wallMatrix[0, x] = true;
-            wallMatrix[gridHeight - 1, x] = true;
+        for (int x = 0; x < _map.width; x++) {
+            _map.wallMatrix[0, x] = true;
+            _map.wallMatrix[_map.height - 1, x] = true;
         }
 
-        for (int y = 0; y < gridHeight; y++) {
-            wallMatrix[y, 0] = true;
-            wallMatrix[y, gridWidth - 1] = true;
+        for (int y = 0; y < _map.height; y++) {
+            _map.wallMatrix[y, 0] = true;
+            _map.wallMatrix[y, _map.width - 1] = true;
         }
     }
 
-
-    private Vector3 GetGridOrigin() {
+    private Vector3 GetGridOrigin(int width, int height, float cellWorldSize) {
         Vector3 center = basePart != null ? basePart.position : transform.position;
 
-        float totalW = gridWidth * cellSize;
-        float totalH = gridHeight * cellSize;
+        float totalW = width * cellWorldSize;
+        float totalH = height * cellWorldSize;
 
-        // bottom-left in XZ
         return new Vector3(center.x - (totalW * 0.5f), 0f, center.z - (totalH * 0.5f));
-    }
-
-    public static int Pack(int x, int y) => (y << 16) ^ (x & 0xFFFF);
-
-    public static void Unpack(int p, out int x, out int y) {
-        x = (short)(p & 0xFFFF);
-        y = p >> 16;
-    }
-
-
-    private int RandInt(int min, int maxInclusive) {
-        if (maxInclusive < min) {
-            return min;
-        }
-
-        return rng.Next(min, maxInclusive + 1);
     }
 }

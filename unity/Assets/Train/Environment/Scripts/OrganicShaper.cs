@@ -29,22 +29,22 @@ public sealed class OrganicShaper {
 
         for (int it = 0; it < cfg.iterations; it++) {
             // 1) carve boundary cells
-            List<Environment.Cell> boundary = CollectBoundaryCells(room.floorSet, room.bounds);
-            int carveCount = Mathf.Clamp(Mathf.RoundToInt(room.floorSet.Count * cfg.carveRatio), 0, boundary.Count);
+            List<Environment.Cell> boundary = CollectBoundaryCells(room.FloorSet, room.bounds);
+            int carveCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.carveRatio), 0, boundary.Count);
 
             for (int k = 0; k < carveCount && boundary.Count > 0; k++) {
                 int idx = rng.Next(boundary.Count);
                 Environment.Cell c = boundary[idx];
                 boundary.RemoveAt(idx);
 
-                if (CountFloorNeighbors(room.floorSet, c.x, c.y) >= 2) {
-                    room.floorSet.Remove(Environment.Pack(c.x, c.y));
+                if (CountFloorNeighbors(room.FloorSet, c.x, c.y) >= 2) {
+                    room.FloorSet.Remove(Utility.Pack(c.x, c.y));
                 }
             }
 
             // 2) grow into neighbors (still inside bounds)
-            boundary = CollectBoundaryCells(room.floorSet, room.bounds);
-            int growCount = Mathf.Clamp(Mathf.RoundToInt(room.floorSet.Count * cfg.growRatio), 0, boundary.Count);
+            boundary = CollectBoundaryCells(room.FloorSet, room.bounds);
+            int growCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.growRatio), 0, boundary.Count);
 
             for (int k = 0; k < growCount && boundary.Count > 0; k++) {
                 int idx = rng.Next(boundary.Count);
@@ -57,10 +57,10 @@ public sealed class OrganicShaper {
                         continue;
                     }
 
-                    int p = Environment.Pack(n.x, n.y);
-                    if (!room.floorSet.Contains(p)) {
-                        if (CountFloorNeighbors(room.floorSet, n.x, n.y) >= 2) {
-                            room.floorSet.Add(p);
+                    int p = Utility.Pack(n.x, n.y);
+                    if (!room.FloorSet.Contains(p)) {
+                        if (CountFloorNeighbors(room.FloorSet, n.x, n.y) >= 2) {
+                            room.FloorSet.Add(p);
                             break;
                         }
                     }
@@ -69,10 +69,10 @@ public sealed class OrganicShaper {
         }
 
         // write back to cells list
-        room.cells.Clear();
-        foreach (int p in room.floorSet) {
-            Environment.Unpack(p, out int x, out int y);
-            room.cells.Add(new Environment.Cell(x, y));
+        room.Cells.Clear();
+        foreach (int p in room.FloorSet) {
+            Utility.Unpack(p, out int x, out int y);
+            room.Cells.Add(new Environment.Cell(x, y));
         }
     }
 
@@ -81,7 +81,7 @@ public sealed class OrganicShaper {
 
         for (int y = bounds.yMin; y < bounds.yMax; y++)
         for (int x = bounds.xMin; x < bounds.xMax; x++) {
-            int p = Environment.Pack(x, y);
+            int p = Utility.Pack(x, y);
             if (!floorSet.Contains(p)) {
                 continue;
             }
@@ -102,24 +102,24 @@ public sealed class OrganicShaper {
             return false;
         }
 
-        return set.Contains(Environment.Pack(x, y));
+        return set.Contains(Utility.Pack(x, y));
     }
 
     private int CountFloorNeighbors(HashSet<int> set, int x, int y) {
         int n = 0;
-        if (set.Contains(Environment.Pack(x + 1, y))) {
+        if (set.Contains(Utility.Pack(x + 1, y))) {
             n++;
         }
 
-        if (set.Contains(Environment.Pack(x - 1, y))) {
+        if (set.Contains(Utility.Pack(x - 1, y))) {
             n++;
         }
 
-        if (set.Contains(Environment.Pack(x, y + 1))) {
+        if (set.Contains(Utility.Pack(x, y + 1))) {
             n++;
         }
 
-        if (set.Contains(Environment.Pack(x, y - 1))) {
+        if (set.Contains(Utility.Pack(x, y - 1))) {
             n++;
         }
 
