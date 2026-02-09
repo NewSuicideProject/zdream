@@ -4,53 +4,48 @@ using UnityEngine;
 
 namespace Train.Sensors.Navigation {
     public class NavigationSensor : MonoBehaviour {
-        [Header("References")] [SerializeField]
+        [Header("Dependencies")] [SerializeField]
         private Navigator navigator;
 
-        [SerializeField] private Transform agentRoot;
+        [SerializeField] private Proprioception proprioception;
 
-        [Header("Normalization Settings")] [SerializeField]
+        [Header("Encoder Specs")] [SerializeField]
+        private int maxToken = 3;
+
+        [SerializeField] private int inputDim = 5;
+
+        [Header("Normalization")] [SerializeField]
         private float emc = 20.0f;
 
-        [SerializeField] private int sampleCount = 10;
-
         private float[] _navigationBuffer;
+        public float[] NavigationBuffer => _navigationBuffer;
 
-        public NavigationSensor(float[] navigationBuffer) => _navigationBuffer = navigationBuffer;
-
-        private void Awake() {
-            if (agentRoot == null) {
-                agentRoot = transform;
-            }
-
-            _navigationBuffer = new float[sampleCount * 5];
-        }
+        private void Awake() =>
+            _navigationBuffer = new float[maxToken * inputDim];
 
         public void UpdateNavigationData() {
-            if (navigator == null) {
+            if (navigator == null || proprioception == null) {
                 return;
             }
 
-            // 1. Calculate the 'Stable Heading' (Projected on World Horizontal Plane)
-            // Use Vector3.ProjectOnPlane to remove any Y (Vertical) component from the forward vector
-            Vector3 projectedForward = Vector3.ProjectOnPlane(agentRoot.forward, Vector3.up).normalized;
+            Vector3 agentPos = proprioception.Position;
+            Vector3 rawForward = proprioception.Forward;
 
-            // If the agent is looking directly up/down, fallback to its raw forward
+            Vector3 projectedForward = Vector3.ProjectOnPlane(rawForward, Vector3.up).normalized;
             if (projectedForward.sqrMagnitude < 0.001f) {
-                projectedForward = agentRoot.forward;
+                projectedForward = rawForward;
             }
 
-            // Create a rotation that is always upright relative to World Up
             Quaternion stableRotation = Quaternion.LookRotation(projectedForward, Vector3.up);
-            Matrix4x4 stableMatrix = Matrix4x4.TRS(agentRoot.position, stableRotation, Vector3.one);
-            Matrix4x4 worldToStable = stableMatrix.inverse;
+            Matrix4x4 worldToStable = Matrix4x4.TRS(agentPos, stableRotation, Vector3.one).inverse;
 
             Vector3[] corners = navigator.Corners;
-            int bufferIndex = 0;
-            Vector3 lastValidPoint = agentRoot.position;
+            int bufferIdx = 0;
+
+            Vector3 lastValidPoint = agentPos;
             Vector3 lastValidDir = projectedForward;
 
-            for (int i = 0; i < sampleCount; i++) {
+            for (int i = 0; i < maxToken; i++) {
                 Vector3 worldPos;
                 Vector3 worldDir;
 
@@ -69,27 +64,15 @@ namespace Train.Sensors.Navigation {
                     worldDir = lastValidDir;
                 }
 
-                // 2. Transform to Stable Local Space
-                // Instead of InverseTransformPoint, use our custom stable matrix
                 Vector3 localPos = worldToStable.MultiplyPoint3x4(worldPos);
                 Vector3 localDir = worldToStable.MultiplyVector(worldDir);
 
-                // 3. User-Defined Token Mapping (Stable Coordinates)
-                // User X: Forward/Backward (Stable Z)
-                // User Y: Left/Right (Stable X)
-                // User Z: Height/Slope (Stable Y)
-                float relPosX = localPos.z;
-                float relPosY = localPos.x;
-                float relPosZ = localPos.y;
+                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.z / emc); // Forward distance
+                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.x / emc); // Lateral distance
+                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.y / emc); // Vertical (Slope)
 
-                // 4. Normalization with Tanh: $\tanh(\text{Value} / \text{EMC})$
-                _navigationBuffer[bufferIndex++] = (float)Math.Tanh(relPosX / emc);
-                _navigationBuffer[bufferIndex++] = (float)Math.Tanh(relPosY / emc);
-                _navigationBuffer[bufferIndex++] = (float)Math.Tanh(relPosZ / emc);
-
-                // 5. Target Direction (Relative to Stable Heading)
-                _navigationBuffer[bufferIndex++] = localDir.z; // Target Dir X (Forward component)
-                _navigationBuffer[bufferIndex++] = localDir.x; // Target Dir Y (Side component)
+                _navigationBuffer[bufferIdx++] = localDir.z; // Target forward direction component
+                _navigationBuffer[bufferIdx++] = localDir.x; // Target side direction component
             }
         }
     }
