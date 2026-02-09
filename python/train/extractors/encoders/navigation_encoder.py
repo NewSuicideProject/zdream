@@ -1,3 +1,4 @@
+import torch as th
 import torch.nn as nn
 
 
@@ -5,26 +6,43 @@ class NavigationEncoder(nn.Module):
     def __init__(
         self,
         input_dim,
-        hidden_dims=None,
+        d_model=128,
         activation_fn=None,
+        num_layers=1,
+        max_token=3,
+        nhead=1,
     ):
         super().__init__()
 
-        if hidden_dims is None:
-            hidden_dims = [64, 128, 256]
+        self.d_model = d_model
+        self.num_layers = num_layers
+        self.max_token = max_token
+        self.nhead = nhead
+
         if activation_fn is None:
-            activation_fn = nn.ReLU
+            activation_fn = nn.ReLU()
 
-        layers = []
-        last_dim = input_dim
+        self.input_projection = nn.Linear(input_dim, self.d_model)
+        self.pos_embedding = nn.Parameter(
+            th.randn(1, self.max_token, self.d_model) * 0.02
+        )
 
-        for hidden_dim in hidden_dims:
-            layers.append(nn.Linear(last_dim, hidden_dim))
-            layers.append(activation_fn())
-            last_dim = hidden_dim
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=self.d_model,
+            nhead=self.nhead,
+            dim_feedforward=self.d_model * 4,
+            batch_first=True,
+            activation=activation_fn,
+        )
 
-        self.net = nn.Sequential(*layers)
-        self.output_dim = last_dim
+        self.transformer_blocks = nn.TransformerEncoder(
+            encoder_layer, num_layers=self.num_layers
+        )
+
+        self.output_dim = self.d_model
 
     def forward(self, x):
-        return self.net(x)
+        x = self.input_projection(x)
+        x = x + self.pos_embedding[:, : x.size(1), :]
+        x = self.transformer_blocks(x)
+        return x.mean(dim=1)
