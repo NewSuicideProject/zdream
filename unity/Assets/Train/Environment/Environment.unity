@@ -233,7 +233,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
+  - {fileID: 2100000, guid: 71ff14c5d23494e4891714ed60a7e24e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -464,8 +464,8 @@ MonoBehaviour:
   capsuleHeight: 2
   capsuleRadius: 0.5
   capsuleLift: 1.2
-  zombieSpawnDebugMaterial: {fileID: 2100000, guid: 43448911d687eca46b018de80e6807e6, type: 2}
-  targetSpawnDebugMaterial: {fileID: 2100000, guid: 0b2e4bb07daf6344482cb2c44d472c60, type: 2}
+  zombieSpawnDebugMaterial: {fileID: 2100000, guid: 798ec296ad18e554ba395738b557d64f, type: 2}
+  targetSpawnDebugMaterial: {fileID: 2100000, guid: 089cad7f1de2d5542ac77df661ccdcd8, type: 2}
 --- !u!114 &1030240875
 MonoBehaviour:
   m_ObjectHideFlags: 0
