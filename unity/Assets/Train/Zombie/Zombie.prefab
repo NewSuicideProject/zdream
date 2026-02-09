@@ -2750,7 +2750,7 @@ ArticulationBody:
     lowerLimit: -30
     upperLimit: 60
     stiffness: 16000
-    damping: 400
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2759,7 +2759,7 @@ ArticulationBody:
     lowerLimit: -45
     upperLimit: 45
     stiffness: 16000
-    damping: 400
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2768,7 +2768,7 @@ ArticulationBody:
     lowerLimit: -30
     upperLimit: 30
     stiffness: 16000
-    damping: 400
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2849,7 +2849,7 @@ ArticulationBody:
     lowerLimit: -30
     upperLimit: 60
     stiffness: 16000
-    damping: 400
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2858,7 +2858,7 @@ ArticulationBody:
     lowerLimit: -45
     upperLimit: 45
     stiffness: 16000
-    damping: 400
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
@@ -2867,7 +2867,7 @@ ArticulationBody:
     lowerLimit: -30
     upperLimit: 30
     stiffness: 16000
-    damping: 400
+    damping: 200
     forceLimit: 3.4028235e+38
     target: 0
     targetVelocity: 0
