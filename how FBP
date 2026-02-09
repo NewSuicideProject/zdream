@@ -1,0 +1,158 @@
+[33mtag FBP[m
+Tagger: DPC0516 <kyoungchan0516@gmail.com>
+Date:   Sat Feb 7 17:27:45 2026 +0900
+
+
+[33mcommit e7e7ecf1ea4d4a03e6deeca6ad738b1d27084350[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/environment-re/v2[m[33m, [m[1;33mtag: [m[1;33mFBP[m[33m, [m[1;31morigin/feature/environment-re/v2[m[33m)[m
+Author: DPC0516 <kyoungchan0516@gmail.com>
+Date:   Sat Feb 7 17:27:25 2026 +0900
+
+    adjustment
+
+[1mdiff --git a/unity/Assets/Prefabs/Camera.prefab b/unity/Assets/Prefabs/Camera.prefab[m
+[1mindex 41d141f..ab05cd9 100644[m
+[1m--- a/unity/Assets/Prefabs/Camera.prefab[m
+[1m+++ b/unity/Assets/Prefabs/Camera.prefab[m
+[36m@@ -28,13 +28,13 @@[m [mTransform:[m
+   m_PrefabAsset: {fileID: 0}[m
+   m_GameObject: {fileID: 8421961778310540692}[m
+   serializedVersion: 2[m
+[31m-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}[m
+[32m+[m[32m  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}[m
+   m_LocalPosition: {x: 0, y: 5, z: 0}[m
+   m_LocalScale: {x: 1, y: 1, z: 1}[m
+   m_ConstrainProportionsScale: 0[m
+   m_Children: [][m
+   m_Father: {fileID: 0}[m
+[31m-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}[m
+[32m+[m[32m  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}[m
+ --- !u!20 &3891627354225306065[m
+ Camera:[m
+   m_ObjectHideFlags: 0[m
+[1mdiff --git a/unity/Assets/Test/Prefabs/Environment.prefab b/unity/Assets/Test/Prefabs/Environment.prefab[m
+[1mindex f051431..7c4fef9 100644[m
+[1m--- a/unity/Assets/Test/Prefabs/Environment.prefab[m
+[1m+++ b/unity/Assets/Test/Prefabs/Environment.prefab[m
+[36m@@ -160,5 +160,5 @@[m [mMonoBehaviour:[m
+   m_EditorClassIdentifier: Assembly-CSharp::Test.Scripts.TestEnvironment[m
+   spawnRange: 20[m
+   minSpawnDistance: 5[m
+[31m-  testAgentPrefab: {fileID: 1773494241456120922, guid: 005eaedd4001466479828c32f826406a, type: 3}[m
+[31m-  testTargetPrefab: {fileID: 7024144856309663006, guid: 7d9dfa717f308514d9ea74d0d0712e21, type: 3}[m
+[32m+[m[32m  agentPrefab: {fileID: 1773494241456120922, guid: 005eaedd4001466479828c32f826406a, type: 3}[m
+[32m+[m[32m  targetPrefab: {fileID: 7024144856309663006, guid: 7d9dfa717f308514d9ea74d0d0712e21, type: 3}[m
+[1mdiff --git a/unity/Assets/Test/Prefabs/Manager.prefab b/unity/Assets/Test/Prefabs/Manager.prefab[m
+[1mindex cbf43f3..b6d5759 100644[m
+[1m--- a/unity/Assets/Test/Prefabs/Manager.prefab[m
+[1m+++ b/unity/Assets/Test/Prefabs/Manager.prefab[m
+[36m@@ -44,5 +44,5 @@[m [mMonoBehaviour:[m
+   m_Script: {fileID: 11500000, guid: 7b5e0faff5ab4403a0088fab3ac3b6a0, type: 3}[m
+   m_Name: [m
+   m_EditorClassIdentifier: Assembly-CSharp::Test.Scripts.TestManager[m
+[31m-  testEnvironmentPrefab: {fileID: 4634089905413009483, guid: d85e26795611a1c4aaa86b72ea420386, type: 3}[m
+[32m+[m[32m  environmentPrefab: {fileID: 4634089905413009483, guid: d85e26795611a1c4aaa86b72ea420386, type: 3}[m
+   timeScale: 2[m
+[1mdiff --git a/unity/Assets/Test/Test.unity b/unity/Assets/Test/Test.unity[m
+[1mindex 2b651c4..28ced10 100644[m
+[1m--- a/unity/Assets/Test/Test.unity[m
+[1m+++ b/unity/Assets/Test/Test.unity[m
+[36m@@ -141,11 +141,11 @@[m [mPrefabInstance:[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalRotation.w[m
+[31m-      value: 0.7071068[m
+[32m+[m[32m      value: 1[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalRotation.x[m
+[31m-      value: 0.7071068[m
+[32m+[m[32m      value: 0[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalRotation.y[m
+[36m@@ -157,7 +157,7 @@[m [mPrefabInstance:[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalEulerAnglesHint.x[m
+[31m-      value: 90[m
+[32m+[m[32m      value: 0[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalEulerAnglesHint.y[m
+[36m@@ -332,7 +332,7 @@[m [mPrefabInstance:[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 6117704660615676782, guid: 14eb269188fa56041bf819f9317a3e0f, type: 3}[m
+       propertyPath: m_Name[m
+[31m-      value: TestManager[m
+[32m+[m[32m      value: Manager[m
+       objectReference: {fileID: 0}[m
+     m_RemovedComponents: [][m
+     m_RemovedGameObjects: [][m
+[1mdiff --git a/unity/Assets/Train/Environment/Environment.unity b/unity/Assets/Train/Environment/Environment.unity[m
+[1mindex fdc859b..4358644 100644[m
+[1m--- a/unity/Assets/Train/Environment/Environment.unity[m
+[1m+++ b/unity/Assets/Train/Environment/Environment.unity[m
+[36m@@ -531,7 +531,7 @@[m [mPrefabInstance:[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalPosition.y[m
+[31m-      value: 10[m
+[32m+[m[32m      value: 5[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalPosition.z[m
+[36m@@ -539,11 +539,11 @@[m [mPrefabInstance:[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalRotation.w[m
+[31m-      value: 0.7071068[m
+[32m+[m[32m      value: 1[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalRotation.x[m
+[31m-      value: 0.7071068[m
+[32m+[m[32m      value: 0[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalRotation.y[m
+[36m@@ -555,7 +555,7 @@[m [mPrefabInstance:[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalEulerAnglesHint.x[m
+[31m-      value: 90[m
+[32m+[m[32m      value: 0[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalEulerAnglesHint.y[m
+[1mdiff --git a/unity/Assets/Train/Navigation/Navigation.unity b/unity/Assets/Train/Navigation/Navigation.unity[m
+[1mindex 811f3e6..3a4a360 100644[m
+[1m--- a/unity/Assets/Train/Navigation/Navigation.unity[m
+[1m+++ b/unity/Assets/Train/Navigation/Navigation.unity[m
+[36m@@ -411,7 +411,7 @@[m [mTransform:[m
+   serializedVersion: 2[m
+   m_LocalRotation: {x: -0, y: -0.70710677, z: -0, w: 0.7071068}[m
+   m_LocalPosition: {x: 0, y: 0, z: 15}[m
+[31m-  m_LocalScale: {x: 4, y: 4, z: 48}[m
+[32m+[m[32m  m_LocalScale: {x: 4, y: 4, z: 50}[m
+   m_ConstrainProportionsScale: 0[m
+   m_Children: [][m
+   m_Father: {fileID: 19609264}[m
+[36m@@ -817,7 +817,7 @@[m [mPrefabInstance:[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalPosition.y[m
+[31m-      value: 20[m
+[32m+[m[32m      value: 5[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalPosition.z[m
+[36m@@ -825,11 +825,11 @@[m [mPrefabInstance:[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalRotation.w[m
+[31m-      value: 0.7071068[m
+[32m+[m[32m      value: 1[m
+       objectReference: {fileID: 0}[m
+     - target: {fileID: 7313101428887341677, guid: f96cf371d73757049a7d047b019982be, type: 3}[m
+       propertyPath: m_LocalRotation.x[m
+[31m-
