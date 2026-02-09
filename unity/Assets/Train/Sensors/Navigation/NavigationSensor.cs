@@ -1,96 +1,95 @@
-using System.Collections.Generic;
+using System;
+using Train.Navigation.Scripts;
 using UnityEngine;
 
 namespace Train.Sensors.Navigation {
     public class NavigationSensor : MonoBehaviour {
         [Header("References")] [SerializeField]
-        private Transform rootTransform; // The agent's root body
+        private Navigator navigator;
 
-        [Header("Settings")] [SerializeField] private int sampleCount = 10; // Corresponds to max_t
-        [SerializeField] private float sampleInterval = 2.0f; // Distance between samples in meters
+        [SerializeField] private Transform agentRoot;
 
-        [Header("Debug")] [SerializeField] [ReadOnly]
-        private float[] navigationBuffer;
+        [Header("Normalization Settings")] [SerializeField]
+        private float emc = 20.0f;
 
-        public float[] NavigationBuffer => navigationBuffer;
+        [SerializeField] private int sampleCount = 10;
+
+        private float[] _navigationBuffer;
+
+        public NavigationSensor(float[] navigationBuffer) => _navigationBuffer = navigationBuffer;
 
         private void Awake() {
-            if (rootTransform == null) {
-                rootTransform = transform;
+            if (agentRoot == null) {
+                agentRoot = transform;
             }
 
-            // Initialize buffer: sampleCount * 5 features (pos_x, pos_y, pos_z, fwd_x, fwd_z)
-            navigationBuffer = new float[sampleCount * 5];
+            _navigationBuffer = new float[sampleCount * 5];
         }
 
-        /// <summary>
-        /// Updates the navigation buffer with local-space path data.
-        /// Should be called before CollectObservations.
-        /// </summary>
-        /// <param name="pathPoints">The world-space points of the current path</param>
-        /// <param name="currentWaypointIndex"></param>
-        public void UpdateNavigationData(List<Vector3> pathPoints, int currentWaypointIndex) {
-            if (pathPoints == null || pathPoints.Count == 0) {
+        public void UpdateNavigationData() {
+            if (navigator == null) {
                 return;
             }
 
+            // 1. Calculate the 'Stable Heading' (Projected on World Horizontal Plane)
+            // Use Vector3.ProjectOnPlane to remove any Y (Vertical) component from the forward vector
+            Vector3 projectedForward = Vector3.ProjectOnPlane(agentRoot.forward, Vector3.up).normalized;
+
+            // If the agent is looking directly up/down, fallback to its raw forward
+            if (projectedForward.sqrMagnitude < 0.001f) {
+                projectedForward = agentRoot.forward;
+            }
+
+            // Create a rotation that is always upright relative to World Up
+            Quaternion stableRotation = Quaternion.LookRotation(projectedForward, Vector3.up);
+            Matrix4x4 stableMatrix = Matrix4x4.TRS(agentRoot.position, stableRotation, Vector3.one);
+            Matrix4x4 worldToStable = stableMatrix.inverse;
+
+            Vector3[] corners = navigator.Corners;
             int bufferIndex = 0;
-            Vector3 lastValidPoint = rootTransform.position;
+            Vector3 lastValidPoint = agentRoot.position;
+            Vector3 lastValidDir = projectedForward;
 
             for (int i = 0; i < sampleCount; i++) {
-                int targetIdx = currentWaypointIndex + i;
                 Vector3 worldPos;
-                Vector3 worldForward = default;
+                Vector3 worldDir;
 
-                // 1. Get World Position and Forward
-                if (targetIdx < pathPoints.Count) {
-                    worldPos = pathPoints[targetIdx];
-
-                    // Calculate forward toward the next point, or use previous direction at the end
-                    if (targetIdx + 1 < pathPoints.Count) {
-                        worldForward = (pathPoints[targetIdx + 1] - pathPoints[targetIdx]).normalized;
-                    } else {
-                        if (rootTransform != null) {
-                            worldForward = targetIdx > 0
-                                ? (pathPoints[targetIdx] - pathPoints[targetIdx - 1]).normalized
-                                : rootTransform.forward;
-                        }
-                    }
+                if (corners != null && i < corners.Length) {
+                    worldPos = corners[i];
+                    worldDir = i + 1 < corners.Length
+                        ? (corners[i + 1] - corners[i]).normalized
+                        : i > 0
+                            ? (corners[i] - corners[i - 1]).normalized
+                            : projectedForward;
 
                     lastValidPoint = worldPos;
+                    lastValidDir = worldDir;
                 } else {
-                    // Padding: If path ends, repeat the last valid point
                     worldPos = lastValidPoint;
-                    worldForward = rootTransform.forward;
+                    worldDir = lastValidDir;
                 }
 
-                // 2. Transform to Local Space (Agent-Centric)
-                Vector3 localPos = rootTransform.InverseTransformPoint(worldPos);
-                Vector3 localForward = rootTransform.InverseTransformDirection(worldForward);
+                // 2. Transform to Stable Local Space
+                // Instead of InverseTransformPoint, use our custom stable matrix
+                Vector3 localPos = worldToStable.MultiplyPoint3x4(worldPos);
+                Vector3 localDir = worldToStable.MultiplyVector(worldDir);
 
-                // 3. Pack into Buffer (5 dimensions per token)
-                // Feature 1-3: Relative Position
-                navigationBuffer[bufferIndex++] = localPos.x;
-                navigationBuffer[bufferIndex++] = localPos.y;
-                navigationBuffer[bufferIndex++] = localPos.z;
+                // 3. User-Defined Token Mapping (Stable Coordinates)
+                // User X: Forward/Backward (Stable Z)
+                // User Y: Left/Right (Stable X)
+                // User Z: Height/Slope (Stable Y)
+                float relPosX = localPos.z;
+                float relPosY = localPos.x;
+                float relPosZ = localPos.y;
 
-                // Feature 4-5: Relative Forward (Projected on XZ plane for flow)
-                navigationBuffer[bufferIndex++] = localForward.x;
-                navigationBuffer[bufferIndex++] = localForward.z;
-            }
-        }
+                // 4. Normalization with Tanh: $\tanh(\text{Value} / \text{EMC})$
+                _navigationBuffer[bufferIndex++] = (float)Math.Tanh(relPosX / emc);
+                _navigationBuffer[bufferIndex++] = (float)Math.Tanh(relPosY / emc);
+                _navigationBuffer[bufferIndex++] = (float)Math.Tanh(relPosZ / emc);
 
-        private void OnDrawGizmosSelected() {
-            if (rootTransform == null || navigationBuffer == null) {
-                return;
-            }
-
-            Gizmos.color = Color.yellow;
-            for (int i = 0; i < sampleCount; i++) {
-                int idx = i * 5;
-                Vector3 localPos = new(navigationBuffer[idx], navigationBuffer[idx + 1], navigationBuffer[idx + 2]);
-                Vector3 worldPos = rootTransform.TransformPoint(localPos);
-                Gizmos.DrawSphere(worldPos, 0.2f);
+                // 5. Target Direction (Relative to Stable Heading)
+                _navigationBuffer[bufferIndex++] = localDir.z; // Target Dir X (Forward component)
+                _navigationBuffer[bufferIndex++] = localDir.x; // Target Dir Y (Side component)
             }
         }
     }
