@@ -7,6 +7,8 @@ public sealed class Environment : MonoBehaviour {
 
     [SerializeField] private Transform wallParent;
     [SerializeField] private GameObject wallPrefab;
+    [SerializeField] private GameObject floorPrefab;
+
     [SerializeField] private float wallCenterY = 2.5f;
 
     [SerializeField] private Transform zombieSpawnMarker;
@@ -34,13 +36,20 @@ public sealed class Environment : MonoBehaviour {
 
     [Min(0)] [SerializeField] private int roomPadding = 1;
 
-    [Min(1)] [SerializeField] private int corridorWidth = 1;
+    [Min(1)] [SerializeField] private int roadWidth = 1;
     [SerializeField] private bool randomizeLTurnOrder = true;
 
     [Range(0, 3)] [SerializeField] private int organicIterations = 1;
     [Range(0f, 0.25f)] [SerializeField] private float organicCarveRatio = 0.06f;
     [Range(0f, 0.25f)] [SerializeField] private float organicGrowRatio = 0.05f;
     [Min(1)] [SerializeField] private int organicGrowMaxTriesPerCell = 6;
+
+    [Header("Height")] [SerializeField] private int minRoomLevel = -2;
+    [SerializeField] private int maxRoomLevel = 2;
+
+    [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f; // 1 level -> world Y height
+    [SerializeField] private float floorThickness = 0.2f;
+
 
     private MapData _map;
     private System.Random _rng;
@@ -49,32 +58,34 @@ public sealed class Environment : MonoBehaviour {
     private Visualizer _visualizer;
 
     public readonly struct Cell {
-        public readonly int x, y;
+        public readonly int X, Y;
 
         public Cell(int x, int y) {
-            this.x = x;
-            this.y = y;
+            X = x;
+            Y = y;
         }
     }
 
     [Serializable]
     public sealed class Room {
         public int id;
-        public RectInt bounds; // organic must stay inside
-        public Vector2Int center; // seed center (can be recomputed later if you want)
+        public RectInt bounds;
+        public Vector2Int center;
+        public int heightLevel;
         public readonly List<Cell> Cells = new();
-        public readonly HashSet<int> FloorSet = new(); // source of truth for organic boundary tests
+        public readonly HashSet<int> FloorSet = new();
     }
 
     public sealed class MapData {
-        public int width;
-        public int height;
-        public float cellSize;
-        public Vector3 origin; // bottom-left world origin (XZ)
+        public int Width;
+        public int Height;
+        public float CellSize;
+        public Vector3 Origin;
 
-        public bool[,] wallMatrix; // true=wall, false=floor
-        public int[,] roomIdMatrix; // -1 if not room (corridors remain -1)
-        public List<Room> rooms;
+        public bool[,] WallMatrix; // true=wall, false=floor
+        public int[,] RoomIdMatrix; // -1 if not room (road remains -1)
+        public float[,] TileHeight; // NEW: per-tile world height (Y)
+        public List<Room> Rooms;
     }
 
     private void Awake() {
@@ -83,8 +94,16 @@ public sealed class Environment : MonoBehaviour {
         }
 
         _organicShaper = new OrganicShaper();
-        _visualizer = new Visualizer(wallParent, wallPrefab, wallCenterY);
+
+        _visualizer = new Visualizer(
+            wallParent,
+            wallPrefab,
+            wallCenterY,
+            floorPrefab,
+            floorThickness
+        );
     }
+
 
     private void Start() {
         if (autoGenerateOnPlay) {
@@ -97,13 +116,14 @@ public sealed class Environment : MonoBehaviour {
         _rng = new System.Random(actualSeed);
 
         _map = new MapData {
-            width = gridWidth,
-            height = gridHeight,
-            cellSize = cellSize,
-            origin = GetGridOrigin(gridWidth, gridHeight, cellSize),
-            wallMatrix = new bool[gridHeight, gridWidth],
-            roomIdMatrix = new int[gridHeight, gridWidth],
-            rooms = new List<Room>(roomCount)
+            Width = gridWidth,
+            Height = gridHeight,
+            CellSize = cellSize,
+            Origin = GetGridOrigin(gridWidth, gridHeight, cellSize),
+            WallMatrix = new bool[gridHeight, gridWidth],
+            RoomIdMatrix = new int[gridHeight, gridWidth],
+            TileHeight = new float[gridHeight, gridWidth],
+            Rooms = new List<Room>(roomCount)
         };
 
         InitializeMatrices();
@@ -111,25 +131,28 @@ public sealed class Environment : MonoBehaviour {
         PlaceRooms();
         WriteRoomsToGrid();
 
-        ConnectRoomsMst();
+        ConnectRoomsMstAndPaintRoadHeights();
         ApplyBorderWallsIfNeeded();
 
-        _visualizer.RebuildWalls(_map);
+        _visualizer.Rebuild(_map); // floors + walls
         _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
     }
 
     private void InitializeMatrices() {
-        for (int y = 0; y < _map.height; y++)
-        for (int x = 0; x < _map.width; x++) {
-            _map.wallMatrix[y, x] = true;
-            _map.roomIdMatrix[y, x] = -1;
+        for (int y = 0; y < _map.Height; y++)
+        for (int x = 0; x < _map.Width; x++) {
+            _map.WallMatrix[y, x] = true;
+            _map.RoomIdMatrix[y, x] = -1;
+            _map.TileHeight[y, x] = 0f;
         }
     }
 
-    private bool InBounds(int x, int y) => x >= 0 && x < _map.width && y >= 0 && y < _map.height;
+    private bool InBounds(int x, int y) => x >= 0 && x < _map.Width && y >= 0 && y < _map.Height;
 
     private static RectInt ExpandRect(RectInt r, int pad) =>
         new(r.xMin - pad, r.yMin - pad, r.width + (pad * 2), r.height + (pad * 2));
+
+    private float LevelToHeight(int level) => level * levelStepHeight;
 
     private void PlaceRooms() {
         int tries = 0;
@@ -159,13 +182,13 @@ public sealed class Environment : MonoBehaviour {
             BuildRoomFloorSet(room);
             _organicShaper.ApplyLightOrganic(room, _rng, organicCfg);
 
-            _map.rooms.Add(room);
+            _map.Rooms.Add(room);
             placed++;
         }
 
-        if (_map.rooms.Count < 2) {
+        if (_map.Rooms.Count < 2) {
             Debug.LogWarning(
-                $"[Environment] Only {_map.rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
+                $"[Environment] Only {_map.Rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
         }
     }
 
@@ -173,12 +196,12 @@ public sealed class Environment : MonoBehaviour {
         int roomWidthCells = _rng.Next(rectMinW, rectMaxW + 1);
         int roomHeightCells = _rng.Next(rectMinH, rectMaxH + 1);
 
-        const int border = 1; // keep at least 1-cell margin for border walls
+        const int border = 1;
         int minLeftX = border;
         int minBottomY = border;
 
-        int maxLeftX = _map.width - roomWidthCells - border;
-        int maxBottomY = _map.height - roomHeightCells - border;
+        int maxLeftX = _map.Width - roomWidthCells - border;
+        int maxBottomY = _map.Height - roomHeightCells - border;
         if (maxLeftX < minLeftX || maxBottomY < minBottomY) {
             return null;
         }
@@ -192,7 +215,8 @@ public sealed class Environment : MonoBehaviour {
         Room room = new() {
             id = id,
             bounds = new RectInt(leftX, bottomY, roomWidthCells, roomHeightCells),
-            center = new Vector2Int(centerX, centerY)
+            center = new Vector2Int(centerX, centerY),
+            heightLevel = _rng.Next(minRoomLevel, maxRoomLevel + 1)
         };
 
         int rightXExclusive = leftX + roomWidthCells;
@@ -214,8 +238,8 @@ public sealed class Environment : MonoBehaviour {
         int minCenterX = border + radiusCells;
         int minCenterY = border + radiusCells;
 
-        int maxCenterX = _map.width - border - radiusCells - 1;
-        int maxCenterY = _map.height - border - radiusCells - 1;
+        int maxCenterX = _map.Width - border - radiusCells - 1;
+        int maxCenterY = _map.Height - border - radiusCells - 1;
         if (maxCenterX < minCenterX || maxCenterY < minCenterY) {
             return null;
         }
@@ -229,7 +253,8 @@ public sealed class Environment : MonoBehaviour {
         Room room = new() {
             id = id,
             bounds = new RectInt(boundsLeftX, boundsBottomY, diameterCells, diameterCells),
-            center = new Vector2Int(centerX, centerY)
+            center = new Vector2Int(centerX, centerY),
+            heightLevel = _rng.Next(minRoomLevel, maxRoomLevel + 1)
         };
 
         int radiusSq = radiusCells * radiusCells;
@@ -250,12 +275,12 @@ public sealed class Environment : MonoBehaviour {
     private bool RoomFitsAndDoesntOverlap(Room room) {
         RectInt expanded = ExpandRect(room.bounds, roomPadding);
 
-        if (expanded.xMin < 0 || expanded.yMin < 0 || expanded.xMax > _map.width || expanded.yMax > _map.height) {
+        if (expanded.xMin < 0 || expanded.yMin < 0 || expanded.xMax > _map.Width || expanded.yMax > _map.Height) {
             return false;
         }
 
-        for (int i = 0; i < _map.rooms.Count; i++) {
-            RectInt otherExpanded = ExpandRect(_map.rooms[i].bounds, roomPadding);
+        for (int i = 0; i < _map.Rooms.Count; i++) {
+            RectInt otherExpanded = ExpandRect(_map.Rooms[i].bounds, roomPadding);
             if (expanded.Overlaps(otherExpanded)) {
                 return false;
             }
@@ -268,37 +293,40 @@ public sealed class Environment : MonoBehaviour {
         room.FloorSet.Clear();
         for (int i = 0; i < room.Cells.Count; i++) {
             Cell c = room.Cells[i];
-            room.FloorSet.Add(Utility.Pack(c.x, c.y));
+            room.FloorSet.Add(Utility.Pack(c.X, c.Y));
         }
     }
 
     private void WriteRoomsToGrid() {
-        for (int i = 0; i < _map.rooms.Count; i++) {
-            Room r = _map.rooms[i];
+        for (int i = 0; i < _map.Rooms.Count; i++) {
+            Room r = _map.Rooms[i];
+            float roomHeight = LevelToHeight(r.heightLevel);
+
             for (int k = 0; k < r.Cells.Count; k++) {
                 Cell c = r.Cells[k];
-                if (!InBounds(c.x, c.y)) {
+                if (!InBounds(c.X, c.Y)) {
                     continue;
                 }
 
-                _map.wallMatrix[c.y, c.x] = false;
-                _map.roomIdMatrix[c.y, c.x] = r.id;
+                _map.WallMatrix[c.Y, c.X] = false;
+                _map.RoomIdMatrix[c.Y, c.X] = r.id;
+                _map.TileHeight[c.Y, c.X] = roomHeight;
             }
         }
     }
 
     private readonly struct Edge {
-        public readonly int a, b, w; // indices in map.rooms
+        public readonly int A, B, W;
 
         public Edge(int a, int b, int w) {
-            this.a = a;
-            this.b = b;
-            this.w = w;
+            A = a;
+            B = b;
+            W = w;
         }
     }
 
-    private void ConnectRoomsMst() {
-        int n = _map.rooms.Count;
+    private void ConnectRoomsMstAndPaintRoadHeights() {
+        int n = _map.Rooms.Count;
         if (n <= 1) {
             return;
         }
@@ -306,46 +334,55 @@ public sealed class Environment : MonoBehaviour {
         List<Edge> edges = new(n * (n - 1) / 2);
 
         for (int i = 0; i < n; i++) {
-            Vector2Int ca = _map.rooms[i].center;
+            Vector2Int ca = _map.Rooms[i].center;
             for (int j = i + 1; j < n; j++) {
-                Vector2Int cb = _map.rooms[j].center;
+                Vector2Int cb = _map.Rooms[j].center;
                 int manhattan = Mathf.Abs(ca.x - cb.x) + Mathf.Abs(ca.y - cb.y);
                 edges.Add(new Edge(i, j, manhattan));
             }
         }
 
-        edges.Sort(static (e1, e2) => e1.w.CompareTo(e2.w));
+        edges.Sort(static (e1, e2) => e1.W.CompareTo(e2.W));
 
         DSU dsu = new(n);
         int picked = 0;
 
         for (int i = 0; i < edges.Count && picked < n - 1; i++) {
             Edge e = edges[i];
-            if (!dsu.Union(e.a, e.b)) {
+            if (!dsu.Union(e.A, e.B)) {
                 continue;
             }
 
             picked++;
-            CarveCorridorBetweenRooms(_map.rooms[e.a], _map.rooms[e.b]);
+
+            Room a = _map.Rooms[e.A];
+            Room b = _map.Rooms[e.B];
+
+            List<Cell> roadPath = BuildRoadPathCells(a, b);
+
+            float fromH = LevelToHeight(a.heightLevel);
+            float toH = LevelToHeight(b.heightLevel);
+
+            ApplyRoadWithConstantStepRise(roadPath, fromH, toH);
         }
     }
 
     private sealed class DSU {
-        private readonly int[] p;
-        private readonly int[] r;
+        private readonly int[] _p;
+        private readonly int[] _r;
 
         public DSU(int n) {
-            p = new int[n];
-            r = new int[n];
+            _p = new int[n];
+            _r = new int[n];
             for (int i = 0; i < n; i++) {
-                p[i] = i;
+                _p[i] = i;
             }
         }
 
         private int Find(int x) {
-            while (p[x] != x) {
-                p[x] = p[p[x]];
-                x = p[x];
+            while (_p[x] != x) {
+                _p[x] = _p[_p[x]];
+                x = _p[x];
             }
 
             return x;
@@ -357,32 +394,36 @@ public sealed class Environment : MonoBehaviour {
                 return false;
             }
 
-            if (r[ra] < r[rb]) {
-                p[ra] = rb;
-            } else if (r[ra] > r[rb]) {
-                p[rb] = ra;
+            if (_r[ra] < _r[rb]) {
+                _p[ra] = rb;
+            } else if (_r[ra] > _r[rb]) {
+                _p[rb] = ra;
             } else {
-                p[rb] = ra;
-                r[ra]++;
+                _p[rb] = ra;
+                _r[ra]++;
             }
 
             return true;
         }
     }
 
-    private void CarveCorridorBetweenRooms(Room a, Room b) {
+    private List<Cell> BuildRoadPathCells(Room a, Room b) {
         Cell doorA = PickBestDoorCell(a, b.center);
         Cell doorB = PickBestDoorCell(b, a.center);
 
         bool xThenY = randomizeLTurnOrder ? _rng.NextDouble() < 0.5 : true;
 
+        List<Cell> path = new(Mathf.Abs(doorA.X - doorB.X) + Mathf.Abs(doorA.Y - doorB.Y) + 2);
+
         if (xThenY) {
-            CarveLine(doorA.x, doorA.y, doorB.x, doorA.y);
-            CarveLine(doorB.x, doorA.y, doorB.x, doorB.y);
+            AppendLineCells(path, doorA.X, doorA.Y, doorB.X, doorA.Y);
+            AppendLineCells(path, doorB.X, doorA.Y, doorB.X, doorB.Y);
         } else {
-            CarveLine(doorA.x, doorA.y, doorA.x, doorB.y);
-            CarveLine(doorA.x, doorB.y, doorB.x, doorB.y);
+            AppendLineCells(path, doorA.X, doorA.Y, doorA.X, doorB.Y);
+            AppendLineCells(path, doorA.X, doorB.Y, doorB.X, doorB.Y);
         }
+
+        return path;
     }
 
     private static Cell PickBestDoorCell(Room room, Vector2Int toward) {
@@ -393,16 +434,16 @@ public sealed class Environment : MonoBehaviour {
             Cell c = room.Cells[i];
 
             bool isBoundary =
-                !room.FloorSet.Contains(Utility.Pack(c.x + 1, c.y)) ||
-                !room.FloorSet.Contains(Utility.Pack(c.x - 1, c.y)) ||
-                !room.FloorSet.Contains(Utility.Pack(c.x, c.y + 1)) ||
-                !room.FloorSet.Contains(Utility.Pack(c.x, c.y - 1));
+                !room.FloorSet.Contains(Utility.Pack(c.X + 1, c.Y)) ||
+                !room.FloorSet.Contains(Utility.Pack(c.X - 1, c.Y)) ||
+                !room.FloorSet.Contains(Utility.Pack(c.X, c.Y + 1)) ||
+                !room.FloorSet.Contains(Utility.Pack(c.X, c.Y - 1));
 
             if (!isBoundary) {
                 continue;
             }
 
-            int score = Mathf.Abs(c.x - toward.x) + Mathf.Abs(c.y - toward.y);
+            int score = Mathf.Abs(c.X - toward.x) + Mathf.Abs(c.Y - toward.y);
             if (score < bestScore) {
                 bestScore = score;
                 best = c;
@@ -412,29 +453,55 @@ public sealed class Environment : MonoBehaviour {
         return best;
     }
 
-    private void CarveLine(int x0, int y0, int x1, int y1) {
+    private static void AppendLineCells(List<Cell> outCells, int x0, int y0, int x1, int y1) {
         int dx = Math.Sign(x1 - x0);
         int dy = Math.Sign(y1 - y0);
 
         int x = x0;
         int y = y0;
 
-        CarveCorridorCell(x, y);
+        if (outCells.Count == 0 || outCells[outCells.Count - 1].X != x || outCells[outCells.Count - 1].Y != y) {
+            outCells.Add(new Cell(x, y));
+        }
 
         while (x != x1) {
             x += dx;
-            CarveCorridorCell(x, y);
+            outCells.Add(new Cell(x, y));
         }
 
         while (y != y1) {
             y += dy;
-            CarveCorridorCell(x, y);
+            outCells.Add(new Cell(x, y));
         }
     }
 
-    private void CarveCorridorCell(int cx, int cy) {
-        int halfA = (corridorWidth - 1) / 2;
-        int halfB = corridorWidth / 2;
+    private void ApplyRoadWithConstantStepRise(List<Cell> roadCells, float fromHeight, float toHeight) {
+        if (roadCells == null || roadCells.Count == 0) {
+            return;
+        }
+
+        int segments = roadCells.Count - 1;
+        if (segments <= 0) {
+            Cell only = roadCells[0];
+            PaintRoadCell(only.X, only.Y, fromHeight);
+            return;
+        }
+
+        float stepRise = (toHeight - fromHeight) / segments;
+
+        for (int i = 0; i < roadCells.Count; i++) {
+            float h = fromHeight + (stepRise * i);
+            Cell c = roadCells[i];
+            PaintRoadCell(c.X, c.Y, h);
+        }
+
+        Cell last = roadCells[roadCells.Count - 1];
+        PaintRoadCell(last.X, last.Y, toHeight);
+    }
+
+    private void PaintRoadCell(int cx, int cy, float height) {
+        int halfA = (roadWidth - 1) / 2;
+        int halfB = roadWidth / 2;
 
         for (int oy = -halfA; oy <= halfB; oy++)
         for (int ox = -halfA; ox <= halfB; ox++) {
@@ -444,7 +511,8 @@ public sealed class Environment : MonoBehaviour {
                 continue;
             }
 
-            _map.wallMatrix[y, x] = false;
+            _map.WallMatrix[y, x] = false;
+            _map.TileHeight[y, x] = height;
         }
     }
 
@@ -453,14 +521,14 @@ public sealed class Environment : MonoBehaviour {
             return;
         }
 
-        for (int x = 0; x < _map.width; x++) {
-            _map.wallMatrix[0, x] = true;
-            _map.wallMatrix[_map.height - 1, x] = true;
+        for (int x = 0; x < _map.Width; x++) {
+            _map.WallMatrix[0, x] = true;
+            _map.WallMatrix[_map.Height - 1, x] = true;
         }
 
-        for (int y = 0; y < _map.height; y++) {
-            _map.wallMatrix[y, 0] = true;
-            _map.wallMatrix[y, _map.width - 1] = true;
+        for (int y = 0; y < _map.Height; y++) {
+            _map.WallMatrix[y, 0] = true;
+            _map.WallMatrix[y, _map.Width - 1] = true;
         }
     }
 

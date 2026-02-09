@@ -1,18 +1,19 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class OrganicShaper {
     public readonly struct Config {
-        public readonly int iterations;
-        public readonly float carveRatio;
-        public readonly float growRatio;
-        public readonly int growMaxTriesPerCell;
+        public readonly int Iterations;
+        public readonly float CarveRatio;
+        public readonly float GrowRatio;
+        public readonly int GrowMaxTriesPerCell;
 
         public Config(int iterations, float carveRatio, float growRatio, int growMaxTriesPerCell) {
-            this.iterations = iterations;
-            this.carveRatio = carveRatio;
-            this.growRatio = growRatio;
-            this.growMaxTriesPerCell = growMaxTriesPerCell;
+            Iterations = iterations;
+            CarveRatio = carveRatio;
+            GrowRatio = growRatio;
+            GrowMaxTriesPerCell = growMaxTriesPerCell;
         }
     }
 
@@ -23,43 +24,47 @@ public sealed class OrganicShaper {
             return;
         }
 
-        if (cfg.iterations <= 0) {
+        if (rng == null) {
             return;
         }
 
-        for (int it = 0; it < cfg.iterations; it++) {
-            // 1) carve boundary cells
+        if (cfg.Iterations <= 0) {
+            return;
+        }
+
+        for (int it = 0; it < cfg.Iterations; it++) {
+            // 1) Carve boundary cells
             List<Environment.Cell> boundary = CollectBoundaryCells(room.FloorSet, room.bounds);
-            int carveCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.carveRatio), 0, boundary.Count);
+            int carveCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.CarveRatio), 0, boundary.Count);
 
             for (int k = 0; k < carveCount && boundary.Count > 0; k++) {
                 int idx = rng.Next(boundary.Count);
                 Environment.Cell c = boundary[idx];
                 boundary.RemoveAt(idx);
 
-                if (CountFloorNeighbors(room.FloorSet, c.x, c.y) >= 2) {
-                    room.FloorSet.Remove(Utility.Pack(c.x, c.y));
+                if (CountFloorNeighbors(room.FloorSet, c.X, c.Y) >= 2) {
+                    room.FloorSet.Remove(Utility.Pack(c.X, c.Y));
                 }
             }
 
-            // 2) grow into neighbors (still inside bounds)
+            // 2) Grow into neighbors (still inside bounds)
             boundary = CollectBoundaryCells(room.FloorSet, room.bounds);
-            int growCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.growRatio), 0, boundary.Count);
+            int growCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.GrowRatio), 0, boundary.Count);
 
             for (int k = 0; k < growCount && boundary.Count > 0; k++) {
                 int idx = rng.Next(boundary.Count);
                 Environment.Cell b = boundary[idx];
                 boundary.RemoveAt(idx);
 
-                for (int t = 0; t < cfg.growMaxTriesPerCell; t++) {
-                    Environment.Cell n = PickRandom4Neighbor(b.x, b.y, rng);
-                    if (!InRect(room.bounds, n.x, n.y)) {
+                for (int t = 0; t < cfg.GrowMaxTriesPerCell; t++) {
+                    Environment.Cell n = PickRandom4Neighbor(b.X, b.Y, rng);
+                    if (!InRect(room.bounds, n.X, n.Y)) {
                         continue;
                     }
 
-                    int p = Utility.Pack(n.x, n.y);
+                    int p = Utility.Pack(n.X, n.Y);
                     if (!room.FloorSet.Contains(p)) {
-                        if (CountFloorNeighbors(room.FloorSet, n.x, n.y) >= 2) {
+                        if (CountFloorNeighbors(room.FloorSet, n.X, n.Y) >= 2) {
                             room.FloorSet.Add(p);
                             break;
                         }
@@ -68,7 +73,7 @@ public sealed class OrganicShaper {
             }
         }
 
-        // write back to cells list
+        // Write back to cells list
         room.Cells.Clear();
         foreach (int p in room.FloorSet) {
             Utility.Unpack(p, out int x, out int y);
