@@ -3,11 +3,10 @@ using UnityEngine;
 
 namespace Train.Sensors.Proprioception
 {
-    public class ProprioceptionSensor : ISensor
+    public class ProprioceptionSensor : ISensor, MonoBehaviour
     {
         private readonly Proprioception _prop;
-        private readonly string _name = "proprioception";
-        private ObservationSpec _spec;
+        private readonly ObservationSpec _spec;
 
         public ProprioceptionSensor(Proprioception prop)
         {
@@ -15,7 +14,7 @@ namespace Train.Sensors.Proprioception
 
             int size =
                 3 + // gravity
-                3 + // com
+                3 + // CoM diff
                 3 + // angular velocity
                 3 + // linear velocity
                 3 + // position
@@ -33,10 +32,11 @@ namespace Train.Sensors.Proprioception
 
         public int Write(ObservationWriter writer)
         {
-            int index = 0;
-
             writer.AddRange(_prop.Gravity);
-            writer.AddRange(_prop.Com);
+
+            Vector3 comDiff = _prop.Com - _prop.InitialCoM;
+            writer.AddRange(comDiff);
+
             writer.AddRange(_prop.AngularVelocity);
             writer.AddRange(_prop.LinearVelocity);
             writer.AddRange(_prop.Position);
@@ -54,13 +54,23 @@ namespace Train.Sensors.Proprioception
         }
 
         public byte[] GetCompressedObservation() => null;
-
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
-
         public void Update() { }
-
         public void Reset() { }
 
-        public string GetName() => _name;
+        public string GetName() => "proprioception";
+    }
+
+    public class ProprioceptionSensorComponent : SensorComponent
+    {
+        public override ISensor[] CreateSensors()
+        {
+            var prop = GetComponent<Proprioception>();
+
+            return new ISensor[]
+            {
+                new ProprioceptionSensor(prop)
+            };
+        }
     }
 }
