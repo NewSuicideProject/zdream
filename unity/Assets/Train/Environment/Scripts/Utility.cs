@@ -11,5 +11,7 @@ namespace Train.Environment.Scripts {
 
         public static RectInt ExpandRect(RectInt r, int pad) =>
             new(r.xMin - pad, r.yMin - pad, r.width + (pad * 2), r.height + (pad * 2));
+
+        public static bool InRect(RectInt r, int x, int y) => x >= r.xMin && x < r.xMax && y >= r.yMin && y < r.yMax;
     }
 }

@@ -17,8 +17,6 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        private static bool InRect(RectInt r, int x, int y) => x >= r.xMin && x < r.xMax && y >= r.yMin && y < r.yMax;
-
         public void ApplyLightOrganic(Room room, System.Random rng, Config cfg) {
             if (room == null) {
                 return;
@@ -57,8 +55,8 @@ namespace Train.Environment.Scripts {
                     boundary.RemoveAt(idx);
 
                     for (int t = 0; t < cfg.GrowMaxTriesPerCell; t++) {
-                        Cell n = PickRandom4Neighbor(b.X, b.Y, rng);
-                        if (!InRect(room.bounds, n.X, n.Y)) {
+                        Cell n = GetRandomNeighbor(b.X, b.Y, rng);
+                        if (!Utility.InRect(room.bounds, n.X, n.Y)) {
                             continue;
                         }
 
@@ -102,13 +100,8 @@ namespace Train.Environment.Scripts {
             return result;
         }
 
-        private bool IsFloor(HashSet<int> set, RectInt bounds, int x, int y) {
-            if (!InRect(bounds, x, y)) {
-                return false;
-            }
-
-            return set.Contains(Utility.Pack(x, y));
-        }
+        private static bool IsFloor(HashSet<int> set, RectInt bounds, int x, int y) =>
+            Utility.InRect(bounds, x, y) && set.Contains(Utility.Pack(x, y));
 
         private int CountFloorNeighbors(HashSet<int> set, int x, int y) {
             int n = 0;
@@ -131,7 +124,7 @@ namespace Train.Environment.Scripts {
             return n;
         }
 
-        private Cell PickRandom4Neighbor(int x, int y, System.Random rng) {
+        private static Cell GetRandomNeighbor(int x, int y, System.Random rng) {
             int r = rng.Next(4);
             return r switch {
                 0 => new Cell(x + 1, y),

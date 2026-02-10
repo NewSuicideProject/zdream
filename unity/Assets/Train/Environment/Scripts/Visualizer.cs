@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
@@ -28,16 +29,14 @@ namespace Train.Environment.Scripts {
             _floorThickness = Mathf.Max(0.01f, floorThickness);
         }
 
-        public void Rebuild(MapData data) {
-            ClearAll();
+        public void Reset(Map data) {
+            Clear();
 
-            RebuildFloors(data);
-            RebuildWalls(data);
+            SpawnFloors(data);
+            SpawnWalls(data);
         }
 
-        public void RebuildWalls(MapData data) {
-            ClearSpawnedWalls();
-
+        public void SpawnWalls(Map data) {
             bool[,] wallMatrix = data.WallMatrix;
             for (int y = 0; y < data.Height; y++)
             for (int x = 0; x < data.Width; x++) {
@@ -55,9 +54,7 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void RebuildFloors(MapData data) {
-            ClearSpawnedFloors();
-
+        public void SpawnFloors(Map data) {
             bool[,] wallMatrix = data.WallMatrix;
             float[,] height = data.TileHeight;
 
@@ -87,7 +84,7 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void PlaceSpawnMarkers(MapData data, Transform zombieMarker, Transform targetMarker) {
+        public void PlaceSpawnMarkers(Map data, Transform zombieMarker, Transform targetMarker) {
             if (data.Rooms == null || data.Rooms.Count < 2) {
                 Debug.LogWarning("[Visualizer] Not enough rooms for spawn/target.");
                 return;
@@ -126,25 +123,21 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void ClearAll() {
-            ClearSpawnedWalls();
-            ClearSpawnedFloors();
-        }
 
-        private static Vector3 CellCenterWorld(MapData data, int x, int y) {
+        private static Vector3 CellCenterWorld(Map data, int x, int y) {
             float wx = data.Origin.x + ((x + 0.5f) * data.CellSize);
             float wz = data.Origin.z + ((y + 0.5f) * data.CellSize);
             return new Vector3(wx, 0f, wz);
         }
 
-        private static Vector3 CellTopWorld(MapData data, int x, int y) {
+        private static Vector3 CellTopWorld(Map data, int x, int y) {
             Vector3 p = CellCenterWorld(data, x, y);
             float h = data.TileHeight != null ? data.TileHeight[y, x] : 0f;
             p.y = h;
             return p;
         }
 
-        private static float GetWallBaseHeightFromNeighbors(MapData data, int x, int y) {
+        private static float GetWallBaseHeightFromNeighbors(Map data, int x, int y) {
             float best = float.NegativeInfinity;
 
             Try(x + 1, y);
@@ -167,21 +160,14 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        private void ClearSpawnedWalls() {
-            for (int i = 0; i < _spawnedWalls.Count; i++) {
-                if (_spawnedWalls[i] != null) {
-                    Object.Destroy(_spawnedWalls[i]);
-                }
+        private void Clear() {
+            foreach (GameObject t in _spawnedWalls.Where(t => t != null)) {
+                Object.Destroy(t);
             }
 
             _spawnedWalls.Clear();
-        }
-
-        private void ClearSpawnedFloors() {
-            for (int i = 0; i < _spawnedFloors.Count; i++) {
-                if (_spawnedFloors[i] != null) {
-                    Object.Destroy(_spawnedFloors[i]);
-                }
+            foreach (GameObject t in _spawnedFloors.Where(t => t != null)) {
+                Object.Destroy(t);
             }
 
             _spawnedFloors.Clear();
