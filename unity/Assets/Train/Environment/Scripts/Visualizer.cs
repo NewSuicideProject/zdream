@@ -1,176 +1,191 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-namespace Train.Environment.Scripts {
-    public sealed class Visualizer {
-        private readonly Transform _parent;
-        private readonly GameObject _wallPrefab;
-        private readonly float _wallCenterY;
+public sealed class Visualizer {
+    private readonly Transform _parent;
+    private readonly GameObject _wallPrefab;
+    private readonly float _wallCenterY;
 
-        private readonly GameObject _floorPrefab;
-        private readonly float _floorThickness;
+    private readonly GameObject _floorPrefab;
+    private readonly float _floorThickness;
 
-        private readonly List<GameObject> _spawnedWalls = new();
-        private readonly List<GameObject> _spawnedFloors = new();
+    private readonly List<GameObject> _spawnedWalls = new();
+    private readonly List<GameObject> _spawnedFloors = new();
 
-        public Visualizer(
-            Transform parent,
-            GameObject wallPrefab,
-            float wallCenterY,
-            GameObject floorPrefab,
-            float floorThickness
-        ) {
-            _parent = parent;
-            _wallPrefab = wallPrefab;
-            _wallCenterY = wallCenterY;
+    public Visualizer(
+        Transform parent,
+        GameObject wallPrefab,
+        float wallCenterY,
+        GameObject floorPrefab,
+        float floorThickness
+    ) {
+        _parent = parent;
+        _wallPrefab = wallPrefab;
+        _wallCenterY = wallCenterY;
 
-            _floorPrefab = floorPrefab;
-            _floorThickness = Mathf.Max(0.01f, floorThickness);
+        _floorPrefab = floorPrefab;
+        _floorThickness = Mathf.Max(0.01f, floorThickness);
+    }
+
+    public void Rebuild(Environment.MapData data) {
+        ClearAll();
+        RebuildFloors(data);
+        RebuildWalls(data);
+    }
+
+    public void RebuildWalls(Environment.MapData data) {
+        ClearSpawnedWalls();
+
+        bool[,] wallMatrix = data.WallMatrix;
+        for (int y = 0; y < data.Height; y++)
+        for (int x = 0; x < data.Width; x++) {
+            if (!wallMatrix[y, x]) {
+                continue;
+            }
+
+            Environment.Cell c = new(x, y);
+
+            float baseH = GetWallBaseHeightFromNeighbors(data, c);
+            Vector3 pos = CellCenterWorld(data, c);
+            pos.y = baseH + _wallCenterY;
+
+            GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
+            w.name = $"Wall_{x}_{y}";
+            _spawnedWalls.Add(w);
+        }
+    }
+
+    public void RebuildFloors(Environment.MapData data) {
+        ClearSpawnedFloors();
+
+        bool[,] wallMatrix = data.WallMatrix;
+        float[,] height = data.TileHeight;
+
+        for (int y = 0; y < data.Height; y++)
+        for (int x = 0; x < data.Width; x++) {
+            if (wallMatrix[y, x]) {
+                continue;
+            }
+
+            float h = height[y, x];
+
+            Environment.Cell c = new(x, y);
+            Vector3 pos = CellCenterWorld(data, c);
+            pos.y = h + (_floorThickness * 0.5f);
+
+            GameObject f;
+            if (_floorPrefab != null) {
+                f = Object.Instantiate(_floorPrefab, pos, Quaternion.identity, _parent);
+            } else {
+                f = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                f.transform.SetParent(_parent, true);
+                f.transform.position = pos;
+            }
+
+            f.name = $"Floor_{x}_{y}";
+            f.transform.localScale = new Vector3(data.CellSize, _floorThickness, data.CellSize);
+            _spawnedFloors.Add(f);
+        }
+    }
+
+    public void PlaceSpawnMarkers(Environment.MapData data, Transform zombieMarker, Transform targetMarker) {
+        if (data.Rooms == null || data.Rooms.Count < 2) {
+            Debug.LogWarning("[Visualizer] Not enough rooms for spawn/target.");
+            return;
         }
 
-        public void Reset(Map data) {
-            Clear();
+        int a = 0, b = 1;
+        long best = -1;
 
-            SpawnFloors(data);
-            SpawnWalls(data);
-        }
+        for (int i = 0; i < data.Rooms.Count; i++)
+        for (int j = i + 1; j < data.Rooms.Count; j++) {
+            Vector2Int c1 = data.Rooms[i].center;
+            Vector2Int c2 = data.Rooms[j].center;
 
-        public void SpawnWalls(Map data) {
-            bool[,] wallMatrix = data.WallMatrix;
-            for (int y = 0; y < data.Height; y++)
-            for (int x = 0; x < data.Width; x++) {
-                if (!wallMatrix[y, x]) {
-                    continue;
-                }
+            long dx = c1.x - c2.x;
+            long dy = c1.y - c2.y;
+            long d2 = (dx * dx) + (dy * dy);
 
-                float baseH = GetWallBaseHeightFromNeighbors(data, x, y);
-                Vector3 pos = CellCenterWorld(data, x, y);
-                pos.y = baseH + _wallCenterY;
-
-                GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
-                w.name = $"Wall_{x}_{y}";
-                _spawnedWalls.Add(w);
+            if (d2 > best) {
+                best = d2;
+                a = i;
+                b = j;
             }
         }
 
-        public void SpawnFloors(Map data) {
-            bool[,] wallMatrix = data.WallMatrix;
-            float[,] height = data.TileHeight;
+        Environment.Cell zombieCell = new(data.Rooms[a].center.x, data.Rooms[a].center.y);
+        Environment.Cell targetCell = new(data.Rooms[b].center.x, data.Rooms[b].center.y);
 
-            for (int y = 0; y < data.Height; y++)
-            for (int x = 0; x < data.Width; x++) {
-                if (wallMatrix[y, x]) {
-                    continue; // floor only
-                }
+        Vector3 zombiePos = CellTopWorld(data, zombieCell);
+        Vector3 targetPos = CellTopWorld(data, targetCell);
 
-                float h = height[y, x];
-
-                Vector3 pos = CellCenterWorld(data, x, y);
-                pos.y = h + (_floorThickness * 0.5f);
-
-                GameObject f;
-                if (_floorPrefab != null) {
-                    f = Object.Instantiate(_floorPrefab, pos, Quaternion.identity, _parent);
-                } else {
-                    f = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    f.transform.SetParent(_parent, true);
-                    f.transform.position = pos;
-                }
-
-                f.name = $"Floor_{x}_{y}";
-                f.transform.localScale = new Vector3(data.CellSize, _floorThickness, data.CellSize);
-                _spawnedFloors.Add(f);
-            }
+        if (zombieMarker != null) {
+            zombieMarker.position = zombiePos;
         }
 
-        public void PlaceSpawnMarkers(Map data, Transform zombieMarker, Transform targetMarker) {
-            if (data.Rooms == null || data.Rooms.Count < 2) {
-                Debug.LogWarning("[Visualizer] Not enough rooms for spawn/target.");
+        if (targetMarker != null) {
+            targetMarker.position = targetPos;
+        }
+    }
+
+    public void ClearAll() {
+        ClearSpawnedWalls();
+        ClearSpawnedFloors();
+    }
+
+    private static Vector3 CellCenterWorld(Environment.MapData data, Environment.Cell c) {
+        float wx = data.Origin.x + ((c.X + 0.5f) * data.CellSize);
+        float wz = data.Origin.z + ((c.Y + 0.5f) * data.CellSize);
+        return new Vector3(wx, 0f, wz);
+    }
+
+    private static Vector3 CellTopWorld(Environment.MapData data, Environment.Cell c) {
+        Vector3 p = CellCenterWorld(data, c);
+        float h = data.TileHeight != null ? data.TileHeight[c.Y, c.X] : 0f;
+        p.y = h;
+        return p;
+    }
+
+    private static float GetWallBaseHeightFromNeighbors(Environment.MapData data, Environment.Cell c) {
+        float best = float.NegativeInfinity;
+
+        Try(new Environment.Cell(c.X + 1, c.Y));
+        Try(new Environment.Cell(c.X - 1, c.Y));
+        Try(new Environment.Cell(c.X, c.Y + 1));
+        Try(new Environment.Cell(c.X, c.Y - 1));
+
+        return float.IsNegativeInfinity(best) ? 0f : best;
+
+        void Try(Environment.Cell n) {
+            if (n.X < 0 || n.X >= data.Width || n.Y < 0 || n.Y >= data.Height) {
                 return;
             }
 
-            // farthest pair by center distance
-            int a = 0, b = 1;
-            long best = -1;
-
-            for (int i = 0; i < data.Rooms.Count; i++)
-            for (int j = i + 1; j < data.Rooms.Count; j++) {
-                Vector2Int c1 = data.Rooms[i].center;
-                Vector2Int c2 = data.Rooms[j].center;
-
-                long dx = c1.x - c2.x;
-                long dy = c1.y - c2.y;
-                long d2 = (dx * dx) + (dy * dy);
-
-                if (d2 > best) {
-                    best = d2;
-                    a = i;
-                    b = j;
-                }
+            if (data.WallMatrix[n.Y, n.X]) {
+                return;
             }
 
-            // Spawn positions at top of the tile (height)
-            Vector3 zombiePos = CellTopWorld(data, data.Rooms[a].center.x, data.Rooms[a].center.y);
-            Vector3 targetPos = CellTopWorld(data, data.Rooms[b].center.x, data.Rooms[b].center.y);
+            best = Mathf.Max(best, data.TileHeight[n.Y, n.X]);
+        }
+    }
 
-            if (zombieMarker != null) {
-                zombieMarker.position = zombiePos;
-            }
-
-            if (targetMarker != null) {
-                targetMarker.position = targetPos;
+    private void ClearSpawnedWalls() {
+        for (int i = 0; i < _spawnedWalls.Count; i++) {
+            if (_spawnedWalls[i] != null) {
+                Object.Destroy(_spawnedWalls[i]);
             }
         }
 
+        _spawnedWalls.Clear();
+    }
 
-        private static Vector3 CellCenterWorld(Map data, int x, int y) {
-            float wx = data.Origin.x + ((x + 0.5f) * data.CellSize);
-            float wz = data.Origin.z + ((y + 0.5f) * data.CellSize);
-            return new Vector3(wx, 0f, wz);
-        }
-
-        private static Vector3 CellTopWorld(Map data, int x, int y) {
-            Vector3 p = CellCenterWorld(data, x, y);
-            float h = data.TileHeight != null ? data.TileHeight[y, x] : 0f;
-            p.y = h;
-            return p;
-        }
-
-        private static float GetWallBaseHeightFromNeighbors(Map data, int x, int y) {
-            float best = float.NegativeInfinity;
-
-            Try(x + 1, y);
-            Try(x - 1, y);
-            Try(x, y + 1);
-            Try(x, y - 1);
-
-            return float.IsNegativeInfinity(best) ? 0f : best;
-
-            void Try(int nx, int ny) {
-                if (nx < 0 || nx >= data.Width || ny < 0 || ny >= data.Height) {
-                    return;
-                }
-
-                if (data.WallMatrix[ny, nx]) {
-                    return; // floor only
-                }
-
-                best = Mathf.Max(best, data.TileHeight[ny, nx]);
+    private void ClearSpawnedFloors() {
+        for (int i = 0; i < _spawnedFloors.Count; i++) {
+            if (_spawnedFloors[i] != null) {
+                Object.Destroy(_spawnedFloors[i]);
             }
         }
 
-        private void Clear() {
-            foreach (GameObject t in _spawnedWalls.Where(t => t != null)) {
-                Object.Destroy(t);
-            }
-
-            _spawnedWalls.Clear();
-            foreach (GameObject t in _spawnedFloors.Where(t => t != null)) {
-                Object.Destroy(t);
-            }
-
-            _spawnedFloors.Clear();
-        }
+        _spawnedFloors.Clear();
     }
 }
