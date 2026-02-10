@@ -1,9 +1,10 @@
 using System;
-using Train.Navigation.Scripts;
 using UnityEngine;
+using Unity.MLAgents.Sensors; // Required for ISensor and ObservationSpec
+using Train.Navigation.Scripts;
 
 namespace Train.Sensors.Navigation {
-    public class NavigationSensor : MonoBehaviour {
+    public class NavigationSensor : MonoBehaviour, ISensor {
         [Header("Dependencies")] [SerializeField]
         private Navigator navigator;
 
@@ -18,12 +19,28 @@ namespace Train.Sensors.Navigation {
         private float emc = 20.0f;
 
         private float[] _navigationBuffer;
-        public float[] NavigationBuffer => _navigationBuffer;
 
-        private void Awake() =>
-            _navigationBuffer = new float[maxToken * inputDim];
+        private void Awake() => _navigationBuffer = new float[maxToken * inputDim];
 
-        public void UpdateNavigationData() {
+        // --- ISensor Interface Implementation (The "Contract") ---
+
+        public string GetName() => "navigation";
+
+        public ObservationSpec GetObservationSpec() => ObservationSpec.VariableLength(maxToken, inputDim);
+        public void Reset() => throw new NotImplementedException();
+
+        public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
+
+        public int Write(ObservationWriter writer) {
+            UpdateNavigationData();
+            writer.AddList(_navigationBuffer);
+            return _navigationBuffer.Length;
+        }
+
+        public byte[] GetCompressedObservation() => null;
+        public void Update() => throw new NotImplementedException();
+
+        private void UpdateNavigationData() {
             if (navigator == null || proprioception == null) {
                 return;
             }
@@ -49,7 +66,10 @@ namespace Train.Sensors.Navigation {
                 Vector3 worldPos;
                 Vector3 worldDir;
 
-                if (corners != null && i < corners.Length) {
+                if (corners == null || i >= corners.Length) {
+                    worldPos = lastValidPoint;
+                    worldDir = lastValidDir;
+                } else {
                     worldPos = corners[i];
                     worldDir = i + 1 < corners.Length
                         ? (corners[i + 1] - corners[i]).normalized
@@ -59,20 +79,16 @@ namespace Train.Sensors.Navigation {
 
                     lastValidPoint = worldPos;
                     lastValidDir = worldDir;
-                } else {
-                    worldPos = lastValidPoint;
-                    worldDir = lastValidDir;
                 }
 
                 Vector3 localPos = worldToStable.MultiplyPoint3x4(worldPos);
                 Vector3 localDir = worldToStable.MultiplyVector(worldDir);
 
-                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.z / emc); // Forward distance
-                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.x / emc); // Lateral distance
-                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.y / emc); // Vertical (Slope)
-
-                _navigationBuffer[bufferIdx++] = localDir.z; // Target forward direction component
-                _navigationBuffer[bufferIdx++] = localDir.x; // Target side direction component
+                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.z / emc);
+                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.x / emc);
+                _navigationBuffer[bufferIdx++] = (float)Math.Tanh(localPos.y / emc);
+                _navigationBuffer[bufferIdx++] = localDir.z;
+                _navigationBuffer[bufferIdx++] = localDir.x;
             }
         }
     }
