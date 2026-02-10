@@ -44,30 +44,20 @@ namespace Train.Sensors.Proprioception
         {
 
             int offset = 0;
-            writer.Add(_prop.Gravity, offset);
+            writer.Add(_prop.Gravity);
             offset += 3;
 
             Vector3 comDiff = _prop.Com - _prop.InitialCoM;
-            writer.Add(comDiff, offset);
-            offset += 3;
+            writer.Add(comDiff);
+            writer.Add(_prop.AngularVelocity);
+            writer.Add(_prop.LinearVelocity);
+            writer.Add(_prop.Position);
+            writer.Add(_prop.Forward);
 
-            writer.Add(_prop.AngularVelocity, offset);
-            offset += 3;
-            writer.Add(_prop.LinearVelocity, offset);
-            offset += 3;
-            writer.Add(_prop.Position, offset);
-            offset += 3;
-            writer.Add(_prop.Forward, offset);
-            offset += 3;
 
             writer[offset] = _prop.Integrity;
-            offset += 1;
 
-            offset += WriteList(writer, _prop.Contacts, offset);
-            offset += WriteList(writer, _prop.Attaches, offset);
 
-            offset += WriteList(writer, _prop.JointBlocks, offset);
-            offset += WriteList(writer, _prop.NormalizedJointBlocks, offset);
 
             return offset;
         }
