@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class Environment : MonoBehaviour {
@@ -59,37 +57,6 @@ public sealed class Environment : MonoBehaviour {
     private RoomGenerator _roomGenerator;
     private RoadGenerator _roadGenerator;
 
-    public readonly struct Cell {
-        public readonly int X, Y;
-
-        public Cell(int x, int y) {
-            X = x;
-            Y = y;
-        }
-    }
-
-    [Serializable]
-    public sealed class Room {
-        public int id;
-        public RectInt bounds;
-        public Vector2Int center;
-        public int heightLevel;
-        public readonly List<Cell> Cells = new();
-        public readonly HashSet<int> FloorSet = new();
-    }
-
-    public sealed class MapData {
-        public int Width;
-        public int Height;
-        public float CellSize;
-        public Vector3 Origin;
-
-        public bool[,] WallMatrix; // true=wall, false=floor
-        public int[,] RoomIdMatrix; // -1 if not room (road remains -1)
-        public float[,] TileHeight; // NEW: per-tile world height (Y)
-        public List<Room> Rooms;
-    }
-
     private void Awake() {
         if (wallParent == null) {
             wallParent = transform;
@@ -124,10 +91,11 @@ public sealed class Environment : MonoBehaviour {
             Height = gridHeight,
             CellSize = cellSize,
             Origin = GetGridOrigin(gridWidth, gridHeight, cellSize),
+
             WallMatrix = new bool[gridHeight, gridWidth],
             RoomIdMatrix = new int[gridHeight, gridWidth],
             TileHeight = new float[gridHeight, gridWidth],
-            Rooms = new List<Room>(roomCount)
+            Rooms = new System.Collections.Generic.List<Room>(roomCount)
         };
 
         InitializeMatrices();

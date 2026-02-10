@@ -27,13 +27,13 @@ public sealed class Visualizer {
         _floorThickness = Mathf.Max(0.01f, floorThickness);
     }
 
-    public void Rebuild(Environment.MapData data) {
+    public void Rebuild(MapData data) {
         ClearAll();
         RebuildFloors(data);
         RebuildWalls(data);
     }
 
-    public void RebuildWalls(Environment.MapData data) {
+    public void RebuildWalls(MapData data) {
         ClearSpawnedWalls();
 
         bool[,] wallMatrix = data.WallMatrix;
@@ -43,7 +43,7 @@ public sealed class Visualizer {
                 continue;
             }
 
-            Environment.Cell c = new(x, y);
+            Cell c = new Cell(x, y);
 
             float baseH = GetWallBaseHeightFromNeighbors(data, c);
             Vector3 pos = CellCenterWorld(data, c);
@@ -55,7 +55,7 @@ public sealed class Visualizer {
         }
     }
 
-    public void RebuildFloors(Environment.MapData data) {
+    public void RebuildFloors(MapData data) {
         ClearSpawnedFloors();
 
         bool[,] wallMatrix = data.WallMatrix;
@@ -69,7 +69,7 @@ public sealed class Visualizer {
 
             float h = height[y, x];
 
-            Environment.Cell c = new(x, y);
+            Cell c = new Cell(x, y);
             Vector3 pos = CellCenterWorld(data, c);
             pos.y = h + (_floorThickness * 0.5f);
 
@@ -88,7 +88,7 @@ public sealed class Visualizer {
         }
     }
 
-    public void PlaceSpawnMarkers(Environment.MapData data, Transform zombieMarker, Transform targetMarker) {
+    public void PlaceSpawnMarkers(MapData data, Transform zombieMarker, Transform targetMarker) {
         if (data.Rooms == null || data.Rooms.Count < 2) {
             Debug.LogWarning("[Visualizer] Not enough rooms for spawn/target.");
             return;
@@ -113,19 +113,14 @@ public sealed class Visualizer {
             }
         }
 
-        Environment.Cell zombieCell = new(data.Rooms[a].center.x, data.Rooms[a].center.y);
-        Environment.Cell targetCell = new(data.Rooms[b].center.x, data.Rooms[b].center.y);
+        Cell zombieCell = new Cell(data.Rooms[a].center.x, data.Rooms[a].center.y);
+        Cell targetCell = new Cell(data.Rooms[b].center.x, data.Rooms[b].center.y);
 
         Vector3 zombiePos = CellTopWorld(data, zombieCell);
         Vector3 targetPos = CellTopWorld(data, targetCell);
 
-        if (zombieMarker != null) {
-            zombieMarker.position = zombiePos;
-        }
-
-        if (targetMarker != null) {
-            targetMarker.position = targetPos;
-        }
+        if (zombieMarker != null) zombieMarker.position = zombiePos;
+        if (targetMarker != null) targetMarker.position = targetPos;
     }
 
     public void ClearAll() {
@@ -133,59 +128,47 @@ public sealed class Visualizer {
         ClearSpawnedFloors();
     }
 
-    private static Vector3 CellCenterWorld(Environment.MapData data, Environment.Cell c) {
+    private static Vector3 CellCenterWorld(MapData data, Cell c) {
         float wx = data.Origin.x + ((c.X + 0.5f) * data.CellSize);
         float wz = data.Origin.z + ((c.Y + 0.5f) * data.CellSize);
         return new Vector3(wx, 0f, wz);
     }
 
-    private static Vector3 CellTopWorld(Environment.MapData data, Environment.Cell c) {
+    private static Vector3 CellTopWorld(MapData data, Cell c) {
         Vector3 p = CellCenterWorld(data, c);
         float h = data.TileHeight != null ? data.TileHeight[c.Y, c.X] : 0f;
         p.y = h;
         return p;
     }
 
-    private static float GetWallBaseHeightFromNeighbors(Environment.MapData data, Environment.Cell c) {
+    private static float GetWallBaseHeightFromNeighbors(MapData data, Cell c) {
         float best = float.NegativeInfinity;
 
-        Try(new Environment.Cell(c.X + 1, c.Y));
-        Try(new Environment.Cell(c.X - 1, c.Y));
-        Try(new Environment.Cell(c.X, c.Y + 1));
-        Try(new Environment.Cell(c.X, c.Y - 1));
+        Try(new Cell(c.X + 1, c.Y));
+        Try(new Cell(c.X - 1, c.Y));
+        Try(new Cell(c.X, c.Y + 1));
+        Try(new Cell(c.X, c.Y - 1));
 
         return float.IsNegativeInfinity(best) ? 0f : best;
 
-        void Try(Environment.Cell n) {
-            if (n.X < 0 || n.X >= data.Width || n.Y < 0 || n.Y >= data.Height) {
-                return;
-            }
-
-            if (data.WallMatrix[n.Y, n.X]) {
-                return;
-            }
-
+        void Try(Cell n) {
+            if (n.X < 0 || n.X >= data.Width || n.Y < 0 || n.Y >= data.Height) return;
+            if (data.WallMatrix[n.Y, n.X]) return;
             best = Mathf.Max(best, data.TileHeight[n.Y, n.X]);
         }
     }
 
     private void ClearSpawnedWalls() {
         for (int i = 0; i < _spawnedWalls.Count; i++) {
-            if (_spawnedWalls[i] != null) {
-                Object.Destroy(_spawnedWalls[i]);
-            }
+            if (_spawnedWalls[i] != null) Object.Destroy(_spawnedWalls[i]);
         }
-
         _spawnedWalls.Clear();
     }
 
     private void ClearSpawnedFloors() {
         for (int i = 0; i < _spawnedFloors.Count; i++) {
-            if (_spawnedFloors[i] != null) {
-                Object.Destroy(_spawnedFloors[i]);
-            }
+            if (_spawnedFloors[i] != null) Object.Destroy(_spawnedFloors[i]);
         }
-
         _spawnedFloors.Clear();
     }
 }

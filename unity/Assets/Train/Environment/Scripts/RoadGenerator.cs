@@ -54,7 +54,7 @@ public sealed class RoadGenerator {
     }
 
     public void ConnectRoomsMstAndPaintRoadHeights(
-        Environment.MapData map,
+        MapData map,
         System.Random rng,
         int roadWidth,
         bool randomizeLTurnOrder,
@@ -89,10 +89,10 @@ public sealed class RoadGenerator {
 
             picked++;
 
-            Environment.Room a = map.Rooms[e.A];
-            Environment.Room b = map.Rooms[e.B];
+            Room a = map.Rooms[e.A];
+            Room b = map.Rooms[e.B];
 
-            List<Environment.Cell> roadPath = BuildRoadPathCells(a, b, rng, randomizeLTurnOrder);
+            List<Cell> roadPath = BuildRoadPathCells(a, b, rng, randomizeLTurnOrder);
 
             float fromH = LevelToHeight(a.heightLevel, levelStepHeight);
             float toH = LevelToHeight(b.heightLevel, levelStepHeight);
@@ -103,61 +103,29 @@ public sealed class RoadGenerator {
 
     private static float LevelToHeight(int level, float levelStepHeight) => level * levelStepHeight;
 
-    private static bool InBounds(Environment.MapData map, Environment.Cell c)
+    private static bool InBounds(MapData map, Cell c)
         => c.X >= 0 && c.X < map.Width && c.Y >= 0 && c.Y < map.Height;
 
-    private static List<Environment.Cell> BuildRoadPathCells(
-        Environment.Room a,
-        Environment.Room b,
-        System.Random rng,
-        bool randomizeLTurnOrder
-    ) {
-        Environment.Cell doorA = PickBestDoorCell(a, b.center);
-        Environment.Cell doorB = PickBestDoorCell(b, a.center);
+    private static List<Cell> BuildRoadPathCells(Room a, Room b, System.Random rng, bool randomizeLTurnOrder) {
+        Cell doorA = a.PickBestDoorCell(b.center);
+        Cell doorB = b.PickBestDoorCell(a.center);
 
         bool xThenY = randomizeLTurnOrder ? rng.NextDouble() < 0.5 : true;
 
-        List<Environment.Cell> path = new(Mathf.Abs(doorA.X - doorB.X) + Mathf.Abs(doorA.Y - doorB.Y) + 2);
+        List<Cell> path = new(Mathf.Abs(doorA.X - doorB.X) + Mathf.Abs(doorA.Y - doorB.Y) + 2);
 
         if (xThenY) {
-            AppendLineCells(path, doorA, new Environment.Cell(doorB.X, doorA.Y));
-            AppendLineCells(path, new Environment.Cell(doorB.X, doorA.Y), doorB);
+            AppendLineCells(path, doorA, new Cell(doorB.X, doorA.Y));
+            AppendLineCells(path, new Cell(doorB.X, doorA.Y), doorB);
         } else {
-            AppendLineCells(path, doorA, new Environment.Cell(doorA.X, doorB.Y));
-            AppendLineCells(path, new Environment.Cell(doorA.X, doorB.Y), doorB);
+            AppendLineCells(path, doorA, new Cell(doorA.X, doorB.Y));
+            AppendLineCells(path, new Cell(doorA.X, doorB.Y), doorB);
         }
 
         return path;
     }
 
-    private static Environment.Cell PickBestDoorCell(Environment.Room room, Vector2Int toward) {
-        Environment.Cell best = room.Cells[0];
-        int bestScore = int.MaxValue;
-
-        for (int i = 0; i < room.Cells.Count; i++) {
-            Environment.Cell c = room.Cells[i];
-
-            bool isBoundary =
-                !room.FloorSet.Contains(Utility.Pack(c.X + 1, c.Y)) ||
-                !room.FloorSet.Contains(Utility.Pack(c.X - 1, c.Y)) ||
-                !room.FloorSet.Contains(Utility.Pack(c.X, c.Y + 1)) ||
-                !room.FloorSet.Contains(Utility.Pack(c.X, c.Y - 1));
-
-            if (!isBoundary) {
-                continue;
-            }
-
-            int score = Mathf.Abs(c.X - toward.x) + Mathf.Abs(c.Y - toward.y);
-            if (score < bestScore) {
-                bestScore = score;
-                best = c;
-            }
-        }
-
-        return best;
-    }
-
-    private static void AppendLineCells(List<Environment.Cell> outCells, Environment.Cell start, Environment.Cell end) {
+    private static void AppendLineCells(List<Cell> outCells, Cell start, Cell end) {
         int dx = Math.Sign(end.X - start.X);
         int dy = Math.Sign(end.Y - start.Y);
 
@@ -165,23 +133,23 @@ public sealed class RoadGenerator {
         int y = start.Y;
 
         if (outCells.Count == 0 || outCells[outCells.Count - 1].X != x || outCells[outCells.Count - 1].Y != y) {
-            outCells.Add(new Environment.Cell(x, y));
+            outCells.Add(new Cell(x, y));
         }
 
         while (x != end.X) {
             x += dx;
-            outCells.Add(new Environment.Cell(x, y));
+            outCells.Add(new Cell(x, y));
         }
 
         while (y != end.Y) {
             y += dy;
-            outCells.Add(new Environment.Cell(x, y));
+            outCells.Add(new Cell(x, y));
         }
     }
 
     private static void ApplyRoadWithConstantStepRise(
-        Environment.MapData map,
-        List<Environment.Cell> roadCells,
+        MapData map,
+        List<Cell> roadCells,
         float fromHeight,
         float toHeight,
         int roadWidth
@@ -206,13 +174,13 @@ public sealed class RoadGenerator {
         PaintRoadCell(map, roadCells[roadCells.Count - 1], toHeight, roadWidth);
     }
 
-    private static void PaintRoadCell(Environment.MapData map, Environment.Cell c, float height, int roadWidth) {
+    private static void PaintRoadCell(MapData map, Cell c, float height, int roadWidth) {
         int halfA = (roadWidth - 1) / 2;
         int halfB = roadWidth / 2;
 
         for (int oy = -halfA; oy <= halfB; oy++)
         for (int ox = -halfA; ox <= halfB; ox++) {
-            Environment.Cell t = new(c.X + ox, c.Y + oy);
+            Cell t = new(c.X + ox, c.Y + oy);
             if (!InBounds(map, t)) {
                 continue;
             }
