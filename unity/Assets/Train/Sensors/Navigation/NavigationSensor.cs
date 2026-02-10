@@ -37,6 +37,8 @@ namespace Train.Sensors.Navigation {
 
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
         private float NormalizeDistance(float distance) => (float)Math.Tanh(distance / _expectedMaxCoordinate);
+        public byte[] GetCompressedObservation() => null;
+
 
         public int Write(ObservationWriter writer) {
             int idx = 0;
@@ -92,12 +94,6 @@ namespace Train.Sensors.Navigation {
             }
 
             return idx;
-        }
-
-        public byte[] GetCompressedObservation() => null;
-
-
-        private void UpdateNavigationData() {
         }
     }
 }
