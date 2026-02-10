@@ -1,22 +1,19 @@
 using System;
-using UnityEngine;
-using Unity.MLAgents.Sensors;
 using Train.Navigation.Scripts;
+using Unity.MLAgents.Sensors;
+using UnityEngine;
 
-namespace Train.Sensors.Navigation {
+namespace Train.Sensors {
     public class NavigationSensor : ISensor {
         private readonly Navigator _navigator;
         private readonly Proprioception _proprioception;
-        private readonly int _maxToken;
-        private readonly float _expectedMaxCoordinate;
-
-        private const int _inputDim = 5;
-
-        private float[] _navigationBuffer;
-
         private readonly ObservationSpec _spec;
 
-        public ObservationSpec GetObservationSpec() => _spec;
+        private readonly int _maxToken;
+        private readonly float _expectedMaxCoordinate;
+        private const int _inputDim = 5;
+
+        public string GetName() => "navigation";
 
         public NavigationSensor(Navigator navigator, Proprioception proprioception,
             int maxToken = 3, float expectedMaxCoordinate = 20.0f) {
@@ -27,18 +24,7 @@ namespace Train.Sensors.Navigation {
             _spec = ObservationSpec.VariableLength(maxToken, _inputDim);
         }
 
-        public string GetName() => "navigation";
-
-        public void Update() {
-        }
-
-        public void Reset() {
-        }
-
-        public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
         private float NormalizeDistance(float distance) => (float)Math.Tanh(distance / _expectedMaxCoordinate);
-        public byte[] GetCompressedObservation() => null;
-
 
         public int Write(ObservationWriter writer) {
             int idx = 0;
@@ -95,5 +81,13 @@ namespace Train.Sensors.Navigation {
 
             return idx;
         }
+
+        public byte[] GetCompressedObservation() => null;
+        public ObservationSpec GetObservationSpec() => _spec;
+
+        public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
+
+        public void Update() { }
+        public void Reset() { }
     }
 }

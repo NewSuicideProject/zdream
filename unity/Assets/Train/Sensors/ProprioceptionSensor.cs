@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace Train.Sensors {
     public class ProprioceptionSensor : ISensor {
-        private readonly Proprioception _prop;
-        private readonly ObservationSpec _spec;
+        private readonly Proprioception _proprioception;
+        private readonly ObservationSpec _observationSpec;
 
         public string GetName() => "proprioception";
 
-        public ProprioceptionSensor(Proprioception prop) {
-            _prop = prop;
+        public ProprioceptionSensor(Proprioception proprioception) {
+            _proprioception = proprioception;
 
             int size =
                 3 + // gravity
@@ -19,38 +19,38 @@ namespace Train.Sensors {
                 3 + // position
                 3 + // forward
                 1 + // integrity
-                _prop.Contacts.Length +
-                _prop.Attaches.Length +
-                _prop.JointBlocks.Length +
-                _prop.NormalizedJointBlocks.Length;
+                _proprioception.Contacts.Length +
+                _proprioception.Attaches.Length +
+                _proprioception.JointBlocks.Length +
+                _proprioception.NormalizedJointBlocks.Length;
 
-            _spec = ObservationSpec.Vector(size);
+            _observationSpec = ObservationSpec.Vector(size);
         }
 
         public int Write(ObservationWriter writer) {
-            writer.Add(_prop.Gravity);
+            writer.Add(_proprioception.Gravity);
 
-            Vector3 comDiff = _prop.Com - _prop.InitialCoM;
+            Vector3 comDiff = _proprioception.Com - _proprioception.InitialCoM;
             writer.Add(comDiff);
-            writer.Add(_prop.AngularVelocity);
-            writer.Add(_prop.LinearVelocity);
-            writer.Add(_prop.Position);
-            writer.Add(_prop.Forward);
+            writer.Add(_proprioception.AngularVelocity);
+            writer.Add(_proprioception.LinearVelocity);
+            writer.Add(_proprioception.Position);
+            writer.Add(_proprioception.Forward);
 
-            writer[17] = _prop.Integrity;
+            writer[17] = _proprioception.Integrity;
 
-            writer.AddList(_prop.Contacts);
-            writer.AddList(_prop.Attaches);
-            writer.AddList(_prop.NormalizedJointBlocks);
+            writer.AddList(_proprioception.Contacts);
+            writer.AddList(_proprioception.Attaches);
+            writer.AddList(_proprioception.NormalizedJointBlocks);
 
 
-            return _spec.Shape[0];
+            return _observationSpec.Shape[0];
         }
 
         public byte[] GetCompressedObservation() => null;
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
 
-        public ObservationSpec GetObservationSpec() => _spec;
+        public ObservationSpec GetObservationSpec() => _observationSpec;
 
         public void Update() { }
         public void Reset() { }
