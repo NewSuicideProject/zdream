@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using Unity.MLAgents.Sensors; // Required for ISensor and ObservationSpec
+using Unity.MLAgents.Sensors;
 using Train.Navigation.Scripts;
 
 namespace Train.Sensors.Navigation {
