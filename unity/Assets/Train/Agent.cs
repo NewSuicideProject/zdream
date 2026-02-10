@@ -120,7 +120,6 @@ namespace Train {
                 AddReward(staySuccessReward);
                 EndEpisode();
             } else if (transform.localPosition.y < 0f) {
-                AddReward(-fallingPenalty);
                 EndEpisode();
             }
         }
@@ -135,6 +134,22 @@ namespace Train {
 
             continuousActionsOut[0] = moveInput.x;
             continuousActionsOut[1] = moveInput.y;
+        }
+
+        private float CalculateSpeedReward(Vector3 velocity, Vector3 targetDirection)
+            => Vector3.Dot(velocity, targetDirection.normalized);
+
+        private float CalculateSmoothnessReward(Vector3 acceleration) => -acceleration.sqrMagnitude;
+
+        public float CalculateIntegratedReward(float passion,
+            Vector3 velocity, Vector3 targetDirection, Vector3 acceleration) {
+            float speedReward = CalculateSpeedReward(velocity, targetDirection);
+            float smoothnessReward = CalculateSmoothnessReward(acceleration);
+
+            float speedWeight = passion;
+            float smoothnessWeight = 1.0f - passion;
+
+            return (speedReward * speedWeight) + (smoothnessReward * smoothnessWeight);
         }
     }
 }
