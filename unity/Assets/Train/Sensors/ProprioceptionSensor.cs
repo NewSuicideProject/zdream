@@ -1,20 +1,15 @@
 using Unity.MLAgents.Sensors;
 using UnityEngine;
-using Train;
 
-namespace Train.Sensors.Proprioception
-{
-    public class ProprioceptionSensor : ISensor
-    {
-        private readonly Train.Proprioception _prop;
-        private ObservationSpec _spec;
+namespace Train.Sensors {
+    public class ProprioceptionSensor : ISensor {
+        private readonly Proprioception _prop;
+        private readonly ObservationSpec _spec;
 
+        public string GetName() => "proprioception";
 
-        public ProprioceptionSensor(Train.Proprioception prop)
-        {
+        public ProprioceptionSensor(Proprioception prop) {
             _prop = prop;
-
-
 
             int size =
                 3 + // gravity
@@ -30,22 +25,10 @@ namespace Train.Sensors.Proprioception
                 _prop.NormalizedJointBlocks.Length;
 
             _spec = ObservationSpec.Vector(size);
-
         }
 
-
-
-        public ObservationSpec GetObservationSpec()
-        {
-            return _spec;
-        }
-
-        public int Write(ObservationWriter writer)
-        {
-
-            int offset = 0;
+        public int Write(ObservationWriter writer) {
             writer.Add(_prop.Gravity);
-            offset += 3;
 
             Vector3 comDiff = _prop.Com - _prop.InitialCoM;
             writer.Add(comDiff);
@@ -54,24 +37,22 @@ namespace Train.Sensors.Proprioception
             writer.Add(_prop.Position);
             writer.Add(_prop.Forward);
 
+            writer[17] = _prop.Integrity;
 
-            writer[offset] = _prop.Integrity;
+            writer.AddList(_prop.Contacts);
+            writer.AddList(_prop.Attaches);
+            writer.AddList(_prop.NormalizedJointBlocks);
 
 
-
-            return offset;
+            return _spec.Shape[0];
         }
 
         public byte[] GetCompressedObservation() => null;
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
+
+        public ObservationSpec GetObservationSpec() => _spec;
+
         public void Update() { }
         public void Reset() { }
-        public string GetName() => "proprioception";
-
-        private static int WriteList(ObservationWriter writer, float[] values, int writeOffset)
-        {
-            writer.AddList(values, writeOffset);
-            return values.Length;
-        }
     }
 }
