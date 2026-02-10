@@ -4,30 +4,27 @@ using Unity.MLAgents.Sensors;
 using Train.Navigation.Scripts;
 
 namespace Train.Sensors.Navigation {
-    [Serializable]
     public class NavigationSensor : ISensor {
-        [Header("Dependencies")] [SerializeField]
-        private Navigator navigator;
-
-        [SerializeField] private Proprioception proprioception;
-
-        [Header("Encoder Specs")] [SerializeField]
-        private int maxToken = 3;
-
-        [Header("Normalization")] [SerializeField]
-        private float expectedMaxCoordinate = 20.0f;
+        private readonly Navigator _navigator;
+        private readonly Proprioception _proprioception;
+        private readonly int _maxToken;
+        private readonly float _expectedMaxCoordinate;
 
         private const int _inputDim = 5;
 
         private float[] _navigationBuffer;
 
-        private ObservationSpec _spec;
+        private readonly ObservationSpec _spec;
 
         public ObservationSpec GetObservationSpec() => _spec;
 
-        private void Awake() {
+        public NavigationSensor(Navigator navigator, Proprioception proprioception,
+            int maxToken = 3, float expectedMaxCoordinate = 20.0f) {
+            _navigator = navigator;
+            _proprioception = proprioception;
+            _maxToken = maxToken;
+            _expectedMaxCoordinate = expectedMaxCoordinate;
             _spec = ObservationSpec.VariableLength(maxToken, _inputDim);
-            _navigationBuffer = new float[maxToken * _inputDim];
         }
 
         public string GetName() => "navigation";
@@ -39,24 +36,21 @@ namespace Train.Sensors.Navigation {
         }
 
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
+        private float NormalizeDistance(float distance) => (float)Math.Tanh(distance / _expectedMaxCoordinate);
 
         public int Write(ObservationWriter writer) {
-            UpdateNavigationData();
-            writer.AddList(_navigationBuffer);
-            return _navigationBuffer.Length;
-        }
+            int idx = 0;
 
-        public byte[] GetCompressedObservation() => null;
+            if (!_navigator || !_proprioception) {
+                for (int i = 0; i < _maxToken * _inputDim; i++) {
+                    writer[idx++] = 0.0f;
+                }
 
-        private float NormalizeDistance(float distance) => (float)Math.Tanh(distance / expectedMaxCoordinate);
-
-        private void UpdateNavigationData() {
-            if (!navigator || !proprioception) {
-                return;
+                return idx;
             }
 
-            Vector3 agentPos = proprioception.Position;
-            Vector3 rawForward = proprioception.Forward;
+            Vector3 agentPos = _proprioception.Position;
+            Vector3 rawForward = _proprioception.Forward;
 
             Vector3 projectedForward = Vector3.ProjectOnPlane(rawForward, Vector3.up).normalized;
             if (projectedForward.sqrMagnitude < 0.001f) {
@@ -66,13 +60,12 @@ namespace Train.Sensors.Navigation {
             Quaternion stableRotation = Quaternion.LookRotation(projectedForward, Vector3.up);
             Matrix4x4 worldToStable = Matrix4x4.TRS(agentPos, stableRotation, Vector3.one).inverse;
 
-            Vector3[] corners = navigator.Corners;
-            int bufferIdx = 0;
+            Vector3[] corners = _navigator.Corners;
 
             Vector3 lastValidPoint = agentPos;
             Vector3 lastValidDir = projectedForward;
 
-            for (int i = 0; i < maxToken; i++) {
+            for (int i = 0; i < _maxToken; i++) {
                 Vector3 worldPos;
                 Vector3 worldDir;
 
@@ -91,12 +84,20 @@ namespace Train.Sensors.Navigation {
                 Vector3 localPos = worldToStable.MultiplyPoint3x4(worldPos);
                 Vector3 localDir = worldToStable.MultiplyVector(worldDir);
 
-                _navigationBuffer[bufferIdx++] = NormalizeDistance(localPos.z);
-                _navigationBuffer[bufferIdx++] = NormalizeDistance(localPos.x);
-                _navigationBuffer[bufferIdx++] = NormalizeDistance(localPos.y);
-                _navigationBuffer[bufferIdx++] = localDir.x;
-                _navigationBuffer[bufferIdx++] = localDir.z;
+                writer[idx++] = NormalizeDistance(localPos.z);
+                writer[idx++] = NormalizeDistance(localPos.x);
+                writer[idx++] = NormalizeDistance(localPos.y);
+                writer[idx++] = localDir.x;
+                writer[idx++] = localDir.z;
             }
+
+            return idx;
+        }
+
+        public byte[] GetCompressedObservation() => null;
+
+
+        private void UpdateNavigationData() {
         }
     }
 }
