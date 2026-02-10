@@ -136,7 +136,7 @@ namespace Train.Environment.Scripts {
 
             ConnectRooms();
 
-            _visualizer.Rebuild(_map);
+            _visualizer.Reset(_map);
             _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
         }
 
