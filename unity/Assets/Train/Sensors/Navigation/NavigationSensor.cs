@@ -37,7 +37,6 @@ namespace Train.Sensors.Navigation {
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
 
         public int Write(ObservationWriter writer) {
-            UpdateNavigationData();
             writer.AddList(_navigationBuffer);
             return _navigationBuffer.Length;
         }
@@ -79,13 +78,7 @@ namespace Train.Sensors.Navigation {
                 } else {
                     worldPos = corners[i];
 
-                    if (i + 1 < corners.Length) {
-                        worldDir = (corners[i + 1] - corners[i]).normalized;
-                    } else if (i > 0) {
-                        worldDir = (corners[i] - corners[i - 1]).normalized;
-                    } else {
-                        worldDir = projectedForward;
-                    }
+                    worldDir = i + 1 < corners.Length ? (corners[i + 1] - corners[i]).normalized : Vector3.zero;
 
                     lastValidPoint = worldPos;
                     lastValidDir = worldDir;
