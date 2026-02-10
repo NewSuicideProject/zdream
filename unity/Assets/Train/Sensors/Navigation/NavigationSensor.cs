@@ -4,7 +4,8 @@ using Unity.MLAgents.Sensors;
 using Train.Navigation.Scripts;
 
 namespace Train.Sensors.Navigation {
-    public class NavigationSensor : MonoBehaviour, ISensor {
+    [Serializable]
+    public class NavigationSensor : ISensor {
         [Header("Dependencies")] [SerializeField]
         private Navigator navigator;
 
@@ -31,18 +32,21 @@ namespace Train.Sensors.Navigation {
 
         public string GetName() => "navigation";
 
+        public void Update() {
+        }
+
         public void Reset() {
         }
 
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
 
         public int Write(ObservationWriter writer) {
+            UpdateNavigationData();
             writer.AddList(_navigationBuffer);
             return _navigationBuffer.Length;
         }
 
         public byte[] GetCompressedObservation() => null;
-        public void Update() => UpdateNavigationData();
 
         private float NormalizeDistance(float distance) => (float)Math.Tanh(distance / expectedMaxCoordinate);
 
