@@ -1,16 +1,20 @@
 using Unity.MLAgents.Sensors;
 using UnityEngine;
+using Train;
 
 namespace Train.Sensors.Proprioception
 {
-    public class ProprioceptionSensor : ISensor, MonoBehaviour
+    public class ProprioceptionSensor : ISensor
     {
-        private readonly Proprioception _prop;
-        private readonly ObservationSpec _spec;
+        private readonly Train.Proprioception _prop;
+        private ObservationSpec _spec;
 
-        public ProprioceptionSensor(Proprioception prop)
+
+        public ProprioceptionSensor(Train.Proprioception prop)
         {
             _prop = prop;
+
+
 
             int size =
                 3 + // gravity
@@ -26,51 +30,58 @@ namespace Train.Sensors.Proprioception
                 _prop.NormalizedJointBlocks.Length;
 
             _spec = ObservationSpec.Vector(size);
+
         }
 
-        public ObservationSpec GetObservationSpec() => _spec;
+
+
+        public ObservationSpec GetObservationSpec()
+        {
+            return _spec;
+        }
 
         public int Write(ObservationWriter writer)
         {
-            writer.AddRange(_prop.Gravity);
+
+            int offset = 0;
+            writer.Add(_prop.Gravity, offset);
+            offset += 3;
 
             Vector3 comDiff = _prop.Com - _prop.InitialCoM;
-            writer.AddRange(comDiff);
+            writer.Add(comDiff, offset);
+            offset += 3;
 
-            writer.AddRange(_prop.AngularVelocity);
-            writer.AddRange(_prop.LinearVelocity);
-            writer.AddRange(_prop.Position);
-            writer.AddRange(_prop.Forward);
+            writer.Add(_prop.AngularVelocity, offset);
+            offset += 3;
+            writer.Add(_prop.LinearVelocity, offset);
+            offset += 3;
+            writer.Add(_prop.Position, offset);
+            offset += 3;
+            writer.Add(_prop.Forward, offset);
+            offset += 3;
 
-            writer.Add(_prop.Integrity);
+            writer[offset] = _prop.Integrity;
+            offset += 1;
 
-            writer.AddRange(_prop.Contacts);
-            writer.AddRange(_prop.Attaches);
+            offset += WriteList(writer, _prop.Contacts, offset);
+            offset += WriteList(writer, _prop.Attaches, offset);
 
-            writer.AddRange(_prop.JointBlocks);
-            writer.AddRange(_prop.NormalizedJointBlocks);
+            offset += WriteList(writer, _prop.JointBlocks, offset);
+            offset += WriteList(writer, _prop.NormalizedJointBlocks, offset);
 
-            return _spec.Shape[0];
+            return offset;
         }
 
         public byte[] GetCompressedObservation() => null;
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
         public void Update() { }
         public void Reset() { }
-
         public string GetName() => "proprioception";
-    }
 
-    public class ProprioceptionSensorComponent : SensorComponent
-    {
-        public override ISensor[] CreateSensors()
+        private static int WriteList(ObservationWriter writer, float[] values, int writeOffset)
         {
-            var prop = GetComponent<Proprioception>();
-
-            return new ISensor[]
-            {
-                new ProprioceptionSensor(prop)
-            };
+            writer.AddList(values, writeOffset);
+            return values.Length;
         }
     }
 }
