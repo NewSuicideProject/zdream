@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
-    public sealed class Visualizer {
+    public class Visualizer {
         private readonly Transform _parent;
         private readonly GameObject _wallPrefab;
         private readonly float _wallCenterY;
@@ -29,23 +28,24 @@ namespace Train.Environment.Scripts {
             _floorThickness = Mathf.Max(0.01f, floorThickness);
         }
 
-        public void Reset(Map data) {
-            Clear();
-
-            SpawnFloors(data);
-            SpawnWalls(data);
+        public void Rebuild(Map map) {
+            ClearAll();
+            RebuildFloors(map);
+            RebuildWalls(map);
         }
 
-        public void SpawnWalls(Map data) {
-            bool[,] wallMatrix = data.WallMatrix;
-            for (int y = 0; y < data.Height; y++)
-            for (int x = 0; x < data.Width; x++) {
-                if (!wallMatrix[y, x]) {
+        public void RebuildWalls(Map map) {
+            ClearSpawnedWalls();
+
+            for (int y = 0; y < map.Height; y++)
+            for (int x = 0; x < map.Width; x++) {
+                if (!map.Cells[y, x].isBorder) {
                     continue;
                 }
 
-                float baseH = GetWallBaseHeightFromNeighbors(data, x, y);
-                Vector3 pos = CellCenterWorld(data, x, y);
+                float baseH = GetWallBaseHeightFromNeighbors(map, new Vector2Int(x, y));
+
+                Vector3 pos = CellCenterWorld(map, new Vector2Int(x, y));
                 pos.y = baseH + _wallCenterY;
 
                 GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
@@ -54,20 +54,31 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void SpawnFloors(Map data) {
-            bool[,] wallMatrix = data.WallMatrix;
-            float[,] height = data.TileHeight;
+        public void RebuildFloors(Map map) {
+            ClearSpawnedFloors();
 
-            for (int y = 0; y < data.Height; y++)
-            for (int x = 0; x < data.Width; x++) {
-                if (wallMatrix[y, x]) {
-                    continue; // floor only
+            for (int y = 0; y < map.Height; y++)
+            for (int x = 0; x < map.Width; x++) {
+                ref Cell cell = ref map.Cells[y, x];
+                if (cell.isWall) {
+                    continue;
                 }
 
-                float h = height[y, x];
+                Vector2Int p = new(x, y);
 
-                Vector3 pos = CellCenterWorld(data, x, y);
-                pos.y = h + (_floorThickness * 0.5f);
+                bool isRoom = cell.roomId != -1;
+                bool touchesRoad = isRoom && TouchesRoad(map, p);
+
+                bool wantsSupport = cell.isRoad || touchesRoad;
+
+                float thickness = wantsSupport
+                    ? ComputeSupportThickness(map, p, _floorThickness)
+                    : _floorThickness;
+
+                float topY = cell.height;
+
+                Vector3 pos = CellCenterWorld(map, p);
+                pos.y = topY - (thickness * 0.5f);
 
                 GameObject f;
                 if (_floorPrefab != null) {
@@ -79,25 +90,64 @@ namespace Train.Environment.Scripts {
                 }
 
                 f.name = $"Floor_{x}_{y}";
-                f.transform.localScale = new Vector3(data.CellSize, _floorThickness, data.CellSize);
+                f.transform.localScale = new Vector3(map.CellSize, thickness, map.CellSize);
                 _spawnedFloors.Add(f);
             }
         }
 
-        public void PlaceSpawnMarkers(Map data, Transform zombieMarker, Transform targetMarker) {
-            if (data.Rooms == null || data.Rooms.Count < 2) {
-                Debug.LogWarning("[Visualizer] Not enough rooms for spawn/target.");
-                return;
+        private static bool TouchesRoad(Map map, Vector2Int p) {
+            foreach (Vector2Int dir in Utility.Cardinal) {
+                Vector2Int neighbor = p + dir;
+                if (map.Bounds.Contains(neighbor) && map.GetCell(neighbor).isRoad) {
+                    return true;
+                }
             }
 
-            // farthest pair by center distance
+            return false;
+        }
+
+        private static float ComputeSupportThickness(Map map, Vector2Int p, float baseThickness) {
+            if (!map.IsExposedEdge(p)) {
+                return Mathf.Max(0.01f, baseThickness);
+            }
+
+            float topY = map.Cells[p.y, p.x].height;
+
+            float minNeighborTop = float.PositiveInfinity;
+            foreach (Vector2Int dir in Utility.Cardinal) {
+                Try(p + dir);
+            }
+
+
+            if (float.IsPositiveInfinity(minNeighborTop)) {
+                return Mathf.Max(0.01f, baseThickness);
+            }
+
+            float extraDown = Mathf.Max(0f, topY - minNeighborTop);
+            return Mathf.Max(0.01f, baseThickness + extraDown);
+
+            void Try(Vector2Int n) {
+                if (!map.Bounds.Contains(n)) {
+                    return;
+                }
+
+                Cell c = map.GetCell(n);
+                if (c.isWall) {
+                    return;
+                }
+
+                minNeighborTop = Mathf.Min(minNeighborTop, c.height);
+            }
+        }
+
+        public void PlaceSpawnMarkers(Map map, Transform zombieMarker, Transform targetMarker) {
             int a = 0, b = 1;
             long best = -1;
 
-            for (int i = 0; i < data.Rooms.Count; i++)
-            for (int j = i + 1; j < data.Rooms.Count; j++) {
-                Vector2Int c1 = data.Rooms[i].center;
-                Vector2Int c2 = data.Rooms[j].center;
+            for (int i = 0; i < map.Rooms.Count; i++)
+            for (int j = i + 1; j < map.Rooms.Count; j++) {
+                Vector2Int c1 = map.Rooms[i].center;
+                Vector2Int c2 = map.Rooms[j].center;
 
                 long dx = c1.x - c2.x;
                 long dy = c1.y - c2.y;
@@ -110,9 +160,11 @@ namespace Train.Environment.Scripts {
                 }
             }
 
-            // Spawn positions at top of the tile (height)
-            Vector3 zombiePos = CellTopWorld(data, data.Rooms[a].center.x, data.Rooms[a].center.y);
-            Vector3 targetPos = CellTopWorld(data, data.Rooms[b].center.x, data.Rooms[b].center.y);
+            Vector2Int zc = map.Rooms[a].center;
+            Vector2Int tc = map.Rooms[b].center;
+
+            Vector3 zombiePos = CellTopWorld(map, zc);
+            Vector3 targetPos = CellTopWorld(map, tc);
 
             if (zombieMarker != null) {
                 zombieMarker.position = zombiePos;
@@ -123,51 +175,62 @@ namespace Train.Environment.Scripts {
             }
         }
 
+        public void ClearAll() {
+            ClearSpawnedWalls();
+            ClearSpawnedFloors();
+        }
 
-        private static Vector3 CellCenterWorld(Map data, int x, int y) {
-            float wx = data.Origin.x + ((x + 0.5f) * data.CellSize);
-            float wz = data.Origin.z + ((y + 0.5f) * data.CellSize);
+        private static Vector3 CellCenterWorld(Map map, Vector2Int p) {
+            float wx = map.Origin.x + ((p.x + 0.5f) * map.CellSize);
+            float wz = map.Origin.z + ((p.y + 0.5f) * map.CellSize);
             return new Vector3(wx, 0f, wz);
         }
 
-        private static Vector3 CellTopWorld(Map data, int x, int y) {
-            Vector3 p = CellCenterWorld(data, x, y);
-            float h = data.TileHeight != null ? data.TileHeight[y, x] : 0f;
-            p.y = h;
-            return p;
+        private static Vector3 CellTopWorld(Map map, Vector2Int p) {
+            Vector3 w = CellCenterWorld(map, p);
+            w.y = map.Bounds.Contains(p) ? map.Cells[p.y, p.x].height : 0f;
+            return w;
         }
 
-        private static float GetWallBaseHeightFromNeighbors(Map data, int x, int y) {
+        private static float GetWallBaseHeightFromNeighbors(Map map, Vector2Int p) {
             float best = float.NegativeInfinity;
 
-            Try(x + 1, y);
-            Try(x - 1, y);
-            Try(x, y + 1);
-            Try(x, y - 1);
+            foreach (Vector2Int dir in Utility.Cardinal) {
+                Try(p + dir);
+            }
+
 
             return float.IsNegativeInfinity(best) ? 0f : best;
 
-            void Try(int nx, int ny) {
-                if (nx < 0 || nx >= data.Width || ny < 0 || ny >= data.Height) {
+            void Try(Vector2Int n) {
+                if (!map.Bounds.Contains(n)) {
                     return;
                 }
 
-                if (data.WallMatrix[ny, nx]) {
-                    return; // floor only
+                Cell c = map.GetCell(n);
+                if (c.isWall) {
+                    return;
                 }
 
-                best = Mathf.Max(best, data.TileHeight[ny, nx]);
+                best = Mathf.Max(best, c.height);
             }
         }
 
-        private void Clear() {
-            foreach (GameObject t in _spawnedWalls.Where(t => t != null)) {
-                Object.Destroy(t);
+        private void ClearSpawnedWalls() {
+            for (int i = 0; i < _spawnedWalls.Count; i++) {
+                if (_spawnedWalls[i] != null) {
+                    Object.Destroy(_spawnedWalls[i]);
+                }
             }
 
             _spawnedWalls.Clear();
-            foreach (GameObject t in _spawnedFloors.Where(t => t != null)) {
-                Object.Destroy(t);
+        }
+
+        private void ClearSpawnedFloors() {
+            for (int i = 0; i < _spawnedFloors.Count; i++) {
+                if (_spawnedFloors[i] != null) {
+                    Object.Destroy(_spawnedFloors[i]);
+                }
             }
 
             _spawnedFloors.Clear();
