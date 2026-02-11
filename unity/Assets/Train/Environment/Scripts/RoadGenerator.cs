@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
-    public sealed class RoadGenerator {
+    public class RoadGenerator {
         private readonly struct Edge {
             public readonly int A, B, W;
 
@@ -14,7 +14,7 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        private sealed class DSU {
+        private class DSU {
             private readonly int[] _p;
             private readonly int[] _r;
 
@@ -167,11 +167,9 @@ namespace Train.Environment.Scripts {
                 float h = fromHeight + (stepRise * i);
                 PaintRoadCell(map, roadCells[i], h, roadWidth);
             }
-
-            PaintRoadCell(map, roadCells[^1], toHeight, roadWidth);
         }
 
-        private static void PaintRoadCell(MapData map, Vector2Int c, float height, int roadWidth) {
+        private static void PaintRoadCell(MapData map, Vector2Int c, float roadTopHeight, int roadWidth) {
             int halfA = (roadWidth - 1) / 2;
             int halfB = roadWidth / 2;
 
@@ -179,13 +177,22 @@ namespace Train.Environment.Scripts {
             for (int ox = -halfA; ox <= halfB; ox++) {
                 int tx = c.x + ox;
                 int ty = c.y + oy;
+
                 if (!map.InBounds(tx, ty)) {
                     continue;
                 }
 
                 ref Cell cell = ref map.Cells[ty, tx];
+
                 cell.IsWall = false;
-                cell.Height = height;
+                cell.IsRoad = cell.RoomId == -1; //ㅈㄴ 중요함.
+
+
+                // If this is inside a room, never raise above the room's base floor.
+                // Keep the existing room top height (written by WriteRoomsToGrid).
+                if (cell.RoomId == -1) {
+                    cell.Height = roadTopHeight;
+                }
             }
         }
     }

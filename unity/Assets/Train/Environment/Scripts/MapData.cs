@@ -33,6 +33,20 @@ namespace Train.Environment.Scripts {
             }
         }
 
+        public bool IsWallOrOob(int x, int y) {
+            if (!InBounds(x, y)) {
+                return true;
+            }
+
+            return Cells[y, x].IsWall;
+        }
+
+        public bool IsExposedEdge(int x, int y) =>
+            IsWallOrOob(x + 1, y) ||
+            IsWallOrOob(x - 1, y) ||
+            IsWallOrOob(x, y + 1) ||
+            IsWallOrOob(x, y - 1);
+
         // Cells[y,x].IsBordor 세팅
         public void ComputeBordorWalls() {
             if (Cells == null) {

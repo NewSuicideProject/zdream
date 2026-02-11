@@ -59,14 +59,25 @@ namespace Train.Environment.Scripts {
 
             for (int y = 0; y < map.Height; y++)
             for (int x = 0; x < map.Width; x++) {
-                if (map.Cells[y, x].IsWall) {
+                ref Cell cell = ref map.Cells[y, x];
+                if (cell.IsWall) {
                     continue;
                 }
 
-                float h = map.Cells[y, x].Height;
+                bool isRoad = cell.IsRoad;
+                bool isRoom = cell.RoomId != -1;
+
+                bool roomTouchesRoad = isRoom && TouchesRoad(map, x, y);
+
+                float thickness =
+                    isRoad || roomTouchesRoad
+                        ? ComputeSupportThickness(map, x, y, _floorThickness)
+                        : _floorThickness;
+
+                float topY = cell.Height;
 
                 Vector3 pos = CellCenterWorld(map, x, y);
-                pos.y = h + (_floorThickness * 0.5f);
+                pos.y = topY - (thickness * 0.5f);
 
                 GameObject f;
                 if (_floorPrefab != null) {
@@ -78,10 +89,60 @@ namespace Train.Environment.Scripts {
                 }
 
                 f.name = $"Floor_{x}_{y}";
-                f.transform.localScale = new Vector3(map.CellSize, _floorThickness, map.CellSize);
+                f.transform.localScale = new Vector3(map.CellSize, thickness, map.CellSize);
                 _spawnedFloors.Add(f);
             }
         }
+
+        private static bool TouchesRoad(MapData map, int x, int y) =>
+            IsRoadAt(map, x + 1, y) ||
+            IsRoadAt(map, x - 1, y) ||
+            IsRoadAt(map, x, y + 1) ||
+            IsRoadAt(map, x, y - 1);
+
+        private static bool IsRoadAt(MapData map, int x, int y) {
+            if (!map.InBounds(x, y)) {
+                return false;
+            }
+
+            return map.Cells[y, x].IsRoad;
+        }
+
+        private static float ComputeSupportThickness(MapData map, int x, int y, float baseThickness) {
+            // Supports only matter where there's a "fall edge" around.
+            if (!map.IsExposedEdge(x, y)) {
+                return Mathf.Max(0.01f, baseThickness);
+            }
+
+            float topY = map.Cells[y, x].Height;
+
+            float minNeighborTop = float.PositiveInfinity;
+            Try(x + 1, y);
+            Try(x - 1, y);
+            Try(x, y + 1);
+            Try(x, y - 1);
+
+            if (float.IsPositiveInfinity(minNeighborTop)) {
+                return Mathf.Max(0.01f, baseThickness);
+            }
+
+            float extraDown = Mathf.Max(0f, topY - minNeighborTop);
+            return Mathf.Max(0.01f, baseThickness + extraDown);
+
+            void Try(int nx, int ny) {
+                if (!map.InBounds(nx, ny)) {
+                    return;
+                }
+
+                Cell n = map.Cells[ny, nx];
+                if (n.IsWall) {
+                    return;
+                }
+
+                minNeighborTop = Mathf.Min(minNeighborTop, n.Height);
+            }
+        }
+
 
         public void PlaceSpawnMarkers(MapData map, Transform zombieMarker, Transform targetMarker) {
             if (map.Rooms == null || map.Rooms.Count < 2) {
@@ -108,13 +169,11 @@ namespace Train.Environment.Scripts {
                 }
             }
 
-            int zx = map.Rooms[a].center.x;
-            int zy = map.Rooms[a].center.y;
-            int tx = map.Rooms[b].center.x;
-            int ty = map.Rooms[b].center.y;
+            Vector2Int zc = map.Rooms[a].center;
+            Vector2Int tc = map.Rooms[b].center;
 
-            Vector3 zombiePos = CellTopWorld(map, zx, zy);
-            Vector3 targetPos = CellTopWorld(map, tx, ty);
+            Vector3 zombiePos = CellTopWorld(map, zc.x, zc.y);
+            Vector3 targetPos = CellTopWorld(map, tc.x, tc.y);
 
             if (zombieMarker != null) {
                 zombieMarker.position = zombiePos;
