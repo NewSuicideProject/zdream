@@ -36,7 +36,6 @@ namespace Train {
         private float _stayTime;
         private Transform _targetTransform;
 
-        private Vector3 _previousVelocity;
         private Rigidbody[] _jointRigidbodies;
         private Vector3[] _prevAngularVelocities;
         private Vector3[] _currentAngularVelocities;
@@ -94,17 +93,10 @@ namespace Train {
         private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceNormalizationFactor);
         private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _speedNormalizationFactor);
 
-        private Vector3 NormalizeCoordinate(Vector3 coordinate) =>
-            new(NormalizeDistance(coordinate.x), NormalizeDistance(coordinate.y), NormalizeDistance(coordinate.z));
-
-        private Vector3 NormalizeVelocity(Vector3 velocity) =>
-            new(NormalizeSpeed(velocity.x), NormalizeSpeed(velocity.y), NormalizeSpeed(velocity.z));
-
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
             _rigidbody.angularVelocity = Vector3.zero;
             _rigidbody.linearVelocity = Vector3.zero;
-            _previousVelocity = Vector3.zero;
 
             for (int i = 0; i < _prevAngularVelocities.Length; i++) {
                 _prevAngularVelocities[i] = Vector3.zero;
@@ -114,9 +106,6 @@ namespace Train {
         }
 
         public override void CollectObservations(VectorSensor sensor) {
-            sensor.AddObservation(NormalizeCoordinate(_targetTransform.localPosition - transform.localPosition));
-            sensor.AddObservation(NormalizeVelocity(_rigidbody.linearVelocity));
-            sensor.AddObservation(passion);
         }
 
         public override void OnActionReceived(ActionBuffers actionBuffers) {
@@ -155,7 +144,6 @@ namespace Train {
             AddReward(-NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier); //Distance Penalty
 
             _currentAngularVelocities.CopyTo(_prevAngularVelocities, 0);
-            _previousVelocity = currentVelocity;
 
 
             if (_stayTime >= staySuccessThreshold) {
