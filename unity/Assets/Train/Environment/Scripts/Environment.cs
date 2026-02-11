@@ -91,7 +91,6 @@ public sealed class Environment : MonoBehaviour {
             Height = gridHeight,
             CellSize = cellSize,
             Origin = GetGridOrigin(gridWidth, gridHeight, cellSize),
-
             WallMatrix = new bool[gridHeight, gridWidth],
             RoomIdMatrix = new int[gridHeight, gridWidth],
             TileHeight = new float[gridHeight, gridWidth],
@@ -136,7 +135,7 @@ public sealed class Environment : MonoBehaviour {
         );
 
         ApplyBorderWallsIfNeeded();
-
+        _map.ComputeActiveWalls();
         _visualizer.Rebuild(_map);
         _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
     }
