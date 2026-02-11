@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Train {
+    [RequireComponent(typeof(Proprioception))]
+    [RequireComponent(typeof(TrainJointHierarchy))]
     public class Agent : Unity.MLAgents.Agent {
         [SerializeField] private InputActionAsset inputActions;
 
@@ -27,33 +29,30 @@ namespace Train {
         [SerializeField] private float energyPenaltyMultiplier = 0.01f;
         [SerializeField] private float uprightRewardMultiplier = 1.0f;
         [SerializeField] private float speedMatchRewardMultiplier = 1.0f;
-        [SerializeField] private ArticulationBody[] jointBodies;
         [SerializeField] private Proprioception proprioception;
 
         private TrainJointHierarchy _jointHierarchy;
 
-
         private Test.Scripts.Environment _environment;
-        private float _distanceNormalizationFactor;
+        private Rigidbody[] _jointRigidbodies;
         private InputAction _moveAction;
-        private Rigidbody _rigidbody;
-        private float _stayTime;
         private Transform _targetTransform;
 
-        private Rigidbody[] _jointRigidbodies;
+        private float _distanceScale;
+        private float _stayTime;
         private float[] _prevActions;
 
 
         protected override void Awake() {
             base.Awake();
 
-            _rigidbody = GetComponent<Rigidbody>();
             _environment = GetComponentInParent<Test.Scripts.Environment>();
+            proprioception = GetComponent<Proprioception>();
+            _jointHierarchy = GetComponent<TrainJointHierarchy>();
 
-            _distanceNormalizationFactor = 1f / expectedMaxDistance;
-            _jointHierarchy = GetComponentInChildren<TrainJointHierarchy>();
-
-            _prevActions = new float[2];
+            _distanceScale = expectedMaxDistance;
+            int totalDoF = _jointHierarchy.TrainNodes.Sum(n => n.DoF);
+            _prevActions = new float[totalDoF];
 
             if (!inputActions) {
                 return;
@@ -88,11 +87,11 @@ namespace Train {
                 return;
             }
 
-            AddReward(stayingReward * Time.fixedDeltaTime); //Staying Reward
+            AddReward(stayingReward * Time.fixedDeltaTime);
             _stayTime += Time.fixedDeltaTime;
         }
 
-        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceNormalizationFactor);
+        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceScale);
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
@@ -124,7 +123,7 @@ namespace Train {
                 }
             }
 
-            Vector3 currentVelocity = _rigidbody.linearVelocity;
+            Vector3 currentVelocity = proprioception.LinearVelocity;
             Vector3 targetDir = (_targetTransform.localPosition - transform.localPosition).normalized;
 
             float energySum = 0f;
@@ -140,13 +139,9 @@ namespace Train {
             for (int i = 0; i < continuousActions.Length; i++) {
                 float diff = continuousActions[i] - _prevActions[i];
                 actionJitterSum += diff * diff;
-            }
-
-            float jitterPenalty = actionJitterSum * jitterPenaltyMultiplier;
-
-            for (int i = 0; i < continuousActions.Length; i++) {
                 _prevActions[i] = continuousActions[i];
             }
+
 
             float uprightBonus = Vector3.Dot(proprioception.Gravity, proprioception.InitialGravity);
             float targetSpeedReward = Mathf.Exp(-Mathf.Pow(expectedMaxSpeed - currentVelocity.magnitude, 2));
@@ -155,7 +150,7 @@ namespace Train {
                 passion,
                 currentVelocity,
                 targetDir,
-                jitterPenalty,
+                actionJitterSum,
                 energySum,
                 uprightBonus,
                 targetSpeedReward,
@@ -166,16 +161,16 @@ namespace Train {
 
             float distanceToTarget = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
             AddReward(-NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier *
-                      Time.fixedDeltaTime); //Distance Penalty
+                      Time.fixedDeltaTime);
 
 
             if (_stayTime >= staySuccessThreshold) {
-                AddReward(staySuccessReward); //Staying Success Reward
+                AddReward(staySuccessReward);
                 EndEpisode();
             } else if (transform.localPosition.y < 0f) {
                 EndEpisode();
             } else if (StepCount >= MaxStep - 1) {
-                AddReward(-failurePenalty); // Failure Penalty
+                AddReward(-failurePenalty);
             }
         }
 
