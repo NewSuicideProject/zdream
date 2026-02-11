@@ -54,11 +54,6 @@ namespace Train.Environment.Scripts {
                 map.Rooms.Add(room);
                 placed++;
             }
-
-            if (map.Rooms.Count < 2) {
-                Debug.LogWarning(
-                    $"[Environment] Only {map.Rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
-            }
         }
 
         public void WriteRoomToGrid(MapData map, Room room, float levelStepHeight) {

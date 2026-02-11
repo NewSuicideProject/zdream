@@ -11,8 +11,17 @@ namespace Train.Environment.Scripts {
         public Cell[,] Cells;
         public List<Room> Rooms;
 
-        public bool InBounds(int x, int y)
-            => (uint)x < (uint)Width && (uint)y < (uint)Height;
+        public MapData(int width, int height, float cellSize) {
+            Width = width;
+            Height = height;
+            CellSize = cellSize;
+
+            Origin = GetGridOrigin(width, height, cellSize);
+            Cells = new Cell[height, width];
+            Rooms = new List<Room>();
+
+            InitializeAllWalls();
+        }
 
         public void InitializeAllWalls() {
             for (int y = 0; y < Height; y++)
@@ -33,28 +42,10 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public bool IsWallOrOob(int x, int y) {
-            if (!InBounds(x, y)) {
-                return true;
-            }
-
-            return Cells[y, x].IsWall;
-        }
-
-        public bool IsExposedEdge(int x, int y) =>
-            IsWallOrOob(x + 1, y) ||
-            IsWallOrOob(x - 1, y) ||
-            IsWallOrOob(x, y + 1) ||
-            IsWallOrOob(x, y - 1);
-
-        // Cells[y,x].IsBordor 세팅
         public void ComputeBordorWalls() {
             if (Cells == null) {
                 return;
             }
-
-            int[] dx = { 1, -1, 0, 0 };
-            int[] dy = { 0, 0, 1, -1 };
 
             for (int y = 0; y < Height; y++)
             for (int x = 0; x < Width; x++) {
@@ -66,15 +57,15 @@ namespace Train.Environment.Scripts {
                 }
 
                 bool touchesFloor = false;
+                Vector2Int p = new(x, y);
 
-                for (int k = 0; k < 4; k++) {
-                    int nx = x + dx[k];
-                    int ny = y + dy[k];
-                    if (!InBounds(nx, ny)) {
+                foreach (Vector2Int dir in GridDirections.Cardinal) {
+                    Vector2Int n = p + dir;
+                    if (!InBounds(n)) {
                         continue;
                     }
 
-                    if (!Cells[ny, nx].IsWall) {
+                    if (!Cells[n.y, n.x].IsWall) {
                         touchesFloor = true;
                         break;
                     }
@@ -82,6 +73,39 @@ namespace Train.Environment.Scripts {
 
                 cell.IsBordor = touchesFloor;
             }
+        }
+
+        public bool InBounds(Vector2Int p) => (uint)p.x < (uint)Width && (uint)p.y < (uint)Height;
+
+        public bool InBounds(int x, int y) => (uint)x < (uint)Width && (uint)y < (uint)Height;
+
+        public bool IsWallOrOob(Vector2Int p) {
+            if (!InBounds(p)) {
+                return true;
+            }
+
+            return Cells[p.y, p.x].IsWall;
+        }
+
+        public bool IsExposedEdge(Vector2Int p) {
+            foreach (Vector2Int dir in GridDirections.Cardinal) {
+                if (IsWallOrOob(p + dir)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static Vector3 GetGridOrigin(int width, int height, float cellWorldSize) {
+            float totalW = width * cellWorldSize;
+            float totalH = height * cellWorldSize;
+
+            return new Vector3(
+                -(totalW * 0.5f),
+                0f,
+                -(totalH * 0.5f)
+            );
         }
     }
 }

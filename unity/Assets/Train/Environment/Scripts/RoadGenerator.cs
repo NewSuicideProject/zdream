@@ -126,21 +126,20 @@ namespace Train.Environment.Scripts {
             int dx = Math.Sign(end.x - start.x);
             int dy = Math.Sign(end.y - start.y);
 
-            int x = start.x;
-            int y = start.y;
+            Vector2Int p = start;
 
-            if (outCells.Count == 0 || outCells[^1].x != x || outCells[^1].y != y) {
-                outCells.Add(new Vector2Int(x, y));
+            if (outCells.Count == 0 || outCells[^1] != p) {
+                outCells.Add(p);
             }
 
-            while (x != end.x) {
-                x += dx;
-                outCells.Add(new Vector2Int(x, y));
+            while (p.x != end.x) {
+                p = new Vector2Int(p.x + dx, p.y);
+                outCells.Add(p);
             }
 
-            while (y != end.y) {
-                y += dy;
-                outCells.Add(new Vector2Int(x, y));
+            while (p.y != end.y) {
+                p = new Vector2Int(p.x, p.y + dy);
+                outCells.Add(p);
             }
         }
 
@@ -175,21 +174,17 @@ namespace Train.Environment.Scripts {
 
             for (int oy = -halfA; oy <= halfB; oy++)
             for (int ox = -halfA; ox <= halfB; ox++) {
-                int tx = c.x + ox;
-                int ty = c.y + oy;
+                Vector2Int p = new(c.x + ox, c.y + oy);
 
-                if (!map.InBounds(tx, ty)) {
+                if (!map.InBounds(p)) {
                     continue;
                 }
 
-                ref Cell cell = ref map.Cells[ty, tx];
+                ref Cell cell = ref map.Cells[p.y, p.x];
 
                 cell.IsWall = false;
-                cell.IsRoad = cell.RoomId == -1; //ㅈㄴ 중요함.
+                cell.IsRoad = cell.RoomId == -1;
 
-
-                // If this is inside a room, never raise above the room's base floor.
-                // Keep the existing room top height (written by WriteRoomsToGrid).
                 if (cell.RoomId == -1) {
                     cell.Height = roadTopHeight;
                 }

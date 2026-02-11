@@ -15,7 +15,7 @@ namespace Train.Environment.Scripts {
         [Min(8)] [SerializeField] private int gridHeight = 64;
         [Min(0.1f)] [SerializeField] private float cellSize = 1f;
 
-        [SerializeField] private int seed = 0;
+        [SerializeField] private int seed;
 
         [Min(2)] [SerializeField] private int roomCount = 14;
         [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
@@ -72,7 +72,6 @@ namespace Train.Environment.Scripts {
         private void Start() => Generate();
 
         public void Generate() {
-            // Keep inspector-driven organic settings always up-to-date:
             _organicShaper = new OrganicShaper(
                 organicIterations,
                 organicCarveRatio,
@@ -83,16 +82,8 @@ namespace Train.Environment.Scripts {
 
             _rng = new System.Random(seed == 0 ? System.Environment.TickCount : seed);
 
-            _map = new MapData {
-                Width = gridWidth,
-                Height = gridHeight,
-                CellSize = cellSize,
-                Origin = GetGridOrigin(gridWidth, gridHeight, cellSize),
-                Cells = new Cell[gridHeight, gridWidth],
-                Rooms = new System.Collections.Generic.List<Room>(roomCount)
-            };
-
-            _map.InitializeAllWalls();
+            _map = new MapData(gridWidth, gridHeight, cellSize);
+            _map.Rooms = new System.Collections.Generic.List<Room>(roomCount); // capacity만 주고 싶으면 이 줄 유지
 
             _roomGenerator.PlaceRooms(
                 _map,
@@ -107,7 +98,6 @@ namespace Train.Environment.Scripts {
                 minRoomLevel,
                 maxRoomLevel
             );
-
 
             for (int i = 0; i < _map.Rooms.Count; i++) {
                 _roomGenerator.WriteRoomToGrid(_map, _map.Rooms[i], levelStepHeight);
@@ -126,19 +116,6 @@ namespace Train.Environment.Scripts {
 
             _visualizer.Rebuild(_map);
             _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
-        }
-
-        private Vector3 GetGridOrigin(int width, int height, float cellWorldSize) {
-            Vector3 center = transform.position;
-
-            float totalW = width * cellWorldSize;
-            float totalH = height * cellWorldSize;
-
-            return new Vector3(
-                center.x - (totalW * 0.5f),
-                0f,
-                center.z - (totalH * 0.5f)
-            );
         }
     }
 }
