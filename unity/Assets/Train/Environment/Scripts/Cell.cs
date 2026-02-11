@@ -1,18 +1,17 @@
 using System;
+using UnityEngine;
 
 [Serializable]
 public struct Cell {
-    // true = wall (logical)
-    public bool IsWall;
+    public bool IsWall; // logical wall
+    public bool IsBordor; // physical/render wall (active border wall)
+    public int RoomId; // -1 = none
+    public float Height; // top height
 
-    // true = physical/render wall (your BordorMatrix / ActiveWall 역할)
-    public bool IsBordor;
-
-    // -1 = none
-    public int RoomId;
-
-    // tile top height
-    public float Height;
-
-    public static Cell DefaultWall() => new() { IsWall = true, IsBordor = false, RoomId = -1, Height = 0f };
+    public Cell(bool isWall, float height = 0f, int roomId = -1) {
+        IsWall = isWall;
+        IsBordor = false;
+        RoomId = roomId;
+        Height = height;
+    }
 }

@@ -137,7 +137,7 @@ public sealed class Visualizer {
 
     private static Vector3 CellTopWorld(MapData data, int x, int y) {
         Vector3 p = CellCenterWorld(data, x, y);
-        p.y = data.InBounds(x, y) ? data.Cells[y, x].Height : 0f;
+        p.y = Utility.InBounds(data, x, y) ? data.Cells[y, x].Height : 0f; // ✅ changed
         return p;
     }
 
@@ -152,7 +152,8 @@ public sealed class Visualizer {
         return float.IsNegativeInfinity(best) ? 0f : best;
 
         void Try(int nx, int ny) {
-            if (!data.InBounds(nx, ny)) {
+            if (!Utility.InBounds(data, nx, ny)) {
+                // ✅ changed
                 return;
             }
 

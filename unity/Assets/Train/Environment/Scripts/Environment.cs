@@ -1,3 +1,7 @@
+// =========================================================
+// Environment.cs  (MapData가 init/border 처리)
+// =========================================================
+
 using UnityEngine;
 
 public sealed class Environment : MonoBehaviour {
@@ -16,7 +20,9 @@ public sealed class Environment : MonoBehaviour {
     [Min(8)] [SerializeField] private int gridHeight = 64;
     [Min(0.1f)] [SerializeField] private float cellSize = 1f;
 
+    [SerializeField] private bool autoGenerateOnPlay = true;
     [SerializeField] private int seed = 0;
+    [SerializeField] private bool keepBorderWalls = true;
 
     [Min(2)] [SerializeField] private int roomCount = 14;
     [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
@@ -73,7 +79,11 @@ public sealed class Environment : MonoBehaviour {
         _roadGenerator = new RoadGenerator();
     }
 
-    private void Start() => Generate();
+    private void Start() {
+        if (autoGenerateOnPlay) {
+            Generate();
+        }
+    }
 
     public void Generate() {
         int actualSeed = seed == 0 ? System.Environment.TickCount : seed;
@@ -88,7 +98,7 @@ public sealed class Environment : MonoBehaviour {
             Rooms = new System.Collections.Generic.List<Room>(roomCount)
         };
 
-        InitializeCells();
+        _map.InitializeAllWalls();
 
         OrganicShaper.Config organicCfg = new(
             organicIterations,
@@ -125,30 +135,14 @@ public sealed class Environment : MonoBehaviour {
             levelStepHeight
         );
 
-        ApplyBorderWalls();
+        if (keepBorderWalls) {
+            _map.ApplyBorderWalls();
+        }
+
         _map.ComputeBordorWalls();
 
         _visualizer.Rebuild(_map);
         _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
-    }
-
-    private void InitializeCells() {
-        for (int y = 0; y < _map.Height; y++)
-        for (int x = 0; x < _map.Width; x++) {
-            _map.Cells[y, x] = Cell.DefaultWall();
-        }
-    }
-
-    private void ApplyBorderWalls() {
-        for (int x = 0; x < _map.Width; x++) {
-            _map.Cells[0, x].IsWall = true;
-            _map.Cells[_map.Height - 1, x].IsWall = true;
-        }
-
-        for (int y = 0; y < _map.Height; y++) {
-            _map.Cells[y, 0].IsWall = true;
-            _map.Cells[y, _map.Width - 1].IsWall = true;
-        }
     }
 
     private Vector3 GetGridOrigin(int width, int height, float cellWorldSize) {

@@ -10,8 +10,26 @@ public sealed class MapData {
     public Cell[,] Cells;
     public List<Room> Rooms;
 
-    public bool InBounds(int x, int y) => (uint)x < (uint)Width && (uint)y < (uint)Height;
+    public void InitializeAllWalls() {
+        for (int y = 0; y < Height; y++)
+        for (int x = 0; x < Width; x++) {
+            Cells[y, x] = new Cell(true);
+        }
+    }
 
+    public void ApplyBorderWalls() {
+        for (int x = 0; x < Width; x++) {
+            Cells[0, x].IsWall = true;
+            Cells[Height - 1, x].IsWall = true;
+        }
+
+        for (int y = 0; y < Height; y++) {
+            Cells[y, 0].IsWall = true;
+            Cells[y, Width - 1].IsWall = true;
+        }
+    }
+
+    // 기존 ActiveWallMatrix -> Cells[y,x].IsBordor
     public void ComputeBordorWalls() {
         if (Cells == null) {
             return;
@@ -34,7 +52,7 @@ public sealed class MapData {
             for (int k = 0; k < 4; k++) {
                 int nx = x + dx[k];
                 int ny = y + dy[k];
-                if (!InBounds(nx, ny)) {
+                if (!Utility.InBounds(Width, Height, nx, ny)) {
                     continue;
                 }
 

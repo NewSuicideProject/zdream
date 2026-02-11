@@ -94,14 +94,12 @@ public sealed class RoadGenerator {
 
             List<Vector2Int> roadPath = BuildRoadPathCells(a, b, rng, randomizeLTurnOrder);
 
-            float fromH = LevelToHeight(a.heightLevel, levelStepHeight);
-            float toH = LevelToHeight(b.heightLevel, levelStepHeight);
+            float fromH = Utility.LevelToHeight(a.heightLevel, levelStepHeight);
+            float toH = Utility.LevelToHeight(b.heightLevel, levelStepHeight);
 
             ApplyRoadWithConstantStepRise(map, roadPath, fromH, toH, roadWidth);
         }
     }
-
-    private static float LevelToHeight(int level, float levelStepHeight) => level * levelStepHeight;
 
     private static List<Vector2Int> BuildRoadPathCells(Room a, Room b, System.Random rng, bool randomizeLTurnOrder) {
         Vector2Int doorA = a.PickBestDoorCell(b.center);
@@ -129,7 +127,7 @@ public sealed class RoadGenerator {
         int x = start.x;
         int y = start.y;
 
-        if (outCells.Count == 0 || outCells[outCells.Count - 1].x != x || outCells[outCells.Count - 1].y != y) {
+        if (outCells.Count == 0 || outCells[^1].x != x || outCells[^1].y != y) {
             outCells.Add(new Vector2Int(x, y));
         }
 
@@ -168,7 +166,7 @@ public sealed class RoadGenerator {
             PaintRoadCell(map, roadCells[i], h, roadWidth);
         }
 
-        PaintRoadCell(map, roadCells[roadCells.Count - 1], toHeight, roadWidth);
+        PaintRoadCell(map, roadCells[^1], toHeight, roadWidth);
     }
 
     private static void PaintRoadCell(MapData map, Vector2Int c, float height, int roadWidth) {
@@ -179,14 +177,13 @@ public sealed class RoadGenerator {
         for (int ox = -halfA; ox <= halfB; ox++) {
             int tx = c.x + ox;
             int ty = c.y + oy;
-            if (!map.InBounds(tx, ty)) {
+            if (!Utility.InBounds(map, tx, ty)) {
                 continue;
             }
 
             ref Cell cell = ref map.Cells[ty, tx];
             cell.IsWall = false;
             cell.Height = height;
-            // road는 RoomId는 안 건드림(원하면 세팅 가능)
         }
     }
 }

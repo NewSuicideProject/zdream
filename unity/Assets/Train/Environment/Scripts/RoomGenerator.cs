@@ -1,6 +1,3 @@
-// =========================================================
-// RoomGenerator.cs  (Vector2Int cells + map.Cells write)
-// =========================================================
 using UnityEngine;
 
 public sealed class RoomGenerator {
@@ -32,12 +29,18 @@ public sealed class RoomGenerator {
             tries++;
 
             bool makeCircle = rng.NextDouble() < circleRoomChance;
-            Room room = makeCircle
-                ? CreateCircleRoom(map, rng, placed, circleMinR, circleMaxR, minRoomLevel, maxRoomLevel)
-                : CreateRectRoom(map, rng, placed, rectMinW, rectMaxW, rectMinH, rectMaxH, minRoomLevel, maxRoomLevel);
 
-            if (room == null) continue;
-            if (!RoomFitsAndDoesntOverlap(map, room, roomPadding)) continue;
+            Room room = makeCircle
+                ? new Room(map, rng, placed, circleMinR, circleMaxR, minRoomLevel, maxRoomLevel)
+                : new Room(map, rng, placed, rectMinW, rectMaxW, rectMinH, rectMaxH, minRoomLevel, maxRoomLevel);
+
+            if (!room.IsValid) {
+                continue;
+            }
+
+            if (!RoomFitsAndDoesntOverlap(map, room, roomPadding)) {
+                continue;
+            }
 
             room.RebuildFloorSetFromCells();
             _organicShaper.ApplyLightOrganic(room, rng, organicCfg);
@@ -47,18 +50,21 @@ public sealed class RoomGenerator {
         }
 
         if (map.Rooms.Count < 2) {
-            Debug.LogWarning($"[Environment] Only {map.Rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
+            Debug.LogWarning(
+                $"[Environment] Only {map.Rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
         }
     }
 
     public void WriteRoomsToGrid(MapData map, float levelStepHeight) {
         for (int i = 0; i < map.Rooms.Count; i++) {
             Room r = map.Rooms[i];
-            float roomHeight = LevelToHeight(r.heightLevel, levelStepHeight);
+            float roomHeight = Utility.LevelToHeight(r.heightLevel, levelStepHeight);
 
             for (int k = 0; k < r.Cells.Count; k++) {
                 Vector2Int c = r.Cells[k];
-                if (!map.InBounds(c.x, c.y)) continue;
+                if (!Utility.InBounds(map, c.x, c.y)) {
+                    continue;
+                }
 
                 ref Cell cell = ref map.Cells[c.y, c.x];
                 cell.IsWall = false;
@@ -68,103 +74,8 @@ public sealed class RoomGenerator {
         }
     }
 
-    private static RectInt ExpandRect(RectInt r, int pad) =>
-        new(r.xMin - pad, r.yMin - pad, r.width + (pad * 2), r.height + (pad * 2));
-
-    private static float LevelToHeight(int level, float levelStepHeight) => level * levelStepHeight;
-
-    private static Room CreateRectRoom(
-        MapData map,
-        System.Random rng,
-        int id,
-        int rectMinW,
-        int rectMaxW,
-        int rectMinH,
-        int rectMaxH,
-        int minRoomLevel,
-        int maxRoomLevel
-    ) {
-        int roomWidthCells = rng.Next(rectMinW, rectMaxW + 1);
-        int roomHeightCells = rng.Next(rectMinH, rectMaxH + 1);
-
-        const int border = 1;
-        int minLeftX = border;
-        int minBottomY = border;
-
-        int maxLeftX = map.Width - roomWidthCells - border;
-        int maxBottomY = map.Height - roomHeightCells - border;
-        if (maxLeftX < minLeftX || maxBottomY < minBottomY) return null;
-
-        int leftX = rng.Next(minLeftX, maxLeftX + 1);
-        int bottomY = rng.Next(minBottomY, maxBottomY + 1);
-
-        int centerX = leftX + (roomWidthCells / 2);
-        int centerY = bottomY + (roomHeightCells / 2);
-
-        Room room = new() {
-            id = id,
-            bounds = new RectInt(leftX, bottomY, roomWidthCells, roomHeightCells),
-            center = new Vector2Int(centerX, centerY),
-            heightLevel = rng.Next(minRoomLevel, maxRoomLevel + 1)
-        };
-
-        int rightXExclusive = leftX + roomWidthCells;
-        int topYExclusive = bottomY + roomHeightCells;
-
-        for (int y = bottomY; y < topYExclusive; y++)
-        for (int x = leftX; x < rightXExclusive; x++) {
-            room.Cells.Add(new Vector2Int(x, y));
-        }
-
-        return room;
-    }
-
-    private static Room CreateCircleRoom(
-        MapData map,
-        System.Random rng,
-        int id,
-        int circleMinR,
-        int circleMaxR,
-        int minRoomLevel,
-        int maxRoomLevel
-    ) {
-        int radiusCells = rng.Next(circleMinR, circleMaxR + 1);
-        int diameterCells = (radiusCells * 2) + 1;
-
-        const int border = 1;
-        int minCenterX = border + radiusCells;
-        int minCenterY = border + radiusCells;
-
-        int maxCenterX = map.Width - border - radiusCells - 1;
-        int maxCenterY = map.Height - border - radiusCells - 1;
-        if (maxCenterX < minCenterX || maxCenterY < minCenterY) return null;
-
-        int centerX = rng.Next(minCenterX, maxCenterX + 1);
-        int centerY = rng.Next(minCenterY, maxCenterY + 1);
-
-        int boundsLeftX = centerX - radiusCells;
-        int boundsBottomY = centerY - radiusCells;
-
-        Room room = new() {
-            id = id,
-            bounds = new RectInt(boundsLeftX, boundsBottomY, diameterCells, diameterCells),
-            center = new Vector2Int(centerX, centerY),
-            heightLevel = rng.Next(minRoomLevel, maxRoomLevel + 1)
-        };
-
-        int radiusSq = radiusCells * radiusCells;
-
-        for (int y = centerY - radiusCells; y <= centerY + radiusCells; y++)
-        for (int x = centerX - radiusCells; x <= centerX + radiusCells; x++) {
-            int ox = x - centerX;
-            int oy = y - centerY;
-            if ((ox * ox) + (oy * oy) <= radiusSq) {
-                room.Cells.Add(new Vector2Int(x, y));
-            }
-        }
-
-        return room;
-    }
+    private static RectInt ExpandRect(RectInt r, int pad)
+        => new(r.xMin - pad, r.yMin - pad, r.width + (pad * 2), r.height + (pad * 2));
 
     private static bool RoomFitsAndDoesntOverlap(MapData map, Room room, int roomPadding) {
         RectInt expanded = ExpandRect(room.bounds, roomPadding);
@@ -175,7 +86,9 @@ public sealed class RoomGenerator {
 
         for (int i = 0; i < map.Rooms.Count; i++) {
             RectInt otherExpanded = ExpandRect(map.Rooms[i].bounds, roomPadding);
-            if (expanded.Overlaps(otherExpanded)) return false;
+            if (expanded.Overlaps(otherExpanded)) {
+                return false;
+            }
         }
 
         return true;
