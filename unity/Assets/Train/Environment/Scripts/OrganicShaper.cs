@@ -15,7 +15,7 @@ namespace Train.Environment.Scripts {
             _growMaxTries = Mathf.Max(1, growMaxTries);
         }
 
-        public void ApplyLightOrganic(Room room, System.Random rng) {
+        public void Organic(Room room, System.Random rng) {
             if (_iterations <= 0 || room.FloorSet.Count == 0) {
                 return;
             }

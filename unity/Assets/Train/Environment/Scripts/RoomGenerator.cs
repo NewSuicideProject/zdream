@@ -49,7 +49,7 @@ namespace Train.Environment.Scripts {
                     continue;
                 }
 
-                _organicShaper.ApplyLightOrganic(room, rng);
+                _organicShaper.Organic(room, rng);
 
                 map.Rooms.Add(room);
                 placed++;
