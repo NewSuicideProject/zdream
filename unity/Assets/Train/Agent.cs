@@ -7,8 +7,7 @@ namespace Train {
     public class Agent : Unity.MLAgents.Agent {
         [SerializeField] private InputActionAsset inputActions;
 
-        [Range(0f, 1f)] [SerializeField] private float passion = 0.5f;
-
+        [Range(0.01f, 1f)] [SerializeField] private float passion = 0.5f;
         [SerializeField] private float expectedMaxSpeed = 20;
         [SerializeField] private float expectedMaxDistance = 20;
 
@@ -16,24 +15,20 @@ namespace Train {
         [SerializeField] private float stayingReward = 10f;
         [SerializeField] private float staySuccessThreshold = 5f;
 
-        [SerializeField] private float fallingPenalty = 50f;
+        [SerializeField] private float failurePenalty = 50f;
         [SerializeField] private float distancePenaltyMultiplier = 0.25f;
 
         [SerializeField] private float actionMultiplier = 10f;
 
-        [SerializeField] private float jitterPenaltyMultiplier = 0.1f; // JPM
-        [SerializeField] private ArticulationBody[] jointBodies;
-        private Vector3[] _prevAngularVelocities;
+        [SerializeField] private float jitterPenaltyMultiplier = 0.1f;
+        [SerializeField] private float energyPenaltyMultiplier = 0.01f;
+        [SerializeField] private float uprightRewardMultiplier = 1.0f;
+        [SerializeField] private float speedMatchRewardMultiplier = 1.0f;
 
-        private void InitializeJoints() {
-            _prevAngularVelocities = new Vector3[jointBodies.Length];
-            for (int i = 0; i < jointBodies.Length; i++) {
-                _prevAngularVelocities[i] = Vector3.zero;
-            }
-        }
+        [SerializeField] private ArticulationBody[] jointBodies;
+
 
         private Test.Scripts.Environment _environment;
-
         private float _distanceNormalizationFactor;
         private InputAction _moveAction;
         private Rigidbody _rigidbody;
@@ -43,6 +38,8 @@ namespace Train {
 
         private Vector3 _previousVelocity;
         private Rigidbody[] _jointRigidbodies;
+        private Vector3[] _prevAngularVelocities;
+        private Vector3[] _currentAngularVelocities;
 
 
         protected override void Awake() {
@@ -53,6 +50,9 @@ namespace Train {
 
             _distanceNormalizationFactor = 1f / expectedMaxDistance;
             _speedNormalizationFactor = 1f / expectedMaxSpeed;
+            _jointRigidbodies = GetComponentsInChildren<Rigidbody>();
+            _prevAngularVelocities = new Vector3[_jointRigidbodies.Length];
+            _currentAngularVelocities = new Vector3[_jointRigidbodies.Length];
 
             if (!inputActions) {
                 return;
@@ -60,8 +60,6 @@ namespace Train {
 
             InputActionMap playerMap = inputActions.FindActionMap("Player");
             _moveAction = playerMap?.FindAction("Move");
-            _jointRigidbodies = GetComponentsInChildren<Rigidbody>();
-            _prevAngularVelocities = new Vector3[_jointRigidbodies.Length];
         }
 
         private void Start() => _targetTransform = _environment.TargetTransform;
@@ -76,7 +74,6 @@ namespace Train {
             _moveAction?.Disable();
         }
 
-
         private void OnTriggerExit(Collider other) {
             if (other.transform != _targetTransform) {
                 return;
@@ -90,31 +87,28 @@ namespace Train {
                 return;
             }
 
-            AddReward(stayingReward * Time.fixedDeltaTime);
+            AddReward(stayingReward * Time.fixedDeltaTime); //Distance Maintain Reward
             _stayTime += Time.fixedDeltaTime;
         }
 
         private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceNormalizationFactor);
-
         private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _speedNormalizationFactor);
 
         private Vector3 NormalizeCoordinate(Vector3 coordinate) =>
-            new(
-                NormalizeDistance(coordinate.x),
-                NormalizeDistance(coordinate.y),
-                NormalizeDistance(coordinate.z));
+            new(NormalizeDistance(coordinate.x), NormalizeDistance(coordinate.y), NormalizeDistance(coordinate.z));
 
         private Vector3 NormalizeVelocity(Vector3 velocity) =>
-            new(
-                NormalizeSpeed(velocity.x),
-                NormalizeSpeed(velocity.y),
-                NormalizeSpeed(velocity.z));
+            new(NormalizeSpeed(velocity.x), NormalizeSpeed(velocity.y), NormalizeSpeed(velocity.z));
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
-
             _rigidbody.angularVelocity = Vector3.zero;
             _rigidbody.linearVelocity = Vector3.zero;
+            _previousVelocity = Vector3.zero;
+
+            for (int i = 0; i < _prevAngularVelocities.Length; i++) {
+                _prevAngularVelocities[i] = Vector3.zero;
+            }
 
             _environment.Reset();
         }
@@ -122,6 +116,7 @@ namespace Train {
         public override void CollectObservations(VectorSensor sensor) {
             sensor.AddObservation(NormalizeCoordinate(_targetTransform.localPosition - transform.localPosition));
             sensor.AddObservation(NormalizeVelocity(_rigidbody.linearVelocity));
+            sensor.AddObservation(passion);
         }
 
         public override void OnActionReceived(ActionBuffers actionBuffers) {
@@ -133,39 +128,49 @@ namespace Train {
             Vector3 currentVelocity = _rigidbody.linearVelocity;
             Vector3 targetDir = (_targetTransform.localPosition - transform.localPosition).normalized;
 
-            Vector3[] currentAngularVelocities = new Vector3[_jointRigidbodies.Length];
+            float energySum = 0f;
             for (int i = 0; i < _jointRigidbodies.Length; i++) {
-                currentAngularVelocities[i] = _jointRigidbodies[i].angularVelocity;
+                _currentAngularVelocities[i] = _jointRigidbodies[i].angularVelocity;
+                energySum += _currentAngularVelocities[i].magnitude;
             }
-            float jitterPenalty = CalculateJitterPenalty(
-                currentAngularVelocities,
-                _prevAngularVelocities,
-                jitterPenaltyMultiplier
+
+            float jitterPenalty = CalculateJitterPenalty(_currentAngularVelocities,
+                _prevAngularVelocities, jitterPenaltyMultiplier);
+            float uprightBonus = Vector3.Dot(transform.up, Vector3.up);
+            float targetSpeedReward = Mathf.Exp(-Mathf.Pow(expectedMaxSpeed - currentVelocity.magnitude, 2));
+
+            float integratedReward = CalculateFullReward(
+                passion,
+                currentVelocity,
+                targetDir,
+                jitterPenalty,
+                energySum,
+                uprightBonus,
+                targetSpeedReward
             );
-            float integratedReward = CalculateIntegratedReward(passion, currentVelocity, targetDir, jitterPenalty);
+
             AddReward(integratedReward * Time.fixedDeltaTime);
 
-            currentAngularVelocities.CopyTo(_prevAngularVelocities, 0);
-            _previousVelocity = currentVelocity;
-
             float distanceToTarget = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
-            AddReward(-NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier);
+            AddReward(-NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier); //Distance Penalty
 
+            _currentAngularVelocities.CopyTo(_prevAngularVelocities, 0);
             _previousVelocity = currentVelocity;
+
 
             if (_stayTime >= staySuccessThreshold) {
-                AddReward(staySuccessReward);
+                AddReward(staySuccessReward); //Distance Success Reward
                 EndEpisode();
             } else if (transform.localPosition.y < 0f) {
-                AddReward(-fallingPenalty);
                 EndEpisode();
+            } else if (StepCount >= MaxStep - 1) {
+                AddReward(-failurePenalty); // Fail Penalty
             }
         }
 
         public override void Heuristic(in ActionBuffers actionsOut) {
             ActionSegment<float> continuousActionsOut = actionsOut.ContinuousActions;
             Vector2 moveInput = Vector2.zero;
-
             if (_moveAction != null) {
                 moveInput = _moveAction.ReadValue<Vector2>();
             }
@@ -174,24 +179,26 @@ namespace Train {
             continuousActionsOut[1] = moveInput.y;
         }
 
-        private float CalculateSpeedReward(Vector3 velocity, Vector3 targetDirection)
-            => Vector3.Dot(velocity, targetDirection.normalized);
-
-
         private float CalculateJitterPenalty(Vector3[] currentAs, Vector3[] prevAs, float jpm) {
             float jitterSum = 0f;
             for (int i = 0; i < currentAs.Length; i++) {
                 jitterSum += (currentAs[i] - prevAs[i]).sqrMagnitude;
             }
+
             return jitterSum * jpm;
         }
 
-        private float CalculateIntegratedReward(float passions,
-            Vector3 velocity, Vector3 targetDirection, float jitterPenalty) {
-            float speedReward = CalculateSpeedReward(velocity, targetDirection);
-            float jitterWeight = 1.0f - passions;
+        private float CalculateFullReward(float pw, Vector3 velocity, Vector3 targetDir, float jitter, float energy,
+            float upright, float speedMatch) {
+            float invPw = 1.0f / Mathf.Max(pw, 0.01f);
 
-            return (speedReward * passions) - (jitterPenalty * jitterWeight);
+            float speedReward = Vector3.Dot(velocity, targetDir) * pw;
+            float jitterPenalty = jitter * (1.0f - pw);
+            float energyPenalty = energy * invPw * energyPenaltyMultiplier;
+            float uprightReward = upright * invPw * uprightRewardMultiplier;
+            float speedMatchReward = speedMatch * pw * speedMatchRewardMultiplier;
+
+            return speedReward - jitterPenalty - energyPenalty + uprightReward + speedMatchReward;
         }
     }
 }
