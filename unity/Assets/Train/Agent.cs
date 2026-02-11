@@ -38,6 +38,7 @@ namespace Train {
         private Rigidbody[] _jointRigidbodies;
         private Vector3[] _prevAngularVelocities;
         private Vector3[] _currentAngularVelocities;
+        private float[] _prevActions;
 
 
         protected override void Awake() {
@@ -50,6 +51,7 @@ namespace Train {
             _jointRigidbodies = GetComponentsInChildren<Rigidbody>();
             _prevAngularVelocities = new Vector3[_jointRigidbodies.Length];
             _currentAngularVelocities = new Vector3[_jointRigidbodies.Length];
+            _prevActions = new float[2];
 
             if (!inputActions) {
                 return;
@@ -120,8 +122,20 @@ namespace Train {
                 energySum += _currentAngularVelocities[i].magnitude;
             }
 
-            float jitterPenalty = CalculateJitterPenalty(_currentAngularVelocities,
-                _prevAngularVelocities);
+            ActionSegment<float> continuousActions = actionBuffers.ContinuousActions;
+            float actionJitterSum = 0f;
+
+            for (int i = 0; i < continuousActions.Length; i++) {
+                float diff = continuousActions[i] - _prevActions[i];
+                actionJitterSum += diff * diff;
+            }
+
+            float jitterPenalty = actionJitterSum * jitterPenaltyMultiplier;
+
+            for (int i = 0; i < continuousActions.Length; i++) {
+                _prevActions[i] = continuousActions[i];
+            }
+
             float uprightBonus = Vector3.Dot(transform.up, Vector3.up);
             float targetSpeedReward = Mathf.Exp(-Mathf.Pow(expectedMaxSpeed - currentVelocity.magnitude, 2));
 
@@ -164,14 +178,6 @@ namespace Train {
             continuousActionsOut[1] = moveInput.y;
         }
 
-        private float CalculateJitterPenalty(Vector3[] currentAs, Vector3[] prevAs) {
-            float jitterSum = 0f;
-            for (int i = 0; i < currentAs.Length; i++) {
-                jitterSum += (currentAs[i] - prevAs[i]).sqrMagnitude;
-            }
-
-            return jitterSum;
-        }
 
         private float CalculateFullReward(float pw, Vector3 velocity, Vector3 targetDir, float jitter, float energy,
             float upright, float speedMatch) {
