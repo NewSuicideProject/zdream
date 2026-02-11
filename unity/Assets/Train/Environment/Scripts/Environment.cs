@@ -1,156 +1,154 @@
-// =========================================================
-// Environment.cs  (MapData가 init/border 처리)
-// =========================================================
-
 using UnityEngine;
 
-public sealed class Environment : MonoBehaviour {
-    [SerializeField] private Transform basePart;
+namespace Train.Environment.Scripts {
+    public sealed class Environment : MonoBehaviour {
+        [SerializeField] private Transform basePart;
 
-    [SerializeField] private Transform wallParent;
-    [SerializeField] private GameObject wallPrefab;
-    [SerializeField] private GameObject floorPrefab;
+        [SerializeField] private Transform wallParent;
+        [SerializeField] private GameObject wallPrefab;
+        [SerializeField] private GameObject floorPrefab;
 
-    [SerializeField] private float wallCenterY = 2.5f;
+        [SerializeField] private float wallCenterY = 2.5f;
 
-    [SerializeField] private Transform zombieSpawnMarker;
-    [SerializeField] private Transform targetSpawnMarker;
+        [SerializeField] private Transform zombieSpawnMarker;
+        [SerializeField] private Transform targetSpawnMarker;
 
-    [Min(8)] [SerializeField] private int gridWidth = 64;
-    [Min(8)] [SerializeField] private int gridHeight = 64;
-    [Min(0.1f)] [SerializeField] private float cellSize = 1f;
+        [Min(8)] [SerializeField] private int gridWidth = 64;
+        [Min(8)] [SerializeField] private int gridHeight = 64;
+        [Min(0.1f)] [SerializeField] private float cellSize = 1f;
 
-    [SerializeField] private bool autoGenerateOnPlay = true;
-    [SerializeField] private int seed = 0;
-    [SerializeField] private bool keepBorderWalls = true;
+        [SerializeField] private bool autoGenerateOnPlay = true;
+        [SerializeField] private int seed = 0;
+        [SerializeField] private bool keepBorderWalls = true;
 
-    [Min(2)] [SerializeField] private int roomCount = 14;
-    [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
-    [Range(0f, 1f)] [SerializeField] private float circleRoomChance = 0.35f;
+        [Min(2)] [SerializeField] private int roomCount = 14;
+        [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
+        [Range(0f, 1f)] [SerializeField] private float circleRoomChance = 0.35f;
 
-    [Min(3)] [SerializeField] private int rectMinW = 5;
-    [Min(3)] [SerializeField] private int rectMaxW = 12;
-    [Min(3)] [SerializeField] private int rectMinH = 5;
-    [Min(3)] [SerializeField] private int rectMaxH = 12;
+        [Min(3)] [SerializeField] private int rectMinW = 5;
+        [Min(3)] [SerializeField] private int rectMaxW = 12;
+        [Min(3)] [SerializeField] private int rectMinH = 5;
+        [Min(3)] [SerializeField] private int rectMaxH = 12;
 
-    [Min(2)] [SerializeField] private int circleMinR = 3;
-    [Min(2)] [SerializeField] private int circleMaxR = 7;
+        [Min(2)] [SerializeField] private int circleMinR = 3;
+        [Min(2)] [SerializeField] private int circleMaxR = 7;
 
-    [Min(0)] [SerializeField] private int roomPadding = 1;
+        [Min(0)] [SerializeField] private int roomPadding = 1;
 
-    [Min(1)] [SerializeField] private int roadWidth = 1;
-    [SerializeField] private bool randomizeLTurnOrder = true;
+        [Min(1)] [SerializeField] private int roadWidth = 1;
+        [SerializeField] private bool randomizeLTurnOrder = true;
 
-    [Range(0, 3)] [SerializeField] private int organicIterations = 1;
-    [Range(0f, 0.25f)] [SerializeField] private float organicCarveRatio = 0.06f;
-    [Range(0f, 0.25f)] [SerializeField] private float organicGrowRatio = 0.05f;
-    [Min(1)] [SerializeField] private int organicGrowMaxTriesPerCell = 6;
+        [Range(0, 3)] [SerializeField] private int organicIterations = 1;
+        [Range(0f, 0.25f)] [SerializeField] private float organicCarveRatio = 0.06f;
+        [Range(0f, 0.25f)] [SerializeField] private float organicGrowRatio = 0.05f;
+        [Min(1)] [SerializeField] private int organicGrowMaxTriesPerCell = 6;
 
-    [Header("Height")] [SerializeField] private int minRoomLevel = -2;
-    [SerializeField] private int maxRoomLevel = 2;
+        [Header("Height")] [SerializeField] private int minRoomLevel = -2;
+        [SerializeField] private int maxRoomLevel = 2;
 
-    [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f;
-    [SerializeField] private float floorThickness = 0.2f;
+        [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f;
+        [SerializeField] private float floorThickness = 0.2f;
 
-    private MapData _map;
-    private System.Random _rng;
+        private MapData _map;
+        private System.Random _rng;
 
-    private OrganicShaper _organicShaper;
-    private Visualizer _visualizer;
-    private RoomGenerator _roomGenerator;
-    private RoadGenerator _roadGenerator;
+        private OrganicShaper _organicShaper;
+        private Visualizer _visualizer;
+        private RoomGenerator _roomGenerator;
+        private RoadGenerator _roadGenerator;
 
-    private void Awake() {
-        if (wallParent == null) {
-            wallParent = transform;
+        private void Awake() {
+            if (wallParent == null) {
+                wallParent = transform;
+            }
+
+            _organicShaper = new OrganicShaper();
+
+            _visualizer = new Visualizer(
+                wallParent,
+                wallPrefab,
+                wallCenterY,
+                floorPrefab,
+                floorThickness
+            );
+
+            _roomGenerator = new RoomGenerator(_organicShaper);
+            _roadGenerator = new RoadGenerator();
         }
 
-        _organicShaper = new OrganicShaper();
-
-        _visualizer = new Visualizer(
-            wallParent,
-            wallPrefab,
-            wallCenterY,
-            floorPrefab,
-            floorThickness
-        );
-
-        _roomGenerator = new RoomGenerator(_organicShaper);
-        _roadGenerator = new RoadGenerator();
-    }
-
-    private void Start() {
-        if (autoGenerateOnPlay) {
-            Generate();
-        }
-    }
-
-    public void Generate() {
-        int actualSeed = seed == 0 ? System.Environment.TickCount : seed;
-        _rng = new System.Random(actualSeed);
-
-        _map = new MapData {
-            Width = gridWidth,
-            Height = gridHeight,
-            CellSize = cellSize,
-            Origin = GetGridOrigin(gridWidth, gridHeight, cellSize),
-            Cells = new Cell[gridHeight, gridWidth],
-            Rooms = new System.Collections.Generic.List<Room>(roomCount)
-        };
-
-        _map.InitializeAllWalls();
-
-        OrganicShaper.Config organicCfg = new(
-            organicIterations,
-            organicCarveRatio,
-            organicGrowRatio,
-            organicGrowMaxTriesPerCell
-        );
-
-        _roomGenerator.PlaceRooms(
-            _map,
-            _rng,
-            roomCount,
-            maxRoomRerolls,
-            circleRoomChance,
-            rectMinW,
-            rectMaxW,
-            rectMinH,
-            rectMaxH,
-            circleMinR,
-            circleMaxR,
-            roomPadding,
-            minRoomLevel,
-            maxRoomLevel,
-            organicCfg
-        );
-
-        _roomGenerator.WriteRoomsToGrid(_map, levelStepHeight);
-
-        _roadGenerator.ConnectRoomsMstAndPaintRoadHeights(
-            _map,
-            _rng,
-            roadWidth,
-            randomizeLTurnOrder,
-            levelStepHeight
-        );
-
-        if (keepBorderWalls) {
-            _map.ApplyBorderWalls();
+        private void Start() {
+            if (autoGenerateOnPlay) {
+                Generate();
+            }
         }
 
-        _map.ComputeBordorWalls();
+        public void Generate() {
+            int actualSeed = seed == 0 ? System.Environment.TickCount : seed;
+            _rng = new System.Random(actualSeed);
 
-        _visualizer.Rebuild(_map);
-        _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
-    }
+            _map = new MapData {
+                Width = gridWidth,
+                Height = gridHeight,
+                CellSize = cellSize,
+                Origin = GetGridOrigin(gridWidth, gridHeight, cellSize),
+                Cells = new Cell[gridHeight, gridWidth],
+                Rooms = new System.Collections.Generic.List<Room>(roomCount)
+            };
 
-    private Vector3 GetGridOrigin(int width, int height, float cellWorldSize) {
-        Vector3 center = basePart != null ? basePart.position : transform.position;
+            _map.InitializeAllWalls();
 
-        float totalW = width * cellWorldSize;
-        float totalH = height * cellWorldSize;
+            OrganicShaper.Config organicCfg = new(
+                organicIterations,
+                organicCarveRatio,
+                organicGrowRatio,
+                organicGrowMaxTriesPerCell
+            );
 
-        return new Vector3(center.x - (totalW * 0.5f), 0f, center.z - (totalH * 0.5f));
+            _roomGenerator.PlaceRooms(
+                _map,
+                _rng,
+                roomCount,
+                maxRoomRerolls,
+                circleRoomChance,
+                rectMinW,
+                rectMaxW,
+                rectMinH,
+                rectMaxH,
+                circleMinR,
+                circleMaxR,
+                roomPadding,
+                minRoomLevel,
+                maxRoomLevel,
+                organicCfg
+            );
+
+            _roomGenerator.WriteRoomsToGrid(_map, levelStepHeight);
+
+            _roadGenerator.ConnectRoomsMstAndPaintRoadHeights(
+                _map,
+                _rng,
+                roadWidth,
+                randomizeLTurnOrder,
+                levelStepHeight
+            );
+
+            if (keepBorderWalls) {
+                _map.ApplyBorderWalls();
+            }
+
+            _map.ComputeBordorWalls();
+
+            _visualizer.Rebuild(_map);
+            _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
+        }
+
+        private Vector3 GetGridOrigin(int width, int height, float cellWorldSize) {
+            Vector3 center = basePart != null ? basePart.position : transform.position;
+
+            float totalW = width * cellWorldSize;
+            float totalH = height * cellWorldSize;
+
+            return new Vector3(center.x - (totalW * 0.5f), 0f, center.z - (totalH * 0.5f));
+        }
     }
 }
