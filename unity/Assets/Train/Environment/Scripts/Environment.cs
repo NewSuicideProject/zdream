@@ -42,7 +42,7 @@ namespace Train.Environment.Scripts {
         [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f;
         [SerializeField] private float floorThickness = 0.2f;
 
-        private MapData _map;
+        private Map _map;
         private System.Random _rng;
 
         private OrganicShaper _organicShaper;
@@ -82,7 +82,7 @@ namespace Train.Environment.Scripts {
 
             _rng = new System.Random(seed == 0 ? System.Environment.TickCount : seed);
 
-            _map = new MapData(gridWidth, gridHeight, cellSize);
+            _map = new Map(gridWidth, gridHeight, cellSize);
 
             _roomGenerator.PlaceRooms(
                 _map,
@@ -111,7 +111,7 @@ namespace Train.Environment.Scripts {
             );
 
             _map.ApplyBorderWalls();
-            _map.ComputeBorderWalls();
+            _map.ApplyBorderWalls();
 
             _visualizer.Rebuild(_map);
             _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);

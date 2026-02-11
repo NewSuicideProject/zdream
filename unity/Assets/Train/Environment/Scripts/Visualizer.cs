@@ -28,13 +28,13 @@ namespace Train.Environment.Scripts {
             _floorThickness = Mathf.Max(0.01f, floorThickness);
         }
 
-        public void Rebuild(MapData map) {
+        public void Rebuild(Map map) {
             ClearAll();
             RebuildFloors(map);
             RebuildWalls(map);
         }
 
-        public void RebuildWalls(MapData map) {
+        public void RebuildWalls(Map map) {
             ClearSpawnedWalls();
 
             for (int y = 0; y < map.Height; y++)
@@ -54,7 +54,7 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void RebuildFloors(MapData map) {
+        public void RebuildFloors(Map map) {
             ClearSpawnedFloors();
 
             for (int y = 0; y < map.Height; y++)
@@ -95,9 +95,10 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        private static bool TouchesRoad(MapData map, Vector2Int p) {
+        private static bool TouchesRoad(Map map, Vector2Int p) {
             foreach (Vector2Int dir in Utility.Cardinal) {
-                if (IsRoadAt(map, p + dir)) {
+                Vector2Int neighbor = p + dir;
+                if (map.Bounds.Contains(neighbor) && map.GetCell(neighbor).isRoad) {
                     return true;
                 }
             }
@@ -105,9 +106,7 @@ namespace Train.Environment.Scripts {
             return false;
         }
 
-        private static bool IsRoadAt(MapData map, Vector2Int p) => map.Bounds.Contains(p) && map.Cells[p.y, p.x].isRoad;
-
-        private static float ComputeSupportThickness(MapData map, Vector2Int p, float baseThickness) {
+        private static float ComputeSupportThickness(Map map, Vector2Int p, float baseThickness) {
             if (!map.IsExposedEdge(p)) {
                 return Mathf.Max(0.01f, baseThickness);
             }
@@ -132,7 +131,7 @@ namespace Train.Environment.Scripts {
                     return;
                 }
 
-                Cell c = map.Cells[n.y, n.x];
+                Cell c = map.GetCell(n);
                 if (c.isWall) {
                     return;
                 }
@@ -141,7 +140,7 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void PlaceSpawnMarkers(MapData map, Transform zombieMarker, Transform targetMarker) {
+        public void PlaceSpawnMarkers(Map map, Transform zombieMarker, Transform targetMarker) {
             int a = 0, b = 1;
             long best = -1;
 
@@ -181,19 +180,19 @@ namespace Train.Environment.Scripts {
             ClearSpawnedFloors();
         }
 
-        private static Vector3 CellCenterWorld(MapData map, Vector2Int p) {
+        private static Vector3 CellCenterWorld(Map map, Vector2Int p) {
             float wx = map.Origin.x + ((p.x + 0.5f) * map.CellSize);
             float wz = map.Origin.z + ((p.y + 0.5f) * map.CellSize);
             return new Vector3(wx, 0f, wz);
         }
 
-        private static Vector3 CellTopWorld(MapData map, Vector2Int p) {
+        private static Vector3 CellTopWorld(Map map, Vector2Int p) {
             Vector3 w = CellCenterWorld(map, p);
             w.y = map.Bounds.Contains(p) ? map.Cells[p.y, p.x].height : 0f;
             return w;
         }
 
-        private static float GetWallBaseHeightFromNeighbors(MapData map, Vector2Int p) {
+        private static float GetWallBaseHeightFromNeighbors(Map map, Vector2Int p) {
             float best = float.NegativeInfinity;
 
             foreach (Vector2Int dir in Utility.Cardinal) {
@@ -208,7 +207,7 @@ namespace Train.Environment.Scripts {
                     return;
                 }
 
-                Cell c = map.Cells[n.y, n.x];
+                Cell c = map.GetCell(n);
                 if (c.isWall) {
                     return;
                 }

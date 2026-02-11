@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
-    public class MapData {
+    public class Map {
         public readonly float CellSize;
         public Vector3 Origin;
 
@@ -14,7 +14,7 @@ namespace Train.Environment.Scripts {
         public Cell[,] Cells;
         public readonly List<Room> Rooms;
 
-        public MapData(int width, int height, float cellSize) {
+        public Map(int width, int height, float cellSize) {
             CellSize = cellSize;
 
             Origin = GetGridOrigin(width, height, cellSize);
@@ -28,6 +28,8 @@ namespace Train.Environment.Scripts {
             }
         }
 
+        public ref Cell GetCell(Vector2Int p) => ref Cells[p.y, p.x];
+
         public void ApplyBorderWalls() {
             for (int x = 0; x < Width; x++) {
                 Cells[0, x].isWall = true;
@@ -38,39 +40,38 @@ namespace Train.Environment.Scripts {
                 Cells[y, 0].isWall = true;
                 Cells[y, Width - 1].isWall = true;
             }
-        }
 
-        public void ComputeBorderWalls() {
-            for (int y = 0; y < Height; y++)
-            for (int x = 0; x < Width; x++) {
-                ref Cell cell = ref Cells[y, x];
+            for (int y = 0; y < Height; y++) {
+                for (int x = 0; x < Width; x++) {
+                    ref Cell cell = ref Cells[y, x];
 
-                if (!cell.isWall) {
-                    cell.isBorder = false;
-                    continue;
-                }
-
-                bool touchesFloor = false;
-                Vector2Int p = new(x, y);
-
-                foreach (Vector2Int dir in Utility.Cardinal) {
-                    Vector2Int n = p + dir;
-                    if (!Bounds.Contains(n) || Cells[n.y, n.x].isWall) {
+                    if (!cell.isWall) {
+                        cell.isBorder = false;
                         continue;
                     }
 
-                    touchesFloor = true;
-                    break;
-                }
+                    bool isBorder = false;
+                    Vector2Int p = new(x, y);
 
-                cell.isBorder = touchesFloor;
+                    foreach (Vector2Int dir in Utility.Cardinal) {
+                        Vector2Int n = p + dir;
+                        if (!Bounds.Contains(n) || GetCell(n).isWall) {
+                            continue;
+                        }
+
+                        isBorder = true;
+                        break;
+                    }
+
+                    cell.isBorder = isBorder;
+                }
             }
         }
 
         public bool IsExposedEdge(Vector2Int p) {
             foreach (Vector2Int dir in Utility.Cardinal) {
                 Vector2Int n = p + dir;
-                if (!Bounds.Contains(n) || Cells[n.y, n.x].isWall) {
+                if (!Bounds.Contains(n) || GetCell(n).isWall) {
                     return true;
                 }
             }

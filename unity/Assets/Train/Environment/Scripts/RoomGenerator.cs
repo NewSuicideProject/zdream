@@ -6,7 +6,7 @@ namespace Train.Environment.Scripts {
         public RoomGenerator(OrganicShaper organicShaper) => _organicShaper = organicShaper;
 
         public void PlaceRooms(
-            MapData map,
+            Map map,
             System.Random rng,
             int roomCount,
             int maxRoomRerolls,
@@ -56,10 +56,10 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void WriteRoomToGrid(MapData map, Room room, float levelStepHeight) {
+        public void WriteRoomToGrid(Map map, Room room, float levelStepHeight) {
             float roomHeight = Utility.LevelToHeight(room.heightLevel, levelStepHeight);
 
-            foreach (Vector2Int c in room.FloorSet) {
+            foreach (Vector2Int c in room.Floors) {
                 if (!map.Bounds.Contains(c)) {
                     continue;
                 }
@@ -75,7 +75,7 @@ namespace Train.Environment.Scripts {
         private static RectInt ExpandRect(RectInt r, int pad)
             => new(r.xMin - pad, r.yMin - pad, r.width + (pad * 2), r.height + (pad * 2));
 
-        private static bool RoomFitsAndDoesntOverlap(MapData map, Room room, int roomPadding) {
+        private static bool RoomFitsAndDoesntOverlap(Map map, Room room, int roomPadding) {
             RectInt expanded = ExpandRect(room.bounds, roomPadding);
 
             if (expanded.xMin < 0 || expanded.yMin < 0 || expanded.xMax > map.Width || expanded.yMax > map.Height) {

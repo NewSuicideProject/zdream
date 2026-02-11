@@ -10,12 +10,12 @@ namespace Train.Environment.Scripts {
         public Vector2Int center;
         public int heightLevel;
 
-        public readonly HashSet<Vector2Int> FloorSet = new();
+        public readonly HashSet<Vector2Int> Floors = new();
 
         public Room() { }
 
         public Room(
-            MapData map,
+            Map map,
             System.Random rng,
             int id,
             int rectMinW,
@@ -47,12 +47,12 @@ namespace Train.Environment.Scripts {
 
             for (int y = bounds.yMin; y < bounds.yMax; y++)
             for (int x = bounds.xMin; x < bounds.xMax; x++) {
-                FloorSet.Add(new Vector2Int(x, y));
+                Floors.Add(new Vector2Int(x, y));
             }
         }
 
         public Room(
-            MapData map,
+            Map map,
             System.Random rng,
             int id,
             int circleMinR,
@@ -86,26 +86,18 @@ namespace Train.Environment.Scripts {
                 int dx = x - cx;
                 int dy = y - cy;
                 if ((dx * dx) + (dy * dy) <= rSq) {
-                    FloorSet.Add(new Vector2Int(x, y));
+                    Floors.Add(new Vector2Int(x, y));
                 }
             }
         }
 
-        public bool IsValid => id >= 0 && FloorSet.Count > 0;
-
-        public bool ContainsFloor(Vector2Int c) {
-            if (!bounds.Contains(c)) {
-                return false;
-            }
-
-            return FloorSet.Contains(c);
-        }
+        public bool IsValid => id >= 0 && Floors.Count > 0;
 
         public int GetNeighborCount(Vector2Int c) {
             int n = 0;
             foreach (Vector2Int dir in Utility.Cardinal) {
                 Vector2Int neighbor = c + dir;
-                if (FloorSet.Contains(neighbor)) {
+                if (Floors.Contains(neighbor)) {
                     n++;
                 }
             }
@@ -113,13 +105,13 @@ namespace Train.Environment.Scripts {
             return n;
         }
 
-        public List<Vector2Int> CollectBoundaryCells() {
+        public List<Vector2Int> GetBorderCells() {
             List<Vector2Int> result = new();
 
             for (int y = bounds.yMin; y < bounds.yMax; y++)
             for (int x = bounds.xMin; x < bounds.xMax; x++) {
                 Vector2Int p = new(x, y);
-                if (!FloorSet.Contains(p)) {
+                if (!Floors.Contains(p)) {
                     continue;
                 }
 
@@ -132,11 +124,11 @@ namespace Train.Environment.Scripts {
         }
 
 
-        public Vector2Int PickBestDoorCell(Vector2Int toward) {
+        public Vector2Int GetDoorCell(Vector2Int toward) {
             Vector2Int best = center;
             int bestScore = int.MaxValue;
 
-            foreach (Vector2Int c in FloorSet) {
+            foreach (Vector2Int c in Floors) {
                 if (GetNeighborCount(c) == 4) {
                     continue;
                 }

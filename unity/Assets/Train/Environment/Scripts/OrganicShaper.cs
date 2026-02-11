@@ -16,7 +16,7 @@ namespace Train.Environment.Scripts {
         }
 
         public void Organic(Room room, System.Random rng) {
-            if (_iterations <= 0 || room.FloorSet.Count == 0) {
+            if (_iterations <= 0 || room.Floors.Count == 0) {
                 return;
             }
 
@@ -27,9 +27,9 @@ namespace Train.Environment.Scripts {
         }
 
         private void Carve(Room room, System.Random rng) {
-            List<Vector2Int> boundary = room.CollectBoundaryCells();
+            List<Vector2Int> boundary = room.GetBorderCells();
             int carveCount = Mathf.Clamp(
-                Mathf.RoundToInt(room.FloorSet.Count * _carveRatio),
+                Mathf.RoundToInt(room.Floors.Count * _carveRatio),
                 0,
                 boundary.Count
             );
@@ -44,15 +44,15 @@ namespace Train.Environment.Scripts {
                 }
 
                 if (room.bounds.Contains(c)) {
-                    room.FloorSet.Add(c);
+                    room.Floors.Add(c);
                 }
             }
         }
 
         private void Grow(Room room, System.Random rng) {
-            List<Vector2Int> boundary = room.CollectBoundaryCells();
+            List<Vector2Int> boundary = room.GetBorderCells();
             int growCount = Mathf.Clamp(
-                Mathf.RoundToInt(room.FloorSet.Count * _growRatio),
+                Mathf.RoundToInt(room.Floors.Count * _growRatio),
                 0,
                 boundary.Count
             );
@@ -63,27 +63,19 @@ namespace Train.Environment.Scripts {
                 boundary.RemoveAt(idx);
 
                 for (int t = 0; t < _growMaxTries; t++) {
-                    Vector2Int n = NeighborRandomPick(b, rng);
+                    Vector2Int n = b + Utility.Cardinal[rng.Next(4)];
 
-                    if (room.ContainsFloor(n) ||
+                    if (room.Floors.Contains(n) ||
                         room.GetNeighborCount(n) < 2 ||
                         !room.bounds.Contains(n)) {
                         continue;
                     }
 
-                    if (room.FloorSet.Add(n)) {
+                    if (room.Floors.Add(n)) {
                         break;
                     }
                 }
             }
         }
-
-        private static Vector2Int NeighborRandomPick(Vector2Int c, System.Random rng) =>
-            rng.Next(4) switch {
-                0 => new Vector2Int(c.x + 1, c.y),
-                1 => new Vector2Int(c.x - 1, c.y),
-                2 => new Vector2Int(c.x, c.y + 1),
-                _ => new Vector2Int(c.x, c.y - 1)
-            };
     }
 }

@@ -55,7 +55,7 @@ namespace Train.Environment.Scripts {
         }
 
         public void ConnectRoomsAndRoadHeight(
-            MapData map,
+            Map map,
             System.Random rng,
             int roadWidth,
             bool randomizeLTurnOrder,
@@ -104,8 +104,8 @@ namespace Train.Environment.Scripts {
 
         private static List<Vector2Int>
             BuildRoadPathCells(Room a, Room b, System.Random rng, bool randomizeLTurnOrder) {
-            Vector2Int doorA = a.PickBestDoorCell(b.center);
-            Vector2Int doorB = b.PickBestDoorCell(a.center);
+            Vector2Int doorA = a.GetDoorCell(b.center);
+            Vector2Int doorB = b.GetDoorCell(a.center);
 
             bool xThenY = randomizeLTurnOrder ? rng.NextDouble() < 0.5 : true;
 
@@ -144,7 +144,7 @@ namespace Train.Environment.Scripts {
         }
 
         private static void ApplyRoadWithConstantStepRise(
-            MapData map,
+            Map map,
             List<Vector2Int> roadCells,
             float fromHeight,
             float toHeight,
@@ -168,7 +168,7 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        private static void PaintRoadCell(MapData map, Vector2Int c, float roadTopHeight, int roadWidth) {
+        private static void PaintRoadCell(Map map, Vector2Int c, float roadTopHeight, int roadWidth) {
             int halfA = (roadWidth - 1) / 2;
             int halfB = roadWidth / 2;
 
