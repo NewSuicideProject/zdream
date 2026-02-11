@@ -8,9 +8,11 @@ namespace Train.Sensors {
         private readonly Proprioception _proprioception;
         private readonly ObservationSpec _observationSpec;
 
-        private readonly int _maxToken;
         private readonly float _expectedMaxDistance;
         private const int _tokenSize = 5;
+        private readonly int _maxToken;
+
+        private int Size => _maxToken * _tokenSize;
 
         public string GetName() => "navigation";
 
@@ -65,7 +67,7 @@ namespace Train.Sensors {
                 }
             }
 
-            return _maxToken * _tokenSize;
+            return Size;
         }
 
         public byte[] GetCompressedObservation() => null;
