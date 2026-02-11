@@ -29,8 +29,8 @@ namespace Train {
         [SerializeField] private float energyPenaltyMultiplier = 0.01f;
         [SerializeField] private float uprightRewardMultiplier = 1.0f;
         [SerializeField] private float speedMatchRewardMultiplier = 1.0f;
-        [SerializeField] private Proprioception proprioception;
 
+        private Proprioception _proprioception;
         private TrainJointHierarchy _jointHierarchy;
 
         private Test.Scripts.Environment _environment;
@@ -47,7 +47,7 @@ namespace Train {
             base.Awake();
 
             _environment = GetComponentInParent<Test.Scripts.Environment>();
-            proprioception = GetComponent<Proprioception>();
+            _proprioception = GetComponent<Proprioception>();
             _jointHierarchy = GetComponent<TrainJointHierarchy>();
 
             _distanceScale = expectedMaxDistance;
@@ -123,7 +123,7 @@ namespace Train {
                 }
             }
 
-            Vector3 currentVelocity = proprioception.LinearVelocity;
+            Vector3 currentVelocity = _proprioception.LinearVelocity;
             Vector3 targetDir = (_targetTransform.localPosition - transform.localPosition).normalized;
 
             float energySum = 0f;
@@ -143,7 +143,7 @@ namespace Train {
             }
 
 
-            float uprightBonus = Vector3.Dot(proprioception.Gravity, proprioception.InitialGravity);
+            float uprightBonus = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
             float targetSpeedReward = Mathf.Exp(-Mathf.Pow(expectedMaxSpeed - currentVelocity.magnitude, 2));
 
             float integratedReward = CalculateFullReward(
