@@ -14,16 +14,7 @@ namespace Train.Sensors {
 
         public string GetName() => "proprioception";
 
-        private int Size => 3 + // gravity
-                            3 + // CoM diff
-                            3 + // angular velocity
-                            3 + // linear velocity
-                            3 + // position
-                            3 + // forward
-                            1 + // integrity
-                            _proprioception.Contacts.Length +
-                            _proprioception.Attaches.Length +
-                            _proprioception.NormalizedJointBlocks.Length;
+        private readonly int _size;
 
         public ProprioceptionSensor(Proprioception proprioception, Transform target, float expectedMaxSpeed = 20f,
             float expectedMaxDistance = 20f,
@@ -34,7 +25,18 @@ namespace Train.Sensors {
             _expectedMaxDistance = expectedMaxDistance;
             _expectedMaxThickness = expectedMaxThickness;
 
-            _observationSpec = ObservationSpec.Vector(Size);
+            _size = 3 + // gravity
+                    3 + // CoM diff
+                    3 + // angular velocity
+                    3 + // linear velocity
+                    2 + // projected forward
+                    3 + // relative target position
+                    1 + // integrity
+                    _proprioception.Contacts.Length +
+                    _proprioception.Attaches.Length +
+                    _proprioception.NormalizedJointBlocks.Length;
+
+            _observationSpec = ObservationSpec.Vector(_size);
         }
 
         private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _expectedMaxDistance);
@@ -68,20 +70,22 @@ namespace Train.Sensors {
 
             Vector3 forward = _proprioception.Forward;
             Vector3 position = _proprioception.Position;
-            Vector3 projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up).normalized;
-            if (Mathf.Approximately(projectedForward.sqrMagnitude, 0f)) {
-                projectedForward = forward;
+            Vector3 projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up);
+
+            if (projectedForward.sqrMagnitude < 0.001f) {
+                projectedForward = Vector3.forward;
+            } else {
+                projectedForward.Normalize();
             }
 
-            writer[idx++] = NormalizeDistance(projectedForward.x);
-            writer[idx++] = NormalizeDistance(projectedForward.y);
-            writer[idx++] = NormalizeDistance(projectedForward.z);
+            writer[idx++] = projectedForward.x;
+            writer[idx++] = projectedForward.z;
 
             Quaternion yawQuat = Quaternion.LookRotation(projectedForward, Vector3.up);
             Matrix4x4 inverseMatrix = Matrix4x4.TRS(position, yawQuat, Vector3.one).inverse;
 
             Vector3 localPosition = Vector3.zero;
-            if (Target) {
+            if (Target != null) {
                 localPosition = inverseMatrix.MultiplyPoint3x4(Target.position);
             }
 
@@ -103,7 +107,7 @@ namespace Train.Sensors {
                 writer[idx++] = jointBlock;
             }
 
-            return Size;
+            return _size;
         }
 
         public byte[] GetCompressedObservation() => null;

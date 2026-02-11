@@ -12,7 +12,7 @@ namespace Train.Sensors {
         private const int _tokenSize = 5;
         private readonly int _maxToken;
 
-        private int Size => _maxToken * _tokenSize;
+        private readonly int _size;
 
         public string GetName() => "navigation";
 
@@ -22,6 +22,7 @@ namespace Train.Sensors {
             _proprioception = proprioception;
             _maxToken = maxToken;
             _expectedMaxDistance = expectedMaxDistance;
+            _size = _maxToken * _tokenSize;
             _observationSpec = ObservationSpec.VariableLength(maxToken, _tokenSize);
         }
 
@@ -33,9 +34,12 @@ namespace Train.Sensors {
             Vector3 position = _proprioception.Position;
             Vector3 forward = _proprioception.Forward;
 
-            Vector3 projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up).normalized;
-            if (Mathf.Approximately(projectedForward.sqrMagnitude, 0f)) {
-                projectedForward = forward;
+            Vector3 projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up);
+
+            if (projectedForward.sqrMagnitude < 0.001f) {
+                projectedForward = Vector3.forward;
+            } else {
+                projectedForward.Normalize();
             }
 
             Quaternion yawQuat = Quaternion.LookRotation(projectedForward, Vector3.up);
@@ -67,7 +71,7 @@ namespace Train.Sensors {
                 }
             }
 
-            return Size;
+            return _size;
         }
 
         public byte[] GetCompressedObservation() => null;
