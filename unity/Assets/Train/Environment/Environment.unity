@@ -453,7 +453,7 @@ MonoBehaviour:
   minRoomLevel: 0
   maxRoomLevel: 5
   levelStepHeight: 1
-  floorThickness: 3
+  floorThickness: 1
 --- !u!1 &1067998556
 GameObject:
   m_ObjectHideFlags: 0

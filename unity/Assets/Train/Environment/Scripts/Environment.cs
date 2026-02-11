@@ -17,7 +17,7 @@ public sealed class Environment : MonoBehaviour {
     [Min(0.1f)] [SerializeField] private float cellSize = 1f;
 
     [SerializeField] private bool autoGenerateOnPlay = true;
-    [SerializeField] private int seed = 0; // 0 => random each play
+    [SerializeField] private int seed = 0;
     [SerializeField] private bool keepBorderWalls = true;
 
     [Min(2)] [SerializeField] private int roomCount = 14;
@@ -45,7 +45,7 @@ public sealed class Environment : MonoBehaviour {
     [Header("Height")] [SerializeField] private int minRoomLevel = -2;
     [SerializeField] private int maxRoomLevel = 2;
 
-    [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f; // 1 level -> world Y height
+    [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f;
     [SerializeField] private float floorThickness = 0.2f;
 
     private MapData _map;
@@ -134,7 +134,7 @@ public sealed class Environment : MonoBehaviour {
             levelStepHeight
         );
 
-        ApplyBorderWallsIfNeeded();
+        ApplyBorderWalls();
         _map.ComputeActiveWalls();
         _visualizer.Rebuild(_map);
         _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
@@ -149,7 +149,7 @@ public sealed class Environment : MonoBehaviour {
         }
     }
 
-    private void ApplyBorderWallsIfNeeded() {
+    private void ApplyBorderWalls() {
         if (!keepBorderWalls) {
             return;
         }
