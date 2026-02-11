@@ -32,7 +32,6 @@ namespace Train {
         private float _distanceNormalizationFactor;
         private InputAction _moveAction;
         private Rigidbody _rigidbody;
-        private float _speedNormalizationFactor;
         private float _stayTime;
         private Transform _targetTransform;
 
@@ -48,7 +47,6 @@ namespace Train {
             _environment = GetComponentInParent<Test.Scripts.Environment>();
 
             _distanceNormalizationFactor = 1f / expectedMaxDistance;
-            _speedNormalizationFactor = 1f / expectedMaxSpeed;
             _jointRigidbodies = GetComponentsInChildren<Rigidbody>();
             _prevAngularVelocities = new Vector3[_jointRigidbodies.Length];
             _currentAngularVelocities = new Vector3[_jointRigidbodies.Length];
@@ -91,7 +89,6 @@ namespace Train {
         }
 
         private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceNormalizationFactor);
-        private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _speedNormalizationFactor);
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
@@ -124,7 +121,7 @@ namespace Train {
             }
 
             float jitterPenalty = CalculateJitterPenalty(_currentAngularVelocities,
-                _prevAngularVelocities, jitterPenaltyMultiplier);
+                _prevAngularVelocities);
             float uprightBonus = Vector3.Dot(transform.up, Vector3.up);
             float targetSpeedReward = Mathf.Exp(-Mathf.Pow(expectedMaxSpeed - currentVelocity.magnitude, 2));
 
@@ -167,13 +164,13 @@ namespace Train {
             continuousActionsOut[1] = moveInput.y;
         }
 
-        private float CalculateJitterPenalty(Vector3[] currentAs, Vector3[] prevAs, float jpm) {
+        private float CalculateJitterPenalty(Vector3[] currentAs, Vector3[] prevAs) {
             float jitterSum = 0f;
             for (int i = 0; i < currentAs.Length; i++) {
                 jitterSum += (currentAs[i] - prevAs[i]).sqrMagnitude;
             }
 
-            return jitterSum * jpm;
+            return jitterSum;
         }
 
         private float CalculateFullReward(float pw, Vector3 velocity, Vector3 targetDir, float jitter, float energy,
@@ -182,7 +179,7 @@ namespace Train {
 
             float speedReward = Vector3.Dot(velocity, targetDir) * pw;
             float jitterPenalty = jitter * jitterPenaltyMultiplier;
-            float energyPenalty = energy * invPw * (1.0f - pw) * energyPenaltyMultiplier;
+            float energyPenalty = energy * invPw * energyPenaltyMultiplier;
             float uprightReward = upright * invPw * uprightRewardMultiplier;
             float speedMatchReward = speedMatch * pw * speedMatchRewardMultiplier;
 
