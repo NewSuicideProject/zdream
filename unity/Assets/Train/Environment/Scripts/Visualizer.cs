@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
-    public sealed class Visualizer {
+    public class Visualizer {
         private readonly Transform _parent;
         private readonly GameObject _wallPrefab;
         private readonly float _wallCenterY;
@@ -28,24 +28,24 @@ namespace Train.Environment.Scripts {
             _floorThickness = Mathf.Max(0.01f, floorThickness);
         }
 
-        public void Rebuild(MapData data) {
+        public void Rebuild(MapData map) {
             ClearAll();
-            RebuildFloors(data);
-            RebuildWalls(data);
+            RebuildFloors(map);
+            RebuildWalls(map);
         }
 
-        public void RebuildWalls(MapData data) {
+        public void RebuildWalls(MapData map) {
             ClearSpawnedWalls();
 
-            for (int y = 0; y < data.Height; y++)
-            for (int x = 0; x < data.Width; x++) {
-                if (!data.Cells[y, x].IsBordor) {
+            for (int y = 0; y < map.Height; y++)
+            for (int x = 0; x < map.Width; x++) {
+                if (!map.Cells[y, x].IsBordor) {
                     continue;
                 }
 
-                float baseH = GetWallBaseHeightFromNeighbors(data, x, y);
+                float baseH = GetWallBaseHeightFromNeighbors(map, x, y);
 
-                Vector3 pos = CellCenterWorld(data, x, y);
+                Vector3 pos = CellCenterWorld(map, x, y);
                 pos.y = baseH + _wallCenterY;
 
                 GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
@@ -54,18 +54,18 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void RebuildFloors(MapData data) {
+        public void RebuildFloors(MapData map) {
             ClearSpawnedFloors();
 
-            for (int y = 0; y < data.Height; y++)
-            for (int x = 0; x < data.Width; x++) {
-                if (data.Cells[y, x].IsWall) {
+            for (int y = 0; y < map.Height; y++)
+            for (int x = 0; x < map.Width; x++) {
+                if (map.Cells[y, x].IsWall) {
                     continue;
                 }
 
-                float h = data.Cells[y, x].Height;
+                float h = map.Cells[y, x].Height;
 
-                Vector3 pos = CellCenterWorld(data, x, y);
+                Vector3 pos = CellCenterWorld(map, x, y);
                 pos.y = h + (_floorThickness * 0.5f);
 
                 GameObject f;
@@ -78,13 +78,13 @@ namespace Train.Environment.Scripts {
                 }
 
                 f.name = $"Floor_{x}_{y}";
-                f.transform.localScale = new Vector3(data.CellSize, _floorThickness, data.CellSize);
+                f.transform.localScale = new Vector3(map.CellSize, _floorThickness, map.CellSize);
                 _spawnedFloors.Add(f);
             }
         }
 
-        public void PlaceSpawnMarkers(MapData data, Transform zombieMarker, Transform targetMarker) {
-            if (data.Rooms == null || data.Rooms.Count < 2) {
+        public void PlaceSpawnMarkers(MapData map, Transform zombieMarker, Transform targetMarker) {
+            if (map.Rooms == null || map.Rooms.Count < 2) {
                 Debug.LogWarning("[Visualizer] Not enough rooms for spawn/target.");
                 return;
             }
@@ -92,10 +92,10 @@ namespace Train.Environment.Scripts {
             int a = 0, b = 1;
             long best = -1;
 
-            for (int i = 0; i < data.Rooms.Count; i++)
-            for (int j = i + 1; j < data.Rooms.Count; j++) {
-                Vector2Int c1 = data.Rooms[i].center;
-                Vector2Int c2 = data.Rooms[j].center;
+            for (int i = 0; i < map.Rooms.Count; i++)
+            for (int j = i + 1; j < map.Rooms.Count; j++) {
+                Vector2Int c1 = map.Rooms[i].center;
+                Vector2Int c2 = map.Rooms[j].center;
 
                 long dx = c1.x - c2.x;
                 long dy = c1.y - c2.y;
@@ -108,13 +108,13 @@ namespace Train.Environment.Scripts {
                 }
             }
 
-            int zx = data.Rooms[a].center.x;
-            int zy = data.Rooms[a].center.y;
-            int tx = data.Rooms[b].center.x;
-            int ty = data.Rooms[b].center.y;
+            int zx = map.Rooms[a].center.x;
+            int zy = map.Rooms[a].center.y;
+            int tx = map.Rooms[b].center.x;
+            int ty = map.Rooms[b].center.y;
 
-            Vector3 zombiePos = CellTopWorld(data, zx, zy);
-            Vector3 targetPos = CellTopWorld(data, tx, ty);
+            Vector3 zombiePos = CellTopWorld(map, zx, zy);
+            Vector3 targetPos = CellTopWorld(map, tx, ty);
 
             if (zombieMarker != null) {
                 zombieMarker.position = zombiePos;
@@ -130,19 +130,19 @@ namespace Train.Environment.Scripts {
             ClearSpawnedFloors();
         }
 
-        private static Vector3 CellCenterWorld(MapData data, int x, int y) {
-            float wx = data.Origin.x + ((x + 0.5f) * data.CellSize);
-            float wz = data.Origin.z + ((y + 0.5f) * data.CellSize);
+        private static Vector3 CellCenterWorld(MapData map, int x, int y) {
+            float wx = map.Origin.x + ((x + 0.5f) * map.CellSize);
+            float wz = map.Origin.z + ((y + 0.5f) * map.CellSize);
             return new Vector3(wx, 0f, wz);
         }
 
-        private static Vector3 CellTopWorld(MapData data, int x, int y) {
-            Vector3 p = CellCenterWorld(data, x, y);
-            p.y = Utility.InBounds(data, x, y) ? data.Cells[y, x].Height : 0f;
+        private static Vector3 CellTopWorld(MapData map, int x, int y) {
+            Vector3 p = CellCenterWorld(map, x, y);
+            p.y = map.InBounds(x, y) ? map.Cells[y, x].Height : 0f;
             return p;
         }
 
-        private static float GetWallBaseHeightFromNeighbors(MapData data, int x, int y) {
+        private static float GetWallBaseHeightFromNeighbors(MapData map, int x, int y) {
             float best = float.NegativeInfinity;
 
             Try(x + 1, y);
@@ -153,11 +153,11 @@ namespace Train.Environment.Scripts {
             return float.IsNegativeInfinity(best) ? 0f : best;
 
             void Try(int nx, int ny) {
-                if (!Utility.InBounds(data, nx, ny)) {
+                if (!map.InBounds(nx, ny)) {
                     return;
                 }
 
-                Cell n = data.Cells[ny, nx];
+                Cell n = map.Cells[ny, nx];
                 if (n.IsWall) {
                     return;
                 }

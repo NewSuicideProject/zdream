@@ -1,7 +1,7 @@
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
-    public sealed class Environment : MonoBehaviour {
+    public class Environment : MonoBehaviour {
         [SerializeField] private Transform wallParent;
         [SerializeField] private GameObject wallPrefab;
         [SerializeField] private GameObject floorPrefab;
@@ -63,8 +63,6 @@ namespace Train.Environment.Scripts {
                 floorThickness
             );
 
-            // RoomGenerator needs OrganicShaper, but config should be created from inspector values.
-            // We'll create OrganicShaper fresh per Generate() to always reflect current inspector values.
             _organicShaper = null;
             _roomGenerator = null;
 
@@ -111,9 +109,11 @@ namespace Train.Environment.Scripts {
             );
 
 
-            _roomGenerator.WriteRoomsToGrid(_map, levelStepHeight);
+            for (int i = 0; i < _map.Rooms.Count; i++) {
+                _roomGenerator.WriteRoomToGrid(_map, _map.Rooms[i], levelStepHeight);
+            }
 
-            _roadGenerator.ConnectRoomsMstAndPaintRoadHeights(
+            _roadGenerator.ConnectRoomsAndRoadHeight(
                 _map,
                 _rng,
                 roadWidth,

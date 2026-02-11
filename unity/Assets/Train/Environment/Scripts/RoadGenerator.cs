@@ -54,7 +54,7 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void ConnectRoomsMstAndPaintRoadHeights(
+        public void ConnectRoomsAndRoadHeight(
             MapData map,
             System.Random rng,
             int roadWidth,
@@ -179,7 +179,7 @@ namespace Train.Environment.Scripts {
             for (int ox = -halfA; ox <= halfB; ox++) {
                 int tx = c.x + ox;
                 int ty = c.y + oy;
-                if (!Utility.InBounds(map, tx, ty)) {
+                if (!map.InBounds(tx, ty)) {
                     continue;
                 }
 

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
-    public sealed class MapData {
+    public class MapData {
         public int Width;
         public int Height;
         public float CellSize;
@@ -10,6 +10,9 @@ namespace Train.Environment.Scripts {
 
         public Cell[,] Cells;
         public List<Room> Rooms;
+
+        public bool InBounds(int x, int y)
+            => (uint)x < (uint)Width && (uint)y < (uint)Height;
 
         public void InitializeAllWalls() {
             for (int y = 0; y < Height; y++)
@@ -53,7 +56,7 @@ namespace Train.Environment.Scripts {
                 for (int k = 0; k < 4; k++) {
                     int nx = x + dx[k];
                     int ny = y + dy[k];
-                    if (!Utility.InBounds(this, nx, ny)) {
+                    if (!InBounds(nx, ny)) {
                         continue;
                     }
 

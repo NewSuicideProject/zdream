@@ -1,7 +1,7 @@
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
-    public sealed class RoomGenerator {
+    public class RoomGenerator {
         private readonly OrganicShaper _organicShaper;
         public RoomGenerator(OrganicShaper organicShaper) => _organicShaper = organicShaper;
 
@@ -11,7 +11,7 @@ namespace Train.Environment.Scripts {
             int roomCount,
             int maxRoomRerolls,
             float circleRoomChance,
-            RectInt rectSizeRange, // ← 여기
+            RectInt rectSizeRange, // RectInt: x=minW, y=minH, width=maxW, height=maxH
             int circleMinR,
             int circleMaxR,
             int roomPadding,
@@ -61,23 +61,21 @@ namespace Train.Environment.Scripts {
             }
         }
 
-        public void WriteRoomsToGrid(MapData map, float levelStepHeight) {
-            for (int i = 0; i < map.Rooms.Count; i++) {
-                Room r = map.Rooms[i];
-                float roomHeight = Utility.LevelToHeight(r.heightLevel, levelStepHeight);
+        public void WriteRoomToGrid(MapData map, Room room, float levelStepHeight) {
+            float roomHeight = Utility.LevelToHeight(room.heightLevel, levelStepHeight);
 
-                foreach (Vector2Int c in r.FloorSet) {
-                    if (!Utility.InBounds(map, c.x, c.y)) {
-                        continue;
-                    }
-
-                    ref Cell cell = ref map.Cells[c.y, c.x];
-                    cell.IsWall = false;
-                    cell.RoomId = r.id;
-                    cell.Height = roomHeight;
+            foreach (Vector2Int c in room.FloorSet) {
+                if (!map.InBounds(c.x, c.y)) {
+                    continue;
                 }
+
+                ref Cell cell = ref map.Cells[c.y, c.x];
+                cell.IsWall = false;
+                cell.RoomId = room.id;
+                cell.Height = roomHeight;
             }
         }
+
 
         private static RectInt ExpandRect(RectInt r, int pad)
             => new(r.xMin - pad, r.yMin - pad, r.width + (pad * 2), r.height + (pad * 2));

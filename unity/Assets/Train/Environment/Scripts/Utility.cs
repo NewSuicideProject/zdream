@@ -1,9 +1,11 @@
+using UnityEngine;
+
 namespace Train.Environment.Scripts {
     public static class Utility {
-        public static bool InBounds(MapData map, int x, int y)
-            => (uint)x < (uint)map.Width && (uint)y < (uint)map.Height;
-
         public static float LevelToHeight(int level, float levelStepHeight)
             => level * levelStepHeight;
+
+        public static bool InRect(RectInt r, int x, int y)
+            => x >= r.xMin && x < r.xMax && y >= r.yMin && y < r.yMax;
     }
 }

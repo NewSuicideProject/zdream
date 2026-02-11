@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Train.Environment.Scripts {
     [Serializable]
-    public sealed class Room {
+    public class Room {
         public int id;
         public RectInt bounds;
         public Vector2Int center;
@@ -29,38 +29,28 @@ namespace Train.Environment.Scripts {
             int roomH = rng.Next(rectMinH, rectMaxH + 1);
 
             const int border = 1;
-            int minLeftX = border;
-            int minBottomY = border;
-
             int maxLeftX = map.Width - roomW - border;
             int maxBottomY = map.Height - roomH - border;
 
-            if (maxLeftX < minLeftX || maxBottomY < minBottomY) {
+            if (maxLeftX < border || maxBottomY < border) {
                 this.id = -1;
                 return;
             }
 
-            int leftX = rng.Next(minLeftX, maxLeftX + 1);
-            int bottomY = rng.Next(minBottomY, maxBottomY + 1);
-
-            int centerX = leftX + (roomW / 2);
-            int centerY = bottomY + (roomH / 2);
+            int leftX = rng.Next(border, maxLeftX + 1);
+            int bottomY = rng.Next(border, maxBottomY + 1);
 
             this.id = id;
             bounds = new RectInt(leftX, bottomY, roomW, roomH);
-            center = new Vector2Int(centerX, centerY);
+            center = new Vector2Int(leftX + (roomW / 2), bottomY + (roomH / 2));
             heightLevel = rng.Next(minRoomLevel, maxRoomLevel + 1);
 
-            int rightXEx = leftX + roomW;
-            int topYEx = bottomY + roomH;
-
-            for (int y = bottomY; y < topYEx; y++)
-            for (int x = leftX; x < rightXEx; x++) {
+            for (int y = bounds.yMin; y < bounds.yMax; y++)
+            for (int x = bounds.xMin; x < bounds.xMax; x++) {
                 FloorSet.Add(new Vector2Int(x, y));
             }
         }
 
-        // Circle Room 생성자
         public Room(
             MapData map,
             System.Random rng,
@@ -71,38 +61,31 @@ namespace Train.Environment.Scripts {
             int maxRoomLevel
         ) {
             int r = rng.Next(circleMinR, circleMaxR + 1);
-            int diameter = (r * 2) + 1;
 
             const int border = 1;
-            int minCenterX = border + r;
-            int minCenterY = border + r;
+            int maxCX = map.Width - border - r - 1;
+            int maxCY = map.Height - border - r - 1;
 
-            int maxCenterX = map.Width - border - r - 1;
-            int maxCenterY = map.Height - border - r - 1;
-
-            if (maxCenterX < minCenterX || maxCenterY < minCenterY) {
+            if (maxCX < border + r || maxCY < border + r) {
                 this.id = -1;
                 return;
             }
 
-            int cx = rng.Next(minCenterX, maxCenterX + 1);
-            int cy = rng.Next(minCenterY, maxCenterY + 1);
-
-            int left = cx - r;
-            int bottom = cy - r;
+            int cx = rng.Next(border + r, maxCX + 1);
+            int cy = rng.Next(border + r, maxCY + 1);
 
             this.id = id;
-            bounds = new RectInt(left, bottom, diameter, diameter);
+            bounds = new RectInt(cx - r, cy - r, (r * 2) + 1, (r * 2) + 1);
             center = new Vector2Int(cx, cy);
             heightLevel = rng.Next(minRoomLevel, maxRoomLevel + 1);
 
             int rSq = r * r;
 
-            for (int y = cy - r; y <= cy + r; y++)
-            for (int x = cx - r; x <= cx + r; x++) {
-                int ox = x - cx;
-                int oy = y - cy;
-                if ((ox * ox) + (oy * oy) <= rSq) {
+            for (int y = bounds.yMin; y <= bounds.yMax - 1; y++)
+            for (int x = bounds.xMin; x <= bounds.xMax - 1; x++) {
+                int dx = x - cx;
+                int dy = y - cy;
+                if ((dx * dx) + (dy * dy) <= rSq) {
                     FloorSet.Add(new Vector2Int(x, y));
                 }
             }
@@ -110,18 +93,75 @@ namespace Train.Environment.Scripts {
 
         public bool IsValid => id >= 0 && FloorSet.Count > 0;
 
-        public bool IsBoundaryCell(Vector2Int c) =>
-            !FloorSet.Contains(new Vector2Int(c.x + 1, c.y)) ||
-            !FloorSet.Contains(new Vector2Int(c.x - 1, c.y)) ||
-            !FloorSet.Contains(new Vector2Int(c.x, c.y + 1)) ||
-            !FloorSet.Contains(new Vector2Int(c.x, c.y - 1));
+        public bool ContainsFloor(int x, int y) {
+            if (!Utility.InRect(bounds, x, y)) {
+                return false;
+            }
+
+            return FloorSet.Contains(new Vector2Int(x, y));
+        }
+
+        public int CountFloorNeighbors4(Vector2Int c) {
+            int n = 0;
+            if (ContainsFloor(c.x + 1, c.y)) {
+                n++;
+            }
+
+            if (ContainsFloor(c.x - 1, c.y)) {
+                n++;
+            }
+
+            if (ContainsFloor(c.x, c.y + 1)) {
+                n++;
+            }
+
+            if (ContainsFloor(c.x, c.y - 1)) {
+                n++;
+            }
+
+            return n;
+        }
+
+        public List<Vector2Int> CollectBoundaryCells() {
+            List<Vector2Int> result = new();
+
+            for (int y = bounds.yMin; y < bounds.yMax; y++)
+            for (int x = bounds.xMin; x < bounds.xMax; x++) {
+                Vector2Int p = new(x, y);
+                if (!FloorSet.Contains(p)) {
+                    continue;
+                }
+
+                if (CountFloorNeighbors4(p) < 4) {
+                    result.Add(p);
+                }
+            }
+
+            return result;
+        }
+
+        public bool TryRemoveFloor(Vector2Int c) {
+            if (!ContainsFloor(c.x, c.y)) {
+                return false;
+            }
+
+            return FloorSet.Remove(c);
+        }
+
+        public bool TryAddFloor(Vector2Int c) {
+            if (!Utility.InRect(bounds, c.x, c.y)) {
+                return false;
+            }
+
+            return FloorSet.Add(c);
+        }
 
         public Vector2Int PickBestDoorCell(Vector2Int toward) {
             Vector2Int best = center;
             int bestScore = int.MaxValue;
 
             foreach (Vector2Int c in FloorSet) {
-                if (!IsBoundaryCell(c)) {
+                if (CountFloorNeighbors4(c) == 4) {
                     continue;
                 }
 
