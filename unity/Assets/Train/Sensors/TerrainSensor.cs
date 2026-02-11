@@ -1,0 +1,46 @@
+using Unity.MLAgents.Sensors;
+using UnityEngine;
+
+namespace Train.Sensors {
+    public class TerrainSensor : ISensor {
+        private readonly Terrain.Terrain _terrain;
+        private readonly Proprioception _proprioception;
+        private readonly ObservationSpec _observationSpec;
+        private readonly int _gridSize;
+        private readonly int _size;
+
+        public TerrainSensor(Terrain.Terrain terrain, Proprioception proprioception, int gridSize) {
+            _terrain = terrain;
+            _proprioception = proprioception;
+            _gridSize = gridSize;
+            _size = _gridSize * _gridSize;
+            _observationSpec = ObservationSpec.Vector(_size);
+        }
+
+        public string GetName() => "terrain";
+
+        public int Write(ObservationWriter writer) {
+            int idx = 0;
+            float agentY = _proprioception.Position.y;
+
+            for (int z = 0; z < _gridSize; z++) {
+                for (int x = 0; x < _gridSize; x++) {
+                    float relativeHeight = _terrain.HeightMap[x, z] - agentY;
+                    writer[idx++] = relativeHeight;
+                }
+            }
+
+            return _size;
+        }
+
+        public byte[] GetCompressedObservation() => null;
+
+        public ObservationSpec GetObservationSpec() => _observationSpec;
+
+        public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
+
+        public void Update() { }
+
+        public void Reset() { }
+    }
+}
