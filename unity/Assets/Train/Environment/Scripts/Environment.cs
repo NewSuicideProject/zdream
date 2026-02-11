@@ -83,7 +83,6 @@ namespace Train.Environment.Scripts {
             _rng = new System.Random(seed == 0 ? System.Environment.TickCount : seed);
 
             _map = new MapData(gridWidth, gridHeight, cellSize);
-            _map.Rooms = new System.Collections.Generic.List<Room>(roomCount); // capacity만 주고 싶으면 이 줄 유지
 
             _roomGenerator.PlaceRooms(
                 _map,
@@ -99,8 +98,8 @@ namespace Train.Environment.Scripts {
                 maxRoomLevel
             );
 
-            for (int i = 0; i < _map.Rooms.Count; i++) {
-                _roomGenerator.WriteRoomToGrid(_map, _map.Rooms[i], levelStepHeight);
+            foreach (Room room in _map.Rooms) {
+                _roomGenerator.WriteRoomToGrid(_map, room, levelStepHeight);
             }
 
             _roadGenerator.ConnectRoomsAndRoadHeight(
@@ -112,7 +111,7 @@ namespace Train.Environment.Scripts {
             );
 
             _map.ApplyBorderWalls();
-            _map.ComputeBordorWalls();
+            _map.ComputeBorderWalls();
 
             _visualizer.Rebuild(_map);
             _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);

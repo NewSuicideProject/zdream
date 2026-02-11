@@ -39,8 +39,12 @@ namespace Train.Environment.Scripts {
                 Vector2Int c = boundary[idx];
                 boundary.RemoveAt(idx);
 
-                if (room.CountFloorNeighbors4(c) >= 2) {
-                    room.TryRemoveFloor(c);
+                if (room.GetNeighborCount(c) < 2) {
+                    continue;
+                }
+
+                if (room.bounds.Contains(c)) {
+                    room.FloorSet.Add(c);
                 }
             }
         }
@@ -61,11 +65,14 @@ namespace Train.Environment.Scripts {
                 for (int t = 0; t < _growMaxTries; t++) {
                     Vector2Int n = NeighborRandomPick(b, rng);
 
-                    if (!room.ContainsFloor(n.x, n.y) &&
-                        room.CountFloorNeighbors4(n) >= 2) {
-                        if (room.TryAddFloor(n)) {
-                            break;
-                        }
+                    if (room.ContainsFloor(n) ||
+                        room.GetNeighborCount(n) < 2 ||
+                        !room.bounds.Contains(n)) {
+                        continue;
+                    }
+
+                    if (room.FloorSet.Add(n)) {
+                        break;
                     }
                 }
             }

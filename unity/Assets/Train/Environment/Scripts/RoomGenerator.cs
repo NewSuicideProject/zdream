@@ -60,14 +60,14 @@ namespace Train.Environment.Scripts {
             float roomHeight = Utility.LevelToHeight(room.heightLevel, levelStepHeight);
 
             foreach (Vector2Int c in room.FloorSet) {
-                if (!map.InBounds(c.x, c.y)) {
+                if (!map.Bounds.Contains(c)) {
                     continue;
                 }
 
                 ref Cell cell = ref map.Cells[c.y, c.x];
-                cell.IsWall = false;
-                cell.RoomId = room.id;
-                cell.Height = roomHeight;
+                cell.isWall = false;
+                cell.roomId = room.id;
+                cell.height = roomHeight;
             }
         }
 

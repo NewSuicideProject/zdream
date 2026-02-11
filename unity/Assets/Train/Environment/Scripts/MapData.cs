@@ -3,27 +3,25 @@ using UnityEngine;
 
 namespace Train.Environment.Scripts {
     public class MapData {
-        public int Width;
-        public int Height;
-        public float CellSize;
+        public readonly float CellSize;
         public Vector3 Origin;
 
+        public RectInt Bounds;
+
+        public int Width => Bounds.width;
+        public int Height => Bounds.height;
+
         public Cell[,] Cells;
-        public List<Room> Rooms;
+        public readonly List<Room> Rooms;
 
         public MapData(int width, int height, float cellSize) {
-            Width = width;
-            Height = height;
             CellSize = cellSize;
 
             Origin = GetGridOrigin(width, height, cellSize);
             Cells = new Cell[height, width];
             Rooms = new List<Room>();
+            Bounds = new RectInt(0, 0, width, height);
 
-            InitializeAllWalls();
-        }
-
-        public void InitializeAllWalls() {
             for (int y = 0; y < Height; y++)
             for (int x = 0; x < Width; x++) {
                 Cells[y, x] = new Cell(true);
@@ -32,64 +30,47 @@ namespace Train.Environment.Scripts {
 
         public void ApplyBorderWalls() {
             for (int x = 0; x < Width; x++) {
-                Cells[0, x].IsWall = true;
-                Cells[Height - 1, x].IsWall = true;
+                Cells[0, x].isWall = true;
+                Cells[Height - 1, x].isWall = true;
             }
 
             for (int y = 0; y < Height; y++) {
-                Cells[y, 0].IsWall = true;
-                Cells[y, Width - 1].IsWall = true;
+                Cells[y, 0].isWall = true;
+                Cells[y, Width - 1].isWall = true;
             }
         }
 
-        public void ComputeBordorWalls() {
-            if (Cells == null) {
-                return;
-            }
-
+        public void ComputeBorderWalls() {
             for (int y = 0; y < Height; y++)
             for (int x = 0; x < Width; x++) {
                 ref Cell cell = ref Cells[y, x];
 
-                if (!cell.IsWall) {
-                    cell.IsBordor = false;
+                if (!cell.isWall) {
+                    cell.isBorder = false;
                     continue;
                 }
 
                 bool touchesFloor = false;
                 Vector2Int p = new(x, y);
 
-                foreach (Vector2Int dir in GridDirections.Cardinal) {
+                foreach (Vector2Int dir in Utility.Cardinal) {
                     Vector2Int n = p + dir;
-                    if (!InBounds(n)) {
+                    if (!Bounds.Contains(n) || Cells[n.y, n.x].isWall) {
                         continue;
                     }
 
-                    if (!Cells[n.y, n.x].IsWall) {
-                        touchesFloor = true;
-                        break;
-                    }
+                    touchesFloor = true;
+                    break;
                 }
 
-                cell.IsBordor = touchesFloor;
+                cell.isBorder = touchesFloor;
             }
-        }
-
-        public bool InBounds(Vector2Int p) => (uint)p.x < (uint)Width && (uint)p.y < (uint)Height;
-
-        public bool InBounds(int x, int y) => (uint)x < (uint)Width && (uint)y < (uint)Height;
-
-        public bool IsWallOrOob(Vector2Int p) {
-            if (!InBounds(p)) {
-                return true;
-            }
-
-            return Cells[p.y, p.x].IsWall;
         }
 
         public bool IsExposedEdge(Vector2Int p) {
-            foreach (Vector2Int dir in GridDirections.Cardinal) {
-                if (IsWallOrOob(p + dir)) {
+            foreach (Vector2Int dir in Utility.Cardinal) {
+                Vector2Int n = p + dir;
+                if (!Bounds.Contains(n) || Cells[n.y, n.x].isWall) {
                     return true;
                 }
             }

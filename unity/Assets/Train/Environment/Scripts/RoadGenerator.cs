@@ -176,17 +176,17 @@ namespace Train.Environment.Scripts {
             for (int ox = -halfA; ox <= halfB; ox++) {
                 Vector2Int p = new(c.x + ox, c.y + oy);
 
-                if (!map.InBounds(p)) {
+                if (!map.Bounds.Contains(p)) {
                     continue;
                 }
 
                 ref Cell cell = ref map.Cells[p.y, p.x];
 
-                cell.IsWall = false;
-                cell.IsRoad = cell.RoomId == -1;
+                cell.isWall = false;
+                cell.isRoad = cell.roomId == -1;
 
-                if (cell.RoomId == -1) {
-                    cell.Height = roadTopHeight;
+                if (cell.roomId == -1) {
+                    cell.height = roadTopHeight;
                 }
             }
         }

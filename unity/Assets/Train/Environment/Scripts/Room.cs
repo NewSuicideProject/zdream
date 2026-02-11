@@ -93,30 +93,21 @@ namespace Train.Environment.Scripts {
 
         public bool IsValid => id >= 0 && FloorSet.Count > 0;
 
-        public bool ContainsFloor(int x, int y) {
-            if (!Utility.InRect(bounds, x, y)) {
+        public bool ContainsFloor(Vector2Int c) {
+            if (!bounds.Contains(c)) {
                 return false;
             }
 
-            return FloorSet.Contains(new Vector2Int(x, y));
+            return FloorSet.Contains(c);
         }
 
-        public int CountFloorNeighbors4(Vector2Int c) {
+        public int GetNeighborCount(Vector2Int c) {
             int n = 0;
-            if (ContainsFloor(c.x + 1, c.y)) {
-                n++;
-            }
-
-            if (ContainsFloor(c.x - 1, c.y)) {
-                n++;
-            }
-
-            if (ContainsFloor(c.x, c.y + 1)) {
-                n++;
-            }
-
-            if (ContainsFloor(c.x, c.y - 1)) {
-                n++;
+            foreach (Vector2Int dir in Utility.Cardinal) {
+                Vector2Int neighbor = c + dir;
+                if (FloorSet.Contains(neighbor)) {
+                    n++;
+                }
             }
 
             return n;
@@ -132,7 +123,7 @@ namespace Train.Environment.Scripts {
                     continue;
                 }
 
-                if (CountFloorNeighbors4(p) < 4) {
+                if (GetNeighborCount(p) < 4) {
                     result.Add(p);
                 }
             }
@@ -140,28 +131,13 @@ namespace Train.Environment.Scripts {
             return result;
         }
 
-        public bool TryRemoveFloor(Vector2Int c) {
-            if (!ContainsFloor(c.x, c.y)) {
-                return false;
-            }
-
-            return FloorSet.Remove(c);
-        }
-
-        public bool TryAddFloor(Vector2Int c) {
-            if (!Utility.InRect(bounds, c.x, c.y)) {
-                return false;
-            }
-
-            return FloorSet.Add(c);
-        }
 
         public Vector2Int PickBestDoorCell(Vector2Int toward) {
             Vector2Int best = center;
             int bestScore = int.MaxValue;
 
             foreach (Vector2Int c in FloorSet) {
-                if (CountFloorNeighbors4(c) == 4) {
+                if (GetNeighborCount(c) == 4) {
                     continue;
                 }
 
