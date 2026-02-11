@@ -1,8 +1,10 @@
+// =========================================================
+// RoomGenerator.cs  (Vector2Int cells + map.Cells write)
+// =========================================================
 using UnityEngine;
 
 public sealed class RoomGenerator {
     private readonly OrganicShaper _organicShaper;
-
     public RoomGenerator(OrganicShaper organicShaper) => _organicShaper = organicShaper;
 
     public void PlaceRooms(
@@ -34,13 +36,8 @@ public sealed class RoomGenerator {
                 ? CreateCircleRoom(map, rng, placed, circleMinR, circleMaxR, minRoomLevel, maxRoomLevel)
                 : CreateRectRoom(map, rng, placed, rectMinW, rectMaxW, rectMinH, rectMaxH, minRoomLevel, maxRoomLevel);
 
-            if (room == null) {
-                continue;
-            }
-
-            if (!RoomFitsAndDoesntOverlap(map, room, roomPadding)) {
-                continue;
-            }
+            if (room == null) continue;
+            if (!RoomFitsAndDoesntOverlap(map, room, roomPadding)) continue;
 
             room.RebuildFloorSetFromCells();
             _organicShaper.ApplyLightOrganic(room, rng, organicCfg);
@@ -50,8 +47,7 @@ public sealed class RoomGenerator {
         }
 
         if (map.Rooms.Count < 2) {
-            Debug.LogWarning(
-                $"[Environment] Only {map.Rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
+            Debug.LogWarning($"[Environment] Only {map.Rooms.Count} rooms placed. Increase rerolls / reduce padding / increase grid size.");
         }
     }
 
@@ -61,20 +57,16 @@ public sealed class RoomGenerator {
             float roomHeight = LevelToHeight(r.heightLevel, levelStepHeight);
 
             for (int k = 0; k < r.Cells.Count; k++) {
-                Cell c = r.Cells[k];
-                if (!InBounds(map, c)) {
-                    continue;
-                }
+                Vector2Int c = r.Cells[k];
+                if (!map.InBounds(c.x, c.y)) continue;
 
-                map.WallMatrix[c.Y, c.X] = false;
-                map.RoomIdMatrix[c.Y, c.X] = r.id;
-                map.TileHeight[c.Y, c.X] = roomHeight;
+                ref Cell cell = ref map.Cells[c.y, c.x];
+                cell.IsWall = false;
+                cell.RoomId = r.id;
+                cell.Height = roomHeight;
             }
         }
     }
-
-    private static bool InBounds(MapData map, Cell c)
-        => c.X >= 0 && c.X < map.Width && c.Y >= 0 && c.Y < map.Height;
 
     private static RectInt ExpandRect(RectInt r, int pad) =>
         new(r.xMin - pad, r.yMin - pad, r.width + (pad * 2), r.height + (pad * 2));
@@ -101,9 +93,7 @@ public sealed class RoomGenerator {
 
         int maxLeftX = map.Width - roomWidthCells - border;
         int maxBottomY = map.Height - roomHeightCells - border;
-        if (maxLeftX < minLeftX || maxBottomY < minBottomY) {
-            return null;
-        }
+        if (maxLeftX < minLeftX || maxBottomY < minBottomY) return null;
 
         int leftX = rng.Next(minLeftX, maxLeftX + 1);
         int bottomY = rng.Next(minBottomY, maxBottomY + 1);
@@ -123,7 +113,7 @@ public sealed class RoomGenerator {
 
         for (int y = bottomY; y < topYExclusive; y++)
         for (int x = leftX; x < rightXExclusive; x++) {
-            room.Cells.Add(new Cell(x, y));
+            room.Cells.Add(new Vector2Int(x, y));
         }
 
         return room;
@@ -147,9 +137,7 @@ public sealed class RoomGenerator {
 
         int maxCenterX = map.Width - border - radiusCells - 1;
         int maxCenterY = map.Height - border - radiusCells - 1;
-        if (maxCenterX < minCenterX || maxCenterY < minCenterY) {
-            return null;
-        }
+        if (maxCenterX < minCenterX || maxCenterY < minCenterY) return null;
 
         int centerX = rng.Next(minCenterX, maxCenterX + 1);
         int centerY = rng.Next(minCenterY, maxCenterY + 1);
@@ -170,9 +158,8 @@ public sealed class RoomGenerator {
         for (int x = centerX - radiusCells; x <= centerX + radiusCells; x++) {
             int ox = x - centerX;
             int oy = y - centerY;
-
             if ((ox * ox) + (oy * oy) <= radiusSq) {
-                room.Cells.Add(new Cell(x, y));
+                room.Cells.Add(new Vector2Int(x, y));
             }
         }
 
@@ -188,9 +175,7 @@ public sealed class RoomGenerator {
 
         for (int i = 0; i < map.Rooms.Count; i++) {
             RectInt otherExpanded = ExpandRect(map.Rooms[i].bounds, roomPadding);
-            if (expanded.Overlaps(otherExpanded)) {
-                return false;
-            }
+            if (expanded.Overlaps(otherExpanded)) return false;
         }
 
         return true;

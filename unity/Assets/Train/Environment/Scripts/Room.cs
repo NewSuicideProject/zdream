@@ -9,14 +9,14 @@ public sealed class Room {
     public Vector2Int center;
     public int heightLevel;
 
-    public readonly List<Cell> Cells = new();
+    public readonly List<Vector2Int> Cells = new();
     public readonly HashSet<int> FloorSet = new();
 
     public void RebuildFloorSetFromCells() {
         FloorSet.Clear();
         for (int i = 0; i < Cells.Count; i++) {
-            Cell c = Cells[i];
-            FloorSet.Add(Utility.Pack(c.X, c.Y));
+            Vector2Int c = Cells[i];
+            FloorSet.Add(Utility.Pack(c.x, c.y));
         }
     }
 
@@ -24,28 +24,27 @@ public sealed class Room {
         Cells.Clear();
         foreach (int p in FloorSet) {
             Utility.Unpack(p, out int x, out int y);
-            Cells.Add(new Cell(x, y));
+            Cells.Add(new Vector2Int(x, y));
         }
     }
 
-    public bool IsBoundaryCell(Cell c) =>
-        // same logic as before (4-neighbor missing => boundary)
-        !FloorSet.Contains(Utility.Pack(c.X + 1, c.Y)) ||
-        !FloorSet.Contains(Utility.Pack(c.X - 1, c.Y)) ||
-        !FloorSet.Contains(Utility.Pack(c.X, c.Y + 1)) ||
-        !FloorSet.Contains(Utility.Pack(c.X, c.Y - 1));
+    public bool IsBoundaryCell(Vector2Int c) =>
+        !FloorSet.Contains(Utility.Pack(c.x + 1, c.y)) ||
+        !FloorSet.Contains(Utility.Pack(c.x - 1, c.y)) ||
+        !FloorSet.Contains(Utility.Pack(c.x, c.y + 1)) ||
+        !FloorSet.Contains(Utility.Pack(c.x, c.y - 1));
 
-    public Cell PickBestDoorCell(Vector2Int toward) {
-        Cell best = Cells[0];
+    public Vector2Int PickBestDoorCell(Vector2Int toward) {
+        Vector2Int best = Cells[0];
         int bestScore = int.MaxValue;
 
         for (int i = 0; i < Cells.Count; i++) {
-            Cell c = Cells[i];
+            Vector2Int c = Cells[i];
             if (!IsBoundaryCell(c)) {
                 continue;
             }
 
-            int score = Mathf.Abs(c.X - toward.x) + Mathf.Abs(c.Y - toward.y);
+            int score = Mathf.Abs(c.x - toward.x) + Mathf.Abs(c.y - toward.y);
             if (score < bestScore) {
                 bestScore = score;
                 best = c;

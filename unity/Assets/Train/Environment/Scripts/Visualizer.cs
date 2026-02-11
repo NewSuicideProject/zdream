@@ -38,14 +38,13 @@ public sealed class Visualizer {
 
         for (int y = 0; y < data.Height; y++)
         for (int x = 0; x < data.Width; x++) {
-            if (!data.IsActiveWall(y, x)) {
+            if (!data.Cells[y, x].IsBordor) {
                 continue;
             }
 
-            Cell c = new(x, y);
+            float baseH = GetWallBaseHeightFromNeighbors(data, x, y);
 
-            float baseH = GetWallBaseHeightFromNeighbors(data, c);
-            Vector3 pos = CellCenterWorld(data, c);
+            Vector3 pos = CellCenterWorld(data, x, y);
             pos.y = baseH + _wallCenterY;
 
             GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
@@ -54,23 +53,18 @@ public sealed class Visualizer {
         }
     }
 
-
     public void RebuildFloors(MapData data) {
         ClearSpawnedFloors();
 
-        bool[,] wallMatrix = data.WallMatrix;
-        float[,] height = data.TileHeight;
-
         for (int y = 0; y < data.Height; y++)
         for (int x = 0; x < data.Width; x++) {
-            if (wallMatrix[y, x]) {
+            if (data.Cells[y, x].IsWall) {
                 continue;
             }
 
-            float h = height[y, x];
+            float h = data.Cells[y, x].Height;
 
-            Cell c = new(x, y);
-            Vector3 pos = CellCenterWorld(data, c);
+            Vector3 pos = CellCenterWorld(data, x, y);
             pos.y = h + (_floorThickness * 0.5f);
 
             GameObject f;
@@ -113,11 +107,13 @@ public sealed class Visualizer {
             }
         }
 
-        Cell zombieCell = new(data.Rooms[a].center.x, data.Rooms[a].center.y);
-        Cell targetCell = new(data.Rooms[b].center.x, data.Rooms[b].center.y);
+        int zx = data.Rooms[a].center.x;
+        int zy = data.Rooms[a].center.y;
+        int tx = data.Rooms[b].center.x;
+        int ty = data.Rooms[b].center.y;
 
-        Vector3 zombiePos = CellTopWorld(data, zombieCell);
-        Vector3 targetPos = CellTopWorld(data, targetCell);
+        Vector3 zombiePos = CellTopWorld(data, zx, zy);
+        Vector3 targetPos = CellTopWorld(data, tx, ty);
 
         if (zombieMarker != null) {
             zombieMarker.position = zombiePos;
@@ -133,39 +129,39 @@ public sealed class Visualizer {
         ClearSpawnedFloors();
     }
 
-    private static Vector3 CellCenterWorld(MapData data, Cell c) {
-        float wx = data.Origin.x + ((c.X + 0.5f) * data.CellSize);
-        float wz = data.Origin.z + ((c.Y + 0.5f) * data.CellSize);
+    private static Vector3 CellCenterWorld(MapData data, int x, int y) {
+        float wx = data.Origin.x + ((x + 0.5f) * data.CellSize);
+        float wz = data.Origin.z + ((y + 0.5f) * data.CellSize);
         return new Vector3(wx, 0f, wz);
     }
 
-    private static Vector3 CellTopWorld(MapData data, Cell c) {
-        Vector3 p = CellCenterWorld(data, c);
-        float h = data.TileHeight != null ? data.TileHeight[c.Y, c.X] : 0f;
-        p.y = h;
+    private static Vector3 CellTopWorld(MapData data, int x, int y) {
+        Vector3 p = CellCenterWorld(data, x, y);
+        p.y = data.InBounds(x, y) ? data.Cells[y, x].Height : 0f;
         return p;
     }
 
-    private static float GetWallBaseHeightFromNeighbors(MapData data, Cell c) {
+    private static float GetWallBaseHeightFromNeighbors(MapData data, int x, int y) {
         float best = float.NegativeInfinity;
 
-        Try(new Cell(c.X + 1, c.Y));
-        Try(new Cell(c.X - 1, c.Y));
-        Try(new Cell(c.X, c.Y + 1));
-        Try(new Cell(c.X, c.Y - 1));
+        Try(x + 1, y);
+        Try(x - 1, y);
+        Try(x, y + 1);
+        Try(x, y - 1);
 
         return float.IsNegativeInfinity(best) ? 0f : best;
 
-        void Try(Cell n) {
-            if (n.X < 0 || n.X >= data.Width || n.Y < 0 || n.Y >= data.Height) {
+        void Try(int nx, int ny) {
+            if (!data.InBounds(nx, ny)) {
                 return;
             }
 
-            if (data.WallMatrix[n.Y, n.X]) {
+            Cell n = data.Cells[ny, nx];
+            if (n.IsWall) {
                 return;
             }
 
-            best = Mathf.Max(best, data.TileHeight[n.Y, n.X]);
+            best = Mathf.Max(best, n.Height);
         }
     }
 

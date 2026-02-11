@@ -25,16 +25,16 @@ public sealed class OrganicShaper {
 
         for (int it = 0; it < cfg.Iterations; it++) {
             // 1) Carve boundary cells
-            List<Cell> boundary = CollectBoundaryCells(room.FloorSet, room.bounds);
+            List<Vector2Int> boundary = CollectBoundaryCells(room.FloorSet, room.bounds);
             int carveCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.CarveRatio), 0, boundary.Count);
 
             for (int k = 0; k < carveCount && boundary.Count > 0; k++) {
                 int idx = rng.Next(boundary.Count);
-                Cell c = boundary[idx];
+                Vector2Int c = boundary[idx];
                 boundary.RemoveAt(idx);
 
                 if (CountFloorNeighbors(room.FloorSet, c) >= 2) {
-                    room.FloorSet.Remove(Utility.Pack(c.X, c.Y));
+                    room.FloorSet.Remove(Utility.Pack(c.x, c.y));
                 }
             }
 
@@ -44,16 +44,16 @@ public sealed class OrganicShaper {
 
             for (int k = 0; k < growCount && boundary.Count > 0; k++) {
                 int idx = rng.Next(boundary.Count);
-                Cell b = boundary[idx];
+                Vector2Int b = boundary[idx];
                 boundary.RemoveAt(idx);
 
                 for (int t = 0; t < cfg.GrowMaxTriesPerCell; t++) {
-                    Cell n = PickRandom4Neighbor(b, rng);
-                    if (!InRect(room.bounds, n.X, n.Y)) {
+                    Vector2Int n = PickRandom4Neighbor(b, rng);
+                    if (!InRect(room.bounds, n.x, n.y)) {
                         continue;
                     }
 
-                    int p = Utility.Pack(n.X, n.Y);
+                    int p = Utility.Pack(n.x, n.y);
                     if (!room.FloorSet.Contains(p)) {
                         if (CountFloorNeighbors(room.FloorSet, n) >= 2) {
                             room.FloorSet.Add(p);
@@ -67,8 +67,8 @@ public sealed class OrganicShaper {
         room.RebuildCellsFromFloorSet();
     }
 
-    private static List<Cell> CollectBoundaryCells(HashSet<int> floorSet, RectInt bounds) {
-        List<Cell> result = new();
+    private static List<Vector2Int> CollectBoundaryCells(HashSet<int> floorSet, RectInt bounds) {
+        List<Vector2Int> result = new();
 
         for (int y = bounds.yMin; y < bounds.yMax; y++)
         for (int x = bounds.xMin; x < bounds.xMax; x++) {
@@ -81,7 +81,7 @@ public sealed class OrganicShaper {
                 !IsFloor(floorSet, bounds, x - 1, y) ||
                 !IsFloor(floorSet, bounds, x, y + 1) ||
                 !IsFloor(floorSet, bounds, x, y - 1)) {
-                result.Add(new Cell(x, y));
+                result.Add(new Vector2Int(x, y));
             }
         }
 
@@ -96,34 +96,34 @@ public sealed class OrganicShaper {
         return set.Contains(Utility.Pack(x, y));
     }
 
-    private static int CountFloorNeighbors(HashSet<int> set, Cell c) {
+    private static int CountFloorNeighbors(HashSet<int> set, Vector2Int c) {
         int n = 0;
-        if (set.Contains(Utility.Pack(c.X + 1, c.Y))) {
+        if (set.Contains(Utility.Pack(c.x + 1, c.y))) {
             n++;
         }
 
-        if (set.Contains(Utility.Pack(c.X - 1, c.Y))) {
+        if (set.Contains(Utility.Pack(c.x - 1, c.y))) {
             n++;
         }
 
-        if (set.Contains(Utility.Pack(c.X, c.Y + 1))) {
+        if (set.Contains(Utility.Pack(c.x, c.y + 1))) {
             n++;
         }
 
-        if (set.Contains(Utility.Pack(c.X, c.Y - 1))) {
+        if (set.Contains(Utility.Pack(c.x, c.y - 1))) {
             n++;
         }
 
         return n;
     }
 
-    private static Cell PickRandom4Neighbor(Cell c, System.Random rng) {
+    private static Vector2Int PickRandom4Neighbor(Vector2Int c, System.Random rng) {
         int r = rng.Next(4);
         return r switch {
-            0 => new Cell(c.X + 1, c.Y),
-            1 => new Cell(c.X - 1, c.Y),
-            2 => new Cell(c.X, c.Y + 1),
-            _ => new Cell(c.X, c.Y - 1)
+            0 => new Vector2Int(c.x + 1, c.y),
+            1 => new Vector2Int(c.x - 1, c.y),
+            2 => new Vector2Int(c.x, c.y + 1),
+            _ => new Vector2Int(c.x, c.y - 1)
         };
     }
 }

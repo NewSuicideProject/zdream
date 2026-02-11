@@ -7,26 +7,25 @@ public sealed class MapData {
     public float CellSize;
     public Vector3 Origin;
 
-    public bool[,] WallMatrix; // true = wall (logical)
-    public bool[,] ActiveWallMatrix; // true = active wall (physical/render)
-
-    public int[,] RoomIdMatrix;
-    public float[,] TileHeight;
+    public Cell[,] Cells;
     public List<Room> Rooms;
 
-    public void ComputeActiveWalls() {
-        if (WallMatrix == null) {
+    public bool InBounds(int x, int y) => (uint)x < (uint)Width && (uint)y < (uint)Height;
+
+    public void ComputeBordorWalls() {
+        if (Cells == null) {
             return;
         }
-
-        ActiveWallMatrix = new bool[Height, Width];
 
         int[] dx = { 1, -1, 0, 0 };
         int[] dy = { 0, 0, 1, -1 };
 
         for (int y = 0; y < Height; y++)
         for (int x = 0; x < Width; x++) {
-            if (!WallMatrix[y, x]) {
+            ref Cell cell = ref Cells[y, x];
+
+            if (!cell.IsWall) {
+                cell.IsBordor = false;
                 continue;
             }
 
@@ -35,30 +34,17 @@ public sealed class MapData {
             for (int k = 0; k < 4; k++) {
                 int nx = x + dx[k];
                 int ny = y + dy[k];
-
-                if ((uint)nx >= (uint)Width || (uint)ny >= (uint)Height) {
+                if (!InBounds(nx, ny)) {
                     continue;
                 }
 
-                if (!WallMatrix[ny, nx]) {
+                if (!Cells[ny, nx].IsWall) {
                     touchesFloor = true;
                     break;
                 }
             }
 
-            ActiveWallMatrix[y, x] = touchesFloor;
+            cell.IsBordor = touchesFloor;
         }
-    }
-
-    public bool IsActiveWall(int y, int x) {
-        if (ActiveWallMatrix == null) {
-            return false;
-        }
-
-        if ((uint)x >= (uint)Width || (uint)y >= (uint)Height) {
-            return false;
-        }
-
-        return ActiveWallMatrix[y, x];
     }
 }

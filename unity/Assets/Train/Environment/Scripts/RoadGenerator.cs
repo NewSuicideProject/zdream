@@ -92,7 +92,7 @@ public sealed class RoadGenerator {
             Room a = map.Rooms[e.A];
             Room b = map.Rooms[e.B];
 
-            List<Cell> roadPath = BuildRoadPathCells(a, b, rng, randomizeLTurnOrder);
+            List<Vector2Int> roadPath = BuildRoadPathCells(a, b, rng, randomizeLTurnOrder);
 
             float fromH = LevelToHeight(a.heightLevel, levelStepHeight);
             float toH = LevelToHeight(b.heightLevel, levelStepHeight);
@@ -103,53 +103,50 @@ public sealed class RoadGenerator {
 
     private static float LevelToHeight(int level, float levelStepHeight) => level * levelStepHeight;
 
-    private static bool InBounds(MapData map, Cell c)
-        => c.X >= 0 && c.X < map.Width && c.Y >= 0 && c.Y < map.Height;
-
-    private static List<Cell> BuildRoadPathCells(Room a, Room b, System.Random rng, bool randomizeLTurnOrder) {
-        Cell doorA = a.PickBestDoorCell(b.center);
-        Cell doorB = b.PickBestDoorCell(a.center);
+    private static List<Vector2Int> BuildRoadPathCells(Room a, Room b, System.Random rng, bool randomizeLTurnOrder) {
+        Vector2Int doorA = a.PickBestDoorCell(b.center);
+        Vector2Int doorB = b.PickBestDoorCell(a.center);
 
         bool xThenY = randomizeLTurnOrder ? rng.NextDouble() < 0.5 : true;
 
-        List<Cell> path = new(Mathf.Abs(doorA.X - doorB.X) + Mathf.Abs(doorA.Y - doorB.Y) + 2);
+        List<Vector2Int> path = new(Mathf.Abs(doorA.x - doorB.x) + Mathf.Abs(doorA.y - doorB.y) + 2);
 
         if (xThenY) {
-            AppendLineCells(path, doorA, new Cell(doorB.X, doorA.Y));
-            AppendLineCells(path, new Cell(doorB.X, doorA.Y), doorB);
+            AppendLineCells(path, doorA, new Vector2Int(doorB.x, doorA.y));
+            AppendLineCells(path, new Vector2Int(doorB.x, doorA.y), doorB);
         } else {
-            AppendLineCells(path, doorA, new Cell(doorA.X, doorB.Y));
-            AppendLineCells(path, new Cell(doorA.X, doorB.Y), doorB);
+            AppendLineCells(path, doorA, new Vector2Int(doorA.x, doorB.y));
+            AppendLineCells(path, new Vector2Int(doorA.x, doorB.y), doorB);
         }
 
         return path;
     }
 
-    private static void AppendLineCells(List<Cell> outCells, Cell start, Cell end) {
-        int dx = Math.Sign(end.X - start.X);
-        int dy = Math.Sign(end.Y - start.Y);
+    private static void AppendLineCells(List<Vector2Int> outCells, Vector2Int start, Vector2Int end) {
+        int dx = Math.Sign(end.x - start.x);
+        int dy = Math.Sign(end.y - start.y);
 
-        int x = start.X;
-        int y = start.Y;
+        int x = start.x;
+        int y = start.y;
 
-        if (outCells.Count == 0 || outCells[outCells.Count - 1].X != x || outCells[outCells.Count - 1].Y != y) {
-            outCells.Add(new Cell(x, y));
+        if (outCells.Count == 0 || outCells[outCells.Count - 1].x != x || outCells[outCells.Count - 1].y != y) {
+            outCells.Add(new Vector2Int(x, y));
         }
 
-        while (x != end.X) {
+        while (x != end.x) {
             x += dx;
-            outCells.Add(new Cell(x, y));
+            outCells.Add(new Vector2Int(x, y));
         }
 
-        while (y != end.Y) {
+        while (y != end.y) {
             y += dy;
-            outCells.Add(new Cell(x, y));
+            outCells.Add(new Vector2Int(x, y));
         }
     }
 
     private static void ApplyRoadWithConstantStepRise(
         MapData map,
-        List<Cell> roadCells,
+        List<Vector2Int> roadCells,
         float fromHeight,
         float toHeight,
         int roadWidth
@@ -174,19 +171,22 @@ public sealed class RoadGenerator {
         PaintRoadCell(map, roadCells[roadCells.Count - 1], toHeight, roadWidth);
     }
 
-    private static void PaintRoadCell(MapData map, Cell c, float height, int roadWidth) {
+    private static void PaintRoadCell(MapData map, Vector2Int c, float height, int roadWidth) {
         int halfA = (roadWidth - 1) / 2;
         int halfB = roadWidth / 2;
 
         for (int oy = -halfA; oy <= halfB; oy++)
         for (int ox = -halfA; ox <= halfB; ox++) {
-            Cell t = new(c.X + ox, c.Y + oy);
-            if (!InBounds(map, t)) {
+            int tx = c.x + ox;
+            int ty = c.y + oy;
+            if (!map.InBounds(tx, ty)) {
                 continue;
             }
 
-            map.WallMatrix[t.Y, t.X] = false;
-            map.TileHeight[t.Y, t.X] = height;
+            ref Cell cell = ref map.Cells[ty, tx];
+            cell.IsWall = false;
+            cell.Height = height;
+            // road는 RoomId는 안 건드림(원하면 세팅 가능)
         }
     }
 }
