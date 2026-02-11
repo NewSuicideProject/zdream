@@ -86,7 +86,7 @@ namespace Train {
                 return;
             }
 
-            AddReward(stayingReward * Time.fixedDeltaTime); //Distance Maintain Reward
+            AddReward(stayingReward * Time.fixedDeltaTime); //Staying Reward
             _stayTime += Time.fixedDeltaTime;
         }
 
@@ -147,12 +147,12 @@ namespace Train {
 
 
             if (_stayTime >= staySuccessThreshold) {
-                AddReward(staySuccessReward); //Distance Success Reward
+                AddReward(staySuccessReward); //Staying Success Reward
                 EndEpisode();
             } else if (transform.localPosition.y < 0f) {
                 EndEpisode();
             } else if (StepCount >= MaxStep - 1) {
-                AddReward(-failurePenalty); // Fail Penalty
+                AddReward(-failurePenalty); // Failure Penalty
             }
         }
 
@@ -181,8 +181,8 @@ namespace Train {
             float invPw = 1.0f / Mathf.Max(pw, 0.01f);
 
             float speedReward = Vector3.Dot(velocity, targetDir) * pw;
-            float jitterPenalty = jitter * (1.0f - pw);
-            float energyPenalty = energy * invPw * energyPenaltyMultiplier;
+            float jitterPenalty = jitter * jitterPenaltyMultiplier;
+            float energyPenalty = energy * invPw * (1.0f - pw) * energyPenaltyMultiplier;
             float uprightReward = upright * invPw * uprightRewardMultiplier;
             float speedMatchReward = speedMatch * pw * speedMatchRewardMultiplier;
 
