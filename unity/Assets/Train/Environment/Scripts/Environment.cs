@@ -2,8 +2,6 @@ using UnityEngine;
 
 namespace Train.Environment.Scripts {
     public sealed class Environment : MonoBehaviour {
-        [SerializeField] private Transform basePart;
-
         [SerializeField] private Transform wallParent;
         [SerializeField] private GameObject wallPrefab;
         [SerializeField] private GameObject floorPrefab;
@@ -17,18 +15,13 @@ namespace Train.Environment.Scripts {
         [Min(8)] [SerializeField] private int gridHeight = 64;
         [Min(0.1f)] [SerializeField] private float cellSize = 1f;
 
-        [SerializeField] private bool autoGenerateOnPlay = true;
         [SerializeField] private int seed = 0;
-        [SerializeField] private bool keepBorderWalls = true;
 
         [Min(2)] [SerializeField] private int roomCount = 14;
         [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
         [Range(0f, 1f)] [SerializeField] private float circleRoomChance = 0.35f;
 
-        [Min(3)] [SerializeField] private int rectMinW = 5;
-        [Min(3)] [SerializeField] private int rectMaxW = 12;
-        [Min(3)] [SerializeField] private int rectMinH = 5;
-        [Min(3)] [SerializeField] private int rectMaxH = 12;
+        [SerializeField] private RectInt rectSizeRange = new(5, 5, 12, 12);
 
         [Min(2)] [SerializeField] private int circleMinR = 3;
         [Min(2)] [SerializeField] private int circleMaxR = 7;
@@ -62,8 +55,6 @@ namespace Train.Environment.Scripts {
                 wallParent = transform;
             }
 
-            _organicShaper = new OrganicShaper();
-
             _visualizer = new Visualizer(
                 wallParent,
                 wallPrefab,
@@ -72,19 +63,27 @@ namespace Train.Environment.Scripts {
                 floorThickness
             );
 
-            _roomGenerator = new RoomGenerator(_organicShaper);
+            // RoomGenerator needs OrganicShaper, but config should be created from inspector values.
+            // We'll create OrganicShaper fresh per Generate() to always reflect current inspector values.
+            _organicShaper = null;
+            _roomGenerator = null;
+
             _roadGenerator = new RoadGenerator();
         }
 
-        private void Start() {
-            if (autoGenerateOnPlay) {
-                Generate();
-            }
-        }
+        private void Start() => Generate();
 
         public void Generate() {
-            int actualSeed = seed == 0 ? System.Environment.TickCount : seed;
-            _rng = new System.Random(actualSeed);
+            // Keep inspector-driven organic settings always up-to-date:
+            _organicShaper = new OrganicShaper(
+                organicIterations,
+                organicCarveRatio,
+                organicGrowRatio,
+                organicGrowMaxTriesPerCell
+            );
+            _roomGenerator = new RoomGenerator(_organicShaper);
+
+            _rng = new System.Random(seed == 0 ? System.Environment.TickCount : seed);
 
             _map = new MapData {
                 Width = gridWidth,
@@ -97,30 +96,20 @@ namespace Train.Environment.Scripts {
 
             _map.InitializeAllWalls();
 
-            OrganicShaper.Config organicCfg = new(
-                organicIterations,
-                organicCarveRatio,
-                organicGrowRatio,
-                organicGrowMaxTriesPerCell
-            );
-
             _roomGenerator.PlaceRooms(
                 _map,
                 _rng,
                 roomCount,
                 maxRoomRerolls,
                 circleRoomChance,
-                rectMinW,
-                rectMaxW,
-                rectMinH,
-                rectMaxH,
+                rectSizeRange,
                 circleMinR,
                 circleMaxR,
                 roomPadding,
                 minRoomLevel,
-                maxRoomLevel,
-                organicCfg
+                maxRoomLevel
             );
+
 
             _roomGenerator.WriteRoomsToGrid(_map, levelStepHeight);
 
@@ -132,10 +121,7 @@ namespace Train.Environment.Scripts {
                 levelStepHeight
             );
 
-            if (keepBorderWalls) {
-                _map.ApplyBorderWalls();
-            }
-
+            _map.ApplyBorderWalls();
             _map.ComputeBordorWalls();
 
             _visualizer.Rebuild(_map);
@@ -143,12 +129,16 @@ namespace Train.Environment.Scripts {
         }
 
         private Vector3 GetGridOrigin(int width, int height, float cellWorldSize) {
-            Vector3 center = basePart != null ? basePart.position : transform.position;
+            Vector3 center = transform.position;
 
             float totalW = width * cellWorldSize;
             float totalH = height * cellWorldSize;
 
-            return new Vector3(center.x - (totalW * 0.5f), 0f, center.z - (totalH * 0.5f));
+            return new Vector3(
+                center.x - (totalW * 0.5f),
+                0f,
+                center.z - (totalH * 0.5f)
+            );
         }
     }
 }

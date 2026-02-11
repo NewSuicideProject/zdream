@@ -12,9 +12,8 @@ namespace Train.Environment.Scripts {
 
         public readonly HashSet<Vector2Int> FloorSet = new();
 
-        public Room() { } // Unity 직렬화 안전용
+        public Room() { }
 
-        // Rect Room 생성자
         public Room(
             MapData map,
             System.Random rng,

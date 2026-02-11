@@ -3,25 +3,28 @@ using UnityEngine;
 
 namespace Train.Environment.Scripts {
     public sealed class OrganicShaper {
-        public readonly struct Config {
-            public readonly int Iterations;
-            public readonly float CarveRatio;
-            public readonly float GrowRatio;
-            public readonly int GrowMaxTriesPerCell;
+        private readonly int _iterations;
+        private readonly float _carveRatio;
+        private readonly float _growRatio;
+        private readonly int _growMaxTriesPerCell;
 
-            public Config(int iterations, float carveRatio, float growRatio, int growMaxTriesPerCell) {
-                Iterations = iterations;
-                CarveRatio = carveRatio;
-                GrowRatio = growRatio;
-                GrowMaxTriesPerCell = growMaxTriesPerCell;
-            }
+        public OrganicShaper(
+            int iterations,
+            float carveRatio,
+            float growRatio,
+            int growMaxTriesPerCell
+        ) {
+            _iterations = Mathf.Max(0, iterations);
+            _carveRatio = Mathf.Clamp(carveRatio, 0f, 0.25f);
+            _growRatio = Mathf.Clamp(growRatio, 0f, 0.25f);
+            _growMaxTriesPerCell = Mathf.Max(1, growMaxTriesPerCell);
         }
 
         private static bool InRect(RectInt r, int x, int y)
             => x >= r.xMin && x < r.xMax && y >= r.yMin && y < r.yMax;
 
-        public void ApplyLightOrganic(Room room, System.Random rng, Config cfg) {
-            if (room == null || rng == null || cfg.Iterations <= 0) {
+        public void ApplyLightOrganic(Room room, System.Random rng) {
+            if (room == null || rng == null || _iterations <= 0) {
                 return;
             }
 
@@ -29,10 +32,10 @@ namespace Train.Environment.Scripts {
                 return;
             }
 
-            for (int it = 0; it < cfg.Iterations; it++) {
+            for (int it = 0; it < _iterations; it++) {
                 // 1) Carve boundary cells
                 List<Vector2Int> boundary = CollectBoundaryCells(room.FloorSet, room.bounds);
-                int carveCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.CarveRatio), 0, boundary.Count);
+                int carveCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * _carveRatio), 0, boundary.Count);
 
                 for (int k = 0; k < carveCount && boundary.Count > 0; k++) {
                     int idx = rng.Next(boundary.Count);
@@ -46,14 +49,14 @@ namespace Train.Environment.Scripts {
 
                 // 2) Grow into neighbors (still inside bounds)
                 boundary = CollectBoundaryCells(room.FloorSet, room.bounds);
-                int growCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * cfg.GrowRatio), 0, boundary.Count);
+                int growCount = Mathf.Clamp(Mathf.RoundToInt(room.FloorSet.Count * _growRatio), 0, boundary.Count);
 
                 for (int k = 0; k < growCount && boundary.Count > 0; k++) {
                     int idx = rng.Next(boundary.Count);
                     Vector2Int b = boundary[idx];
                     boundary.RemoveAt(idx);
 
-                    for (int t = 0; t < cfg.GrowMaxTriesPerCell; t++) {
+                    for (int t = 0; t < _growMaxTriesPerCell; t++) {
                         Vector2Int n = PickRandom4Neighbor(b, rng);
                         if (!InRect(room.bounds, n.x, n.y)) {
                             continue;

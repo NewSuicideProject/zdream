@@ -11,16 +11,12 @@ namespace Train.Environment.Scripts {
             int roomCount,
             int maxRoomRerolls,
             float circleRoomChance,
-            int rectMinW,
-            int rectMaxW,
-            int rectMinH,
-            int rectMaxH,
+            RectInt rectSizeRange, // ← 여기
             int circleMinR,
             int circleMaxR,
             int roomPadding,
             int minRoomLevel,
-            int maxRoomLevel,
-            OrganicShaper.Config organicCfg
+            int maxRoomLevel
         ) {
             int tries = 0;
             int placed = 0;
@@ -33,7 +29,17 @@ namespace Train.Environment.Scripts {
 
                 Room room = makeCircle
                     ? new Room(map, rng, placed, circleMinR, circleMaxR, minRoomLevel, maxRoomLevel)
-                    : new Room(map, rng, placed, rectMinW, rectMaxW, rectMinH, rectMaxH, minRoomLevel, maxRoomLevel);
+                    : new Room(
+                        map,
+                        rng,
+                        placed,
+                        rectSizeRange.x, // minW
+                        rectSizeRange.width, // maxW
+                        rectSizeRange.y, // minH
+                        rectSizeRange.height, // maxH
+                        minRoomLevel,
+                        maxRoomLevel
+                    );
 
                 if (!room.IsValid) {
                     continue;
@@ -43,7 +49,7 @@ namespace Train.Environment.Scripts {
                     continue;
                 }
 
-                _organicShaper.ApplyLightOrganic(room, rng, organicCfg);
+                _organicShaper.ApplyLightOrganic(room, rng);
 
                 map.Rooms.Add(room);
                 placed++;
