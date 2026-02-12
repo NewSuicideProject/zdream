@@ -183,11 +183,12 @@ namespace Train.Environment.Scripts {
                 ref Cell cell = ref map.Cells[p.y, p.x];
 
                 cell.isWall = false;
-                cell.isRoad = cell.roomId == -1;
 
                 if (cell.roomId == -1) {
+                    cell.isRoad = true;
                     cell.height = roadTopHeight;
                 }
+
             }
         }
     }
