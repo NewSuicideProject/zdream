@@ -10,13 +10,13 @@ namespace Train.Environment.Scripts {
         private readonly GameObject _floorPrefab;
         private readonly float _floorThickness;
 
+        // 환경에서 넘겨줘도 지금은 안 씀(큐브 벽으로 복귀)
         private readonly Material _roomWallMat;
         private readonly float _roomWallHeight;
         private readonly float _roomWallThickness;
 
         private readonly List<GameObject> _spawnedWalls = new();
         private readonly List<GameObject> _spawnedFloors = new();
-        private GameObject _roomWallMesh;
 
         public Visualizer(
             Transform parent,
@@ -36,18 +36,17 @@ namespace Train.Environment.Scripts {
             _floorThickness = Mathf.Max(0.01f, floorThickness);
 
             _roomWallMat = roomWallMat;
-            _roomWallHeight = Mathf.Max(0.01f, roomWallHeight);
-            _roomWallThickness = Mathf.Max(0.01f, roomWallThickness);
+            _roomWallHeight = roomWallHeight;
+            _roomWallThickness = roomWallThickness;
         }
 
         public void Rebuild(Map map) {
             ClearAll();
             RebuildFloors(map);
-            RebuildRoadWalls(map);
-            RebuildRoomWallMesh(map);
+            RebuildWalls(map);
         }
 
-        private void RebuildRoadWalls(Map map) {
+        public void RebuildWalls(Map map) {
             ClearSpawnedWalls();
 
             if (_wallPrefab == null) {
@@ -61,10 +60,6 @@ namespace Train.Environment.Scripts {
                 }
 
                 Vector2Int p = new(x, y);
-                if (!WallTouchesRoad(map, p)) {
-                    continue;
-                }
-
                 float baseY = GetWallBaseHeightFromNeighbors(map, p);
 
                 Vector3 pos = CellCenterWorld(map, p);
@@ -73,37 +68,6 @@ namespace Train.Environment.Scripts {
                 GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
                 w.name = $"Wall_{x}_{y}";
                 _spawnedWalls.Add(w);
-            }
-        }
-
-        private void RebuildRoomWallMesh(Map map) {
-            if (_roomWallMesh != null) {
-                Object.Destroy(_roomWallMesh);
-                _roomWallMesh = null;
-            }
-
-            _roomWallMesh = RoomWallMesher.Build(
-                map,
-                _parent,
-                _roomWallMat,
-                _roomWallHeight,
-                _roomWallThickness
-            );
-        }
-
-        public void PlaceSpawnMarkers(
-            Map map,
-            Vector2Int zombieCell,
-            Vector2Int targetCell,
-            Transform zombieMarker,
-            Transform targetMarker
-        ) {
-            if (zombieMarker != null) {
-                zombieMarker.position = CellTopWorld(map, zombieCell);
-            }
-
-            if (targetMarker != null) {
-                targetMarker.position = CellTopWorld(map, targetCell);
             }
         }
 
@@ -138,14 +102,25 @@ namespace Train.Environment.Scripts {
             }
         }
 
+        public void PlaceSpawnMarkers(
+            Map map,
+            Vector2Int zombieCell,
+            Vector2Int targetCell,
+            Transform zombieMarker,
+            Transform targetMarker
+        ) {
+            if (zombieMarker != null) {
+                zombieMarker.position = CellTopWorld(map, zombieCell);
+            }
+
+            if (targetMarker != null) {
+                targetMarker.position = CellTopWorld(map, targetCell);
+            }
+        }
+
         public void ClearAll() {
             ClearSpawnedWalls();
             ClearSpawnedFloors();
-
-            if (_roomWallMesh != null) {
-                Object.Destroy(_roomWallMesh);
-                _roomWallMesh = null;
-            }
         }
 
         private void ClearSpawnedWalls() {
@@ -168,21 +143,6 @@ namespace Train.Environment.Scripts {
             _spawnedFloors.Clear();
         }
 
-        private static bool WallTouchesRoad(Map map, Vector2Int p) {
-            foreach (Vector2Int d in Utility.Cardinal) {
-                Vector2Int n = p + d;
-                if (!map.Bounds.Contains(n)) {
-                    continue;
-                }
-
-                if (map.GetCell(n).isRoad) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private static Vector3 CellCenterWorld(Map map, Vector2Int p) {
             float wx = map.Origin.x + ((p.x + 0.5f) * map.CellSize);
             float wz = map.Origin.z + ((p.y + 0.5f) * map.CellSize);
@@ -190,14 +150,14 @@ namespace Train.Environment.Scripts {
         }
 
         private static Vector3 CellTopWorld(Map map, Vector2Int p) {
-            float wx = map.Origin.x + ((p.x + 0.5f) * map.CellSize);
-            float wz = map.Origin.z + ((p.y + 0.5f) * map.CellSize);
-            float y = map.Bounds.Contains(p) ? map.Cells[p.y, p.x].height : 0f;
-            return new Vector3(wx, y, wz);
+            Vector3 w = CellCenterWorld(map, p);
+            w.y = map.Bounds.Contains(p) ? map.Cells[p.y, p.x].height : 0f;
+            return w;
         }
 
         private static float GetWallBaseHeightFromNeighbors(Map map, Vector2Int p) {
             float best = float.NegativeInfinity;
+
             foreach (Vector2Int d in Utility.Cardinal) {
                 Vector2Int n = p + d;
                 if (!map.Bounds.Contains(n)) {
