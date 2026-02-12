@@ -8,16 +8,20 @@ namespace Train.Sensors {
         private readonly ObservationSpec _observationSpec;
         private readonly int _gridSize;
         private readonly int _size;
+        private readonly float _maxHeight;
 
-        public TerrainSensor(Terrain.Terrain terrain, Proprioception proprioception, int gridSize) {
+        public TerrainSensor(Terrain.Terrain terrain, Proprioception proprioception, int gridSize, float maxHeight) {
             _terrain = terrain;
             _proprioception = proprioception;
             _gridSize = gridSize;
             _size = _gridSize * _gridSize;
             _observationSpec = ObservationSpec.Vector(_size);
+            _maxHeight = maxHeight;
         }
 
         public string GetName() => "terrain";
+
+        private float NormalizeHeight(float height) => Normalization.Tanh(height, _maxHeight);
 
         public int Write(ObservationWriter writer) {
             int idx = 0;
@@ -26,7 +30,7 @@ namespace Train.Sensors {
             for (int z = 0; z < _gridSize; z++) {
                 for (int x = 0; x < _gridSize; x++) {
                     float relativeHeight = _terrain.HeightMap[x, z] - agentY;
-                    writer[idx++] = relativeHeight;
+                    writer[idx++] = NormalizeHeight(relativeHeight);
                 }
             }
 

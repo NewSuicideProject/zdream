@@ -15,7 +15,7 @@ namespace Train.Terrain {
         private void Update() => ScanHeightMap();
 
         private void ScanHeightMap() {
-            _centerPosition = !proprioception ? transform.position : proprioception.transform.position;
+            _centerPosition = !proprioception ? transform.position : proprioception.Position;
 
             float halfSize = (gridSize - 1) * spacing * 0.5f;
             Vector3 startPos = new(_centerPosition.x - halfSize,
@@ -27,9 +27,9 @@ namespace Train.Terrain {
 
                     if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit,
                             heightOffset * 2f, targetLayer)) {
-                        HeightMap[x, z] = hit.point.y;
+                        HeightMap[x, z] = hit.point.y - _centerPosition.y;
                     } else {
-                        HeightMap[x, z] = _centerPosition.y - heightOffset;
+                        HeightMap[x, z] = -heightOffset;
                     }
                 }
             }
