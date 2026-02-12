@@ -3,33 +3,8 @@ using UnityEngine;
 
 namespace Sever {
     public class JointHierarchyBase : MonoBehaviour {
-        protected JointNodeBase RootNode { get; private set; }
         public List<JointNodeBase> Nodes;
-
-        protected virtual bool IsJoint(GameObject candidate) => true;
-
-        protected GameObject[] GetChildrenJoint(GameObject parent) {
-            List<GameObject> childrenJoint = new();
-
-            for (int i = 0; i < parent.transform.childCount; i++) {
-                GameObject child = parent.transform.GetChild(i).gameObject;
-                CollectChildren(child, childrenJoint);
-            }
-
-            return childrenJoint.ToArray();
-
-            void CollectChildren(GameObject obj, List<GameObject> children) {
-                if (IsJoint(obj)) {
-                    children.Add(obj);
-                    return;
-                }
-
-                for (int i = 0; i < obj.transform.childCount; i++) {
-                    GameObject child = obj.transform.GetChild(i).gameObject;
-                    CollectChildren(child, children);
-                }
-            }
-        }
+        protected JointNodeBase RootNode { get; private set; }
 
         protected virtual void Awake() {
             GameObject rootJoint;
@@ -54,6 +29,31 @@ namespace Sever {
 
             Nodes = new List<JointNodeBase>();
             GetNodes(RootNode);
+        }
+
+        protected virtual bool IsJoint(GameObject candidate) => true;
+
+        protected GameObject[] GetChildrenJoint(GameObject parent) {
+            List<GameObject> childrenJoint = new();
+
+            for (int i = 0; i < parent.transform.childCount; i++) {
+                GameObject child = parent.transform.GetChild(i).gameObject;
+                CollectChildren(child, childrenJoint);
+            }
+
+            return childrenJoint.ToArray();
+
+            void CollectChildren(GameObject obj, List<GameObject> children) {
+                if (IsJoint(obj)) {
+                    children.Add(obj);
+                    return;
+                }
+
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    GameObject child = obj.transform.GetChild(i).gameObject;
+                    CollectChildren(child, children);
+                }
+            }
         }
 
         private void GetNodes(JointNodeBase node) {

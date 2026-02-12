@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace Sever {
     public class JointNodeBase {
-        protected readonly GameObject GameObject;
         public readonly List<JointNodeBase> Children = new();
-
-        public bool IsSevered { get; protected set; }
+        protected readonly GameObject GameObject;
 
         public JointNodeBase(GameObject gameObject) => GameObject = gameObject;
+
+        public bool IsSevered { get; protected set; }
 
         public virtual void Sever() {
             if (IsSevered) {
