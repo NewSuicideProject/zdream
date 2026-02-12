@@ -111,7 +111,6 @@ namespace Train.Environment.Scripts {
             );
 
             _map.ApplyBorderWalls();
-            _map.ApplyBorderWalls();
 
             _visualizer.Rebuild(_map);
             _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
