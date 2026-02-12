@@ -339,6 +339,9 @@ MonoBehaviour:
   maxRoomLevel: 5
   levelStepHeight: 1
   floorThickness: 1
+  roomWallMaterial: {fileID: 2100000, guid: bb9ac831b49d54e4191e311fd9428241, type: 2}
+  roomWallHeight: 5
+  roomWallThickness: 0.5
 --- !u!1 &1067998556
 GameObject:
   m_ObjectHideFlags: 0

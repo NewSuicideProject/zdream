@@ -41,6 +41,9 @@ namespace Train.Environment.Scripts {
 
         [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f;
         [SerializeField] private float floorThickness = 0.2f;
+        [SerializeField] private Material roomWallMaterial;
+        [SerializeField] private float roomWallHeight = 5f;
+        [SerializeField] private float roomWallThickness = 0.5f;
 
         private Map _map;
         private System.Random _rng;
@@ -60,11 +63,12 @@ namespace Train.Environment.Scripts {
                 wallPrefab,
                 wallCenterY,
                 floorPrefab,
-                floorThickness
+                floorThickness,
+                roomWallMaterial,
+                roomWallHeight,
+                roomWallThickness
             );
 
-            _organicShaper = null;
-            _roomGenerator = null;
 
             _roadGenerator = new RoadGenerator();
         }
@@ -81,7 +85,6 @@ namespace Train.Environment.Scripts {
             _roomGenerator = new RoomGenerator(_organicShaper);
 
             _rng = new System.Random(seed == 0 ? System.Environment.TickCount : seed);
-
             _map = new Map(gridWidth, gridHeight, cellSize);
 
             _roomGenerator.PlaceRooms(
@@ -113,7 +116,82 @@ namespace Train.Environment.Scripts {
             _map.ApplyBorderWalls();
 
             _visualizer.Rebuild(_map);
-            _visualizer.PlaceSpawnMarkers(_map, zombieSpawnMarker, targetSpawnMarker);
+
+            if (_map.Rooms.Count >= 2) {
+                int a = 0, b = 1;
+                long best = -1;
+
+                for (int i = 0; i < _map.Rooms.Count; i++)
+                for (int j = i + 1; j < _map.Rooms.Count; j++) {
+                    Vector2Int c1 = _map.Rooms[i].center;
+                    Vector2Int c2 = _map.Rooms[j].center;
+
+                    long dx = c1.x - c2.x;
+                    long dy = c1.y - c2.y;
+                    long d2 = (dx * dx) + (dy * dy);
+
+                    if (d2 > best) {
+                        best = d2;
+                        a = i;
+                        b = j;
+                    }
+                }
+
+                _visualizer.PlaceSpawnMarkers(
+                    _map,
+                    _map.Rooms[a].center,
+                    _map.Rooms[b].center,
+                    zombieSpawnMarker,
+                    targetSpawnMarker
+                );
+            }
+        }
+
+
+        private void PlaceSpawnMarkers(Map map, Transform zombieMarker, Transform targetMarker) {
+            if (map.Rooms.Count == 0) {
+                return;
+            }
+
+            int a = 0, b = Mathf.Min(1, map.Rooms.Count - 1);
+            long best = -1;
+
+            for (int i = 0; i < map.Rooms.Count; i++)
+            for (int j = i + 1; j < map.Rooms.Count; j++) {
+                Vector2Int c1 = map.Rooms[i].center;
+                Vector2Int c2 = map.Rooms[j].center;
+
+                long dx = c1.x - c2.x;
+                long dy = c1.y - c2.y;
+                long d2 = (dx * dx) + (dy * dy);
+
+                if (d2 > best) {
+                    best = d2;
+                    a = i;
+                    b = j;
+                }
+            }
+
+            Vector2Int zc = map.Rooms[a].center;
+            Vector2Int tc = map.Rooms[b].center;
+
+            Vector3 zPos = CellTopWorld(map, zc);
+            Vector3 tPos = CellTopWorld(map, tc);
+
+            if (zombieMarker != null) {
+                zombieMarker.position = zPos;
+            }
+
+            if (targetMarker != null) {
+                targetMarker.position = tPos;
+            }
+        }
+
+        private static Vector3 CellTopWorld(Map map, Vector2Int p) {
+            float wx = map.Origin.x + ((p.x + 0.5f) * map.CellSize);
+            float wz = map.Origin.z + ((p.y + 0.5f) * map.CellSize);
+            float y = map.Bounds.Contains(p) ? map.Cells[p.y, p.x].height : 0f;
+            return new Vector3(wx, y, wz);
         }
     }
 }
