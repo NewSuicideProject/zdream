@@ -324,8 +324,8 @@ MonoBehaviour:
   rectSizeRange:
     x: 5
     y: 5
-    width: 12
-    height: 12
+    width: 22
+    height: 22
   circleMinR: 3
   circleMaxR: 7
   roomPadding: 1
@@ -336,9 +336,10 @@ MonoBehaviour:
   organicGrowRatio: 0.05
   organicGrowMaxTriesPerCell: 6
   minRoomLevel: 0
-  maxRoomLevel: 5
+  maxRoomLevel: 22
   levelStepHeight: 1
   floorThickness: 1
+  cellsPerLevel: 12
   roomWallMaterial: {fileID: 2100000, guid: bb9ac831b49d54e4191e311fd9428241, type: 2}
   roomWallHeight: 5
   roomWallThickness: 0.5
