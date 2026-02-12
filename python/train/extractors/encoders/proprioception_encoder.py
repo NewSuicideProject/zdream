@@ -11,7 +11,13 @@ class ProprioceptionEncoder(nn.Module):
         super().__init__()
 
         if hidden_dims is None:
-            hidden_dims = [64, 128, 256]
+            hidden_dims = [512, 512, 256]
+
+        if isinstance(activation_fn, str):
+            from stable_baselines3.common.torch_layers import get_activation_fn
+
+            activation_fn = get_activation_fn(activation_fn)
+
         if activation_fn is None:
             activation_fn = nn.ReLU
 

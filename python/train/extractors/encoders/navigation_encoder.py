@@ -19,6 +19,11 @@ class NavigationEncoder(nn.Module):
         self.max_token = max_token
         self.nhead = nhead
 
+        if isinstance(activation_fn, str):
+            from stable_baselines3.common.torch_layers import get_activation_fn
+
+            activation_fn = get_activation_fn(activation_fn)
+
         if activation_fn is None:
             activation_fn = nn.ReLU()
 
