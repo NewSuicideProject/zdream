@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Train.Sensors {
     public class ProprioceptionSensor : ISensor {
-        private readonly Proprioception _proprioception;
+        private readonly Proprioception.Proprioception _proprioception;
         private readonly ObservationSpec _observationSpec;
 
         private readonly float _expectedMaxSpeed;
@@ -16,7 +16,8 @@ namespace Train.Sensors {
 
         private readonly int _size;
 
-        public ProprioceptionSensor(Proprioception proprioception, Transform target, float expectedMaxSpeed = 20f,
+        public ProprioceptionSensor(Proprioception.Proprioception proprioception, Transform target,
+            float expectedMaxSpeed = 20f,
             float expectedMaxDistance = 20f,
             float expectedMaxThickness = 1f) {
             _proprioception = proprioception;

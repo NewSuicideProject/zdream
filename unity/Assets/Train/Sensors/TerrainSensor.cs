@@ -3,13 +3,13 @@ using Unity.MLAgents.Sensors;
 namespace Train.Sensors {
     public class TerrainSensor : ISensor {
         private readonly Terrain.Terrain _terrain;
-        private readonly Proprioception _proprioception;
+        private readonly Proprioception.Proprioception _proprioception;
         private readonly ObservationSpec _observationSpec;
         private readonly int _gridSize;
         private readonly int _size;
         private readonly float _expectedMaxHeight;
 
-        public TerrainSensor(Terrain.Terrain terrain, Proprioception proprioception, int gridSize,
+        public TerrainSensor(Terrain.Terrain terrain, Proprioception.Proprioception proprioception, int gridSize,
             float expectedMaxHeight) {
             _terrain = terrain;
             _proprioception = proprioception;

@@ -1,12 +1,12 @@
 using System.Linq;
-using Train.Sever;
+using Train.Sever.Scripts;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Train {
-    [RequireComponent(typeof(Proprioception))]
+namespace Train.Agent {
+    [RequireComponent(typeof(Proprioception.Proprioception))]
     [RequireComponent(typeof(TrainJointHierarchy))]
     public class Agent : Unity.MLAgents.Agent {
         [SerializeField] private InputActionAsset inputActions;
@@ -30,7 +30,7 @@ namespace Train {
         [SerializeField] private float uprightRewardMultiplier = 1.0f;
         [SerializeField] private float speedMatchRewardMultiplier = 1.0f;
 
-        private Proprioception _proprioception;
+        private Proprioception.Proprioception _proprioception;
         private TrainJointHierarchy _jointHierarchy;
 
         private Test.Scripts.Environment _environment;
@@ -47,7 +47,7 @@ namespace Train {
             base.Awake();
 
             _environment = GetComponentInParent<Test.Scripts.Environment>();
-            _proprioception = GetComponent<Proprioception>();
+            _proprioception = GetComponent<Proprioception.Proprioception>();
             _jointHierarchy = GetComponent<TrainJointHierarchy>();
 
             _distanceScale = expectedMaxDistance;

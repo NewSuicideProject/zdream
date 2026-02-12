@@ -188,7 +188,6 @@ namespace Train.Environment.Scripts {
                     cell.isRoad = true;
                     cell.height = roadTopHeight;
                 }
-
             }
         }
     }

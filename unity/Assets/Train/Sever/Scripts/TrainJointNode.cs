@@ -1,7 +1,7 @@
 ﻿using Sever;
 using UnityEngine;
 
-namespace Train.Sever {
+namespace Train.Sever.Scripts {
     public struct JointLimitCache {
         public float LowerLimit;
         public float UpperLimit;

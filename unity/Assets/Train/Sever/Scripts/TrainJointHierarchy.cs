@@ -3,7 +3,7 @@ using System.Linq;
 using Sever;
 using UnityEngine;
 
-namespace Train.Sever {
+namespace Train.Sever.Scripts {
     public class TrainJointHierarchy : JointHierarchyBase {
         public TrainJointNode RootTrainNode;
         public List<TrainJointNode> TrainNodes;

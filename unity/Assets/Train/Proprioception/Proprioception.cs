@@ -1,9 +1,9 @@
 using System.Linq;
 using Sever;
-using Train.Sever;
+using Train.Sever.Scripts;
 using UnityEngine;
 
-namespace Train {
+namespace Train.Proprioception {
     [RequireComponent(typeof(JointHierarchyBase))]
     public class Proprioception : MonoBehaviour {
         private TrainJointHierarchy _hierarchy;

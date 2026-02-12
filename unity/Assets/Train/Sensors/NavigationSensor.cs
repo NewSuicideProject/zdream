@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Train.Sensors {
     public class NavigationSensor : ISensor {
         private readonly Navigator _navigator;
-        private readonly Proprioception _proprioception;
+        private readonly Proprioception.Proprioception _proprioception;
         private readonly ObservationSpec _observationSpec;
 
         private readonly float _expectedMaxDistance;
@@ -16,7 +16,7 @@ namespace Train.Sensors {
 
         public string GetName() => "navigation";
 
-        public NavigationSensor(Navigator navigator, Proprioception proprioception,
+        public NavigationSensor(Navigator navigator, Proprioception.Proprioception proprioception,
             int maxToken = 3, float expectedMaxDistance = 20.0f) {
             _navigator = navigator;
             _proprioception = proprioception;

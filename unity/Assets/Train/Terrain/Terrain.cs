@@ -6,12 +6,12 @@ namespace Train.Terrain {
         [SerializeField] private int gridSize = 10;
         [SerializeField] private float spacing = 1f;
         [SerializeField] private LayerMask targetLayer;
-        private Proprioception _proprioception;
+        private Proprioception.Proprioception _proprioception;
 
         public float[,] HeightMap;
 
         private void Awake() {
-            _proprioception = GetComponentInChildren<Proprioception>();
+            _proprioception = GetComponentInChildren<Proprioception.Proprioception>();
             HeightMap = new float[gridSize, gridSize];
         }
 
