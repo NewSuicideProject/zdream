@@ -8,8 +8,6 @@ namespace Train.Terrain {
         [SerializeField] private LayerMask targetLayer;
         private Proprioception _proprioception;
 
-        private Vector3 _position;
-
         public float[,] HeightMap;
 
         private void Awake() {
@@ -18,21 +16,21 @@ namespace Train.Terrain {
         }
 
         private void Update() {
-            _position = _proprioception?.Position ?? transform.position;
+            Vector3 position = _proprioception.Position;
 
             float gridHalfSize = (gridSize - 1) * spacing * 0.5f;
-            Vector3 gridTopLeft = new(_position.x - gridHalfSize,
-                _position.y + heightOffset, _position.z + gridHalfSize);
+            Vector3 gridTopLeft = new(position.x - gridHalfSize,
+                position.y + heightOffset, position.z + gridHalfSize);
 
             for (int z = 0; z < gridSize; z++) {
                 for (int x = 0; x < gridSize; x++) {
                     Vector3 rayOrigin = gridTopLeft + new Vector3(x * spacing, 0, -z * spacing);
 
                     if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit,
-                            heightOffset * 2f, targetLayer)) {
+                            Mathf.Infinity, targetLayer)) {
                         HeightMap[x, z] = hit.point.y;
                     } else {
-                        HeightMap[x, z] = 0f;
+                        HeightMap[x, z] = Mathf.Infinity;
                     }
                 }
             }
@@ -43,9 +41,11 @@ namespace Train.Terrain {
                 return;
             }
 
+            Vector3 position = _proprioception.Position;
+
             float gridHalfSize = (gridSize - 1) * spacing * 0.5f;
-            Vector3 gridTopLeft = new(_position.x - gridHalfSize,
-                _position.y + heightOffset, _position.z + gridHalfSize);
+            Vector3 gridTopLeft = new(position.x - gridHalfSize,
+                position.y + heightOffset, position.z + gridHalfSize);
 
             for (int z = 0; z < gridSize; z++) {
                 for (int x = 0; x < gridSize; x++) {

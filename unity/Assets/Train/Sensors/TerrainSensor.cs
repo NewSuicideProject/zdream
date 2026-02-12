@@ -1,5 +1,4 @@
 using Unity.MLAgents.Sensors;
-using UnityEngine;
 
 namespace Train.Sensors {
     public class TerrainSensor : ISensor {
@@ -8,20 +7,21 @@ namespace Train.Sensors {
         private readonly ObservationSpec _observationSpec;
         private readonly int _gridSize;
         private readonly int _size;
-        private readonly float _maxHeight;
+        private readonly float _expectedMaxHeight;
 
-        public TerrainSensor(Terrain.Terrain terrain, Proprioception proprioception, int gridSize, float maxHeight) {
+        public TerrainSensor(Terrain.Terrain terrain, Proprioception proprioception, int gridSize,
+            float expectedMaxHeight) {
             _terrain = terrain;
             _proprioception = proprioception;
             _gridSize = gridSize;
             _size = _gridSize * _gridSize;
             _observationSpec = ObservationSpec.Vector(_size);
-            _maxHeight = maxHeight;
+            _expectedMaxHeight = expectedMaxHeight;
         }
 
         public string GetName() => "terrain";
 
-        private float NormalizeHeight(float height) => Normalization.Tanh(height, _maxHeight);
+        private float NormalizeHeight(float height) => Normalization.Tanh(height, _expectedMaxHeight);
 
         public int Write(ObservationWriter writer) {
             int idx = 0;
