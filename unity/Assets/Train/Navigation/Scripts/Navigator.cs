@@ -15,8 +15,10 @@ namespace Train.Navigation.Scripts {
         private void Awake() {
             _navMeshPath = new NavMeshPath();
             _navMeshSurface = GetComponent<NavMeshSurface>();
-            _navMeshSurface.BuildNavMesh();
+            Reset();
         }
+
+        public void Reset() => _navMeshSurface.BuildNavMesh();
 
 
         private void Update() {

@@ -1,3 +1,4 @@
+using Train.Navigation.Scripts;
 using UnityEngine;
 
 namespace Train.Environment.Scripts {
@@ -56,6 +57,8 @@ namespace Train.Environment.Scripts {
         private Visualizer _visualizer;
         private RoomGenerator _roomGenerator;
         private RoadGenerator _roadGenerator;
+
+        [SerializeField] private Navigator navigator;
 
         private void Awake() {
             if (wallParent == null) {
@@ -154,6 +157,8 @@ namespace Train.Environment.Scripts {
                     targetSpawnMarker
                 );
             }
+
+            navigator.Reset();
         }
     }
 }
