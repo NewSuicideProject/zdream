@@ -27,9 +27,9 @@ namespace Train.Terrain {
 
                     if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit,
                             heightOffset * 2f, targetLayer)) {
-                        HeightMap[x, z] = hit.point.y - _centerPosition.y;
+                        HeightMap[x, z] = hit.point.y;
                     } else {
-                        HeightMap[x, z] = -heightOffset;
+                        HeightMap[x, z] = _centerPosition.y - heightOffset;
                     }
                 }
             }
