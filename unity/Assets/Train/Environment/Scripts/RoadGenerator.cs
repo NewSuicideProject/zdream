@@ -93,23 +93,29 @@ namespace Train.Environment.Scripts {
                 Room a = map.Rooms[e.A];
                 Room b = map.Rooms[e.B];
 
-                List<Vector2Int> roadPath = BuildRoadPathCells(a, b, rng, randomizeLTurnOrder);
-
                 float fromH = Utility.LevelToHeight(a.heightLevel, levelStepHeight);
                 float toH = Utility.LevelToHeight(b.heightLevel, levelStepHeight);
+
+                List<Vector2Int> roadPath = BuildRoadPathCells(a, b, rng, randomizeLTurnOrder);
 
                 ApplyRoadWithConstantStepRise(map, roadPath, fromH, toH, roadWidth);
             }
         }
 
-        private static List<Vector2Int>
-            BuildRoadPathCells(Room a, Room b, System.Random rng, bool randomizeLTurnOrder) {
+        private static List<Vector2Int> BuildRoadPathCells(
+            Room a,
+            Room b,
+            System.Random rng,
+            bool randomizeLTurnOrder
+        ) {
             Vector2Int doorA = a.GetDoorCell(b.center);
             Vector2Int doorB = b.GetDoorCell(a.center);
 
             bool xThenY = randomizeLTurnOrder ? rng.NextDouble() < 0.5 : true;
 
-            List<Vector2Int> path = new(Mathf.Abs(doorA.x - doorB.x) + Mathf.Abs(doorA.y - doorB.y) + 2);
+            List<Vector2Int> path = new(
+                Mathf.Abs(doorA.x - doorB.x) + Mathf.Abs(doorA.y - doorB.y) + 2
+            );
 
             if (xThenY) {
                 AppendLineCells(path, doorA, new Vector2Int(doorB.x, doorA.y));
@@ -154,17 +160,37 @@ namespace Train.Environment.Scripts {
                 return;
             }
 
-            int segments = roadCells.Count - 1;
-            if (segments <= 0) {
-                PaintRoadCell(map, roadCells[0], fromHeight, roadWidth);
+            // room 셀(door 포함)은 높이를 건드리지 않으니까,
+            // 실제로 칠하는 셀만 기준으로 step을 잡아야 마지막 튐이 없어짐.
+            List<Vector2Int> paint = new(roadCells.Count);
+            for (int i = 0; i < roadCells.Count; i++) {
+                Vector2Int p = roadCells[i];
+                if (!map.Bounds.Contains(p)) {
+                    continue;
+                }
+
+                if (map.GetCell(p).roomId != -1) {
+                    continue;
+                }
+
+                paint.Add(p);
+            }
+
+            if (paint.Count == 0) {
                 return;
             }
 
+            if (paint.Count == 1) {
+                PaintRoadCell(map, paint[0], fromHeight, roadWidth);
+                return;
+            }
+
+            int segments = paint.Count - 1;
             float stepRise = (toHeight - fromHeight) / segments;
 
-            for (int i = 0; i < roadCells.Count; i++) {
+            for (int i = 0; i < paint.Count; i++) {
                 float h = fromHeight + (stepRise * i);
-                PaintRoadCell(map, roadCells[i], h, roadWidth);
+                PaintRoadCell(map, paint[i], h, roadWidth);
             }
         }
 
@@ -175,7 +201,6 @@ namespace Train.Environment.Scripts {
             for (int oy = -halfA; oy <= halfB; oy++)
             for (int ox = -halfA; ox <= halfB; ox++) {
                 Vector2Int p = new(c.x + ox, c.y + oy);
-
                 if (!map.Bounds.Contains(p)) {
                     continue;
                 }
@@ -188,7 +213,6 @@ namespace Train.Environment.Scripts {
                     cell.isRoad = true;
                     cell.height = roadTopHeight;
                 }
-
             }
         }
     }
