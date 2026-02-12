@@ -35,6 +35,39 @@
       }
     },
     {
+      "label": "Start Train",
+      "type": "shell",
+      "command": "conda",
+      "args": [
+        "run",
+        "-n",
+        "zdream",
+        "--no-capture-output",
+        "python",
+        "-m",
+        "python.train.run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/train",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}"
+        }
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
       "label": "Start TensorBoard",
       "type": "shell",
       "command": "conda",
