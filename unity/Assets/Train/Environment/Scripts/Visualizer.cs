@@ -12,11 +12,10 @@ namespace Train.Environment.Scripts {
 
         private readonly Material _roomWallMat;
         private readonly float _roomWallHeight;
-        private readonly float _roomWallThickness;
 
         private readonly List<GameObject> _spawnedWalls = new();
         private readonly List<GameObject> _spawnedFloors = new();
-        private readonly List<GameObject> _spawnedRoomWallParts = new();
+        private readonly List<GameObject> _spawnedRoomInner = new();
 
         public Visualizer(
             Transform parent,
@@ -26,7 +25,7 @@ namespace Train.Environment.Scripts {
             float floorThickness,
             Material roomWallMat,
             float roomWallHeight,
-            float roomWallThickness
+            float roomWallThickness // 호환용(안씀)
         ) {
             _parent = parent;
             _wallPrefab = wallPrefab;
@@ -37,219 +36,190 @@ namespace Train.Environment.Scripts {
 
             _roomWallMat = roomWallMat;
             _roomWallHeight = Mathf.Max(0.01f, roomWallHeight);
-            _roomWallThickness = Mathf.Max(0.01f, roomWallThickness);
         }
 
         public void Rebuild(Map map) {
             ClearAll();
             RebuildFloors(map);
             RebuildWalls(map);
+            RebuildRoomInnerWallsAndChamfers(map);
         }
 
         public void RebuildWalls(Map map) {
             ClearSpawnedWalls();
-            ClearSpawnedRoomWallParts();
 
-            if (_wallPrefab != null) {
-                for (int y = 0; y < map.Height; y++)
-                for (int x = 0; x < map.Width; x++) {
-                    if (!map.Cells[y, x].isBorder) {
-                        continue;
-                    }
-
-                    Vector2Int p = new(x, y);
-                    if (!WallTouchesRoad(map, p)) {
-                        continue;
-                    }
-
-                    float baseY = GetWallBaseHeightFromNeighbors(map, p);
-
-                    Vector3 pos = CellCenterWorld(map, p);
-                    pos.y = baseY + _wallCenterY;
-
-                    GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
-                    w.name = $"Wall_{x}_{y}";
-                    _spawnedWalls.Add(w);
-                }
+            if (_wallPrefab == null) {
+                return;
             }
-
-            BuildRoomWallParts(map);
-        }
-
-        private void BuildRoomWallParts(Map map) {
-            Dictionary<Vector2Int, List<Vector2Int>> graph = new();
 
             for (int y = 0; y < map.Height; y++)
             for (int x = 0; x < map.Width; x++) {
-                ref Cell c = ref map.Cells[y, x];
-                if (c.roomId == -1) {
+                if (!map.Cells[y, x].isBorder) {
                     continue;
                 }
 
                 Vector2Int p = new(x, y);
 
-                foreach (Vector2Int d in Utility.Cardinal) {
-                    Vector2Int n = p + d;
-
-                    // 문(road) 방향 면은 비움
-                    if (map.Bounds.Contains(n) && map.GetCell(n).isRoad) {
-                        continue;
-                    }
-
-                    // 바깥/벽 방향 면이면 외곽선
-                    if (!map.Bounds.Contains(n) || map.GetCell(n).isWall) {
-                        Vector2Int a = EdgeStart(p, d);
-                        Vector2Int b = EdgeEnd(p, d);
-                        AddEdge(graph, a, b);
-                    }
-                }
-            }
-
-            HashSet<(Vector2Int, Vector2Int)> used = new();
-
-            foreach (KeyValuePair<Vector2Int, List<Vector2Int>> kv in graph) {
-                Vector2Int start = kv.Key;
-                List<Vector2Int> nexts = kv.Value;
-
-                for (int i = 0; i < nexts.Count; i++) {
-                    Vector2Int firstTo = nexts[i];
-                    if (used.Contains((start, firstTo))) {
-                        continue;
-                    }
-
-                    List<Vector2Int> chain = new(64);
-                    Vector2Int prev = start;
-                    Vector2Int cur = start;
-                    Vector2Int next = firstTo;
-
-                    chain.Add(cur);
-                    MarkEdgeUsed(used, cur, next);
-
-                    int guard = 0;
-
-                    while (guard++ < 100000) {
-                        cur = next;
-                        chain.Add(cur);
-
-                        if (!graph.TryGetValue(cur, out List<Vector2Int> list) || list.Count == 0) {
-                            break;
-                        }
-
-                        if (!TryPickNext(list, prev, cur, used, out Vector2Int picked)) {
-                            break;
-                        }
-
-                        prev = cur;
-                        next = picked;
-                        MarkEdgeUsed(used, prev, next);
-
-                        // 닫힌 루프면 마지막 닫는 점 추가하고 종료
-                        if (next == chain[0]) {
-                            chain.Add(chain[0]);
-                            break;
-                        }
-                    }
-
-                    // 열린 체인도 벽 스폰해야 문 옆 프리팹 벽과 이어짐
-                    if (chain.Count >= 2) {
-                        SpawnRoomWallSegmentParts(map, chain);
-                    }
-                }
-            }
-        }
-
-        private static void MarkEdgeUsed(HashSet<(Vector2Int, Vector2Int)> used, Vector2Int a, Vector2Int b) {
-            used.Add((a, b));
-            used.Add((b, a));
-        }
-
-        // prev만 피하는 게 아니라 "아직 안 쓴 엣지" 우선
-        private static bool TryPickNext(
-            List<Vector2Int> list,
-            Vector2Int prev,
-            Vector2Int cur,
-            HashSet<(Vector2Int, Vector2Int)> used,
-            out Vector2Int next
-        ) {
-            // 1) prev 아닌 것 중에서 아직 안 쓴 엣지 우선
-            for (int i = 0; i < list.Count; i++) {
-                Vector2Int cand = list[i];
-                if (cand == prev) {
+                // 길 옆 벽만 큐브 유지
+                if (!WallTouchesRoad(map, p)) {
                     continue;
                 }
 
-                if (used.Contains((cur, cand))) {
-                    continue;
-                }
+                float baseY = GetWallBaseHeightFromNeighbors(map, p);
 
-                next = cand;
-                return true;
+                Vector3 pos = CellCenterWorld(map, p);
+                pos.y = baseY + _wallCenterY;
+
+                GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
+                w.name = $"Wall_{x}_{y}";
+                _spawnedWalls.Add(w);
             }
-
-            // 2) 그래도 없으면 prev 아닌 것(마지막 루프 닫기 같은 케이스)
-            for (int i = 0; i < list.Count; i++) {
-                Vector2Int cand = list[i];
-                if (cand == prev) {
-                    continue;
-                }
-
-                next = cand;
-                return true;
-            }
-
-            next = default;
-            return false;
         }
 
-        private void SpawnRoomWallSegmentParts(Map map, List<Vector2Int> chain) {
-            if (chain.Count < 2) {
-                return;
-            }
+        private void RebuildRoomInnerWallsAndChamfers(Map map) {
+            ClearSpawnedRoomInner();
 
-            float t = _roomWallThickness;
             float h = _roomWallHeight;
+            float half = map.CellSize * 0.5f;
+            float yCenterOffset = h * 0.5f;
 
-            for (int i = 0; i < chain.Count - 1; i++) {
-                Vector2Int a = chain[i];
-                Vector2Int b = chain[i + 1];
-
-                Vector3 wa = GridCornerToWorld(map, a);
-                Vector3 wb = GridCornerToWorld(map, b);
-
-                Vector3 flatA = new(wa.x, 0f, wa.z);
-                Vector3 flatB = new(wb.x, 0f, wb.z);
-
-                Vector3 dir = flatB - flatA;
-                float len = dir.magnitude;
-                if (len < 0.0001f) {
+            // 1) 룸 안쪽 면(벽셀의 룸쪽 면) 플레인
+            for (int y = 0; y < map.Height; y++)
+            for (int x = 0; x < map.Width; x++) {
+                if (!map.Cells[y, x].isBorder) {
                     continue;
                 }
 
-                dir /= len;
+                Vector2Int wall = new(x, y);
 
-                float baseY = GetRoomBaseHeightNearCorner(map, a);
-                float centerY = baseY + (h * 0.5f);
-
-                Vector3 mid = (flatA + flatB) * 0.5f;
-                mid.y = centerY;
-
-                Quaternion rot = Quaternion.LookRotation(dir, Vector3.up);
-
-                GameObject part = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                part.name = "RoomWallPart";
-                part.transform.SetParent(_parent, false);
-                part.transform.position = mid;
-                part.transform.rotation = rot;
-                part.transform.localScale = new Vector3(t, h, len);
-
-                if (_roomWallMat != null) {
-                    MeshRenderer r = part.GetComponent<MeshRenderer>();
-                    if (r != null) {
-                        r.sharedMaterial = _roomWallMat;
+                foreach (Vector2Int dir in Utility.Cardinal) {
+                    Vector2Int roomCell = wall + dir;
+                    if (!map.Bounds.Contains(roomCell)) {
+                        continue;
                     }
+
+                    Cell rc = map.GetCell(roomCell);
+                    if (rc.roomId == -1) {
+                        continue;
+                    }
+
+                    if (rc.isWall) {
+                        continue;
+                    }
+
+                    Vector3 c = CellCenterWorld(map, wall);
+                    Vector3 faceCenter = c + (new Vector3(dir.x, 0f, dir.y) * half);
+
+                    float baseY = rc.height;
+                    Vector3 pos = faceCenter;
+                    pos.y = baseY + yCenterOffset;
+
+                    GameObject q = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                    q.name = "RoomInnerFace";
+                    q.transform.SetParent(_parent, false);
+
+                    Vector3 inward = CellCenterWorld(map, roomCell) - faceCenter;
+                    inward.y = 0f;
+                    if (inward.sqrMagnitude < 1e-6f) {
+                        inward = new Vector3(-dir.x, 0f, -dir.y);
+                    }
+
+                    inward.Normalize();
+
+                    q.transform.position = pos + (inward * 0.01f); // z-fight 방지(룸쪽으로 살짝)
+                    q.transform.rotation = Quaternion.LookRotation(inward, Vector3.up);
+                    q.transform.localScale = new Vector3(map.CellSize, h, 1f);
+
+                    ApplyMat(q);
+
+                    _spawnedRoomInner.Add(q);
+                }
+            }
+
+            // 2) 코너 챔퍼(45도 대각): 룸 셀 기준으로 "두 벽면 중앙"을 잇는 플레인
+            // 룸 셀 r에서 (dirA, dirB)가 서로 직각이고 둘 다 벽이면, 두 면 중앙을 연결해 대각 생성
+            for (int y = 0; y < map.Height; y++)
+            for (int x = 0; x < map.Width; x++) {
+                Cell cell = map.Cells[y, x];
+                if (cell.roomId == -1 || cell.isWall) {
+                    continue;
                 }
 
-                _spawnedRoomWallParts.Add(part);
+                Vector2Int r = new(x, y);
+
+                TryChamfer(r, Vector2Int.right, Vector2Int.up);
+                TryChamfer(r, Vector2Int.up, Vector2Int.left);
+                TryChamfer(r, Vector2Int.left, Vector2Int.down);
+                TryChamfer(r, Vector2Int.down, Vector2Int.right);
+
+                void TryChamfer(Vector2Int room, Vector2Int a, Vector2Int b) {
+                    Vector2Int wa = room + a;
+                    Vector2Int wb = room + b;
+
+                    if (!map.Bounds.Contains(wa) || !map.Bounds.Contains(wb)) {
+                        return;
+                    }
+
+                    // 코너에 실제로 벽이 있어야(=isBorder) 대각을 만들고, 문이면 자연히 안 만들어짐
+                    if (!map.GetCell(wa).isBorder) {
+                        return;
+                    }
+
+                    if (!map.GetCell(wb).isBorder) {
+                        return;
+                    }
+
+                    Vector3 roomCenter = CellCenterWorld(map, room);
+
+                    Vector3 pa = roomCenter + (new Vector3(a.x, 0f, a.y) * half);
+                    Vector3 pb = roomCenter + (new Vector3(b.x, 0f, b.y) * half);
+
+                    Vector3 ab = pb - pa;
+                    float len = ab.magnitude;
+                    if (len < 1e-4f) {
+                        return;
+                    }
+
+                    Vector3 xAxis = ab / len;
+                    Vector3 forward = Vector3.Cross(xAxis, Vector3.up);
+                    if (Vector3.Dot(forward, roomCenter - ((pa + pb) * 0.5f)) < 0f) {
+                        forward = -forward;
+                    }
+
+                    Vector3 mid = (pa + pb) * 0.5f;
+                    mid.y = cell.height + yCenterOffset;
+
+                    GameObject q = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                    q.name = "RoomInnerChamfer";
+                    q.transform.SetParent(_parent, false);
+
+                    q.transform.position = mid + (forward * 0.01f); // 룸쪽으로 살짝
+                    q.transform.rotation = Quaternion.LookRotation(forward, Vector3.up);
+
+                    // Quad의 local X가 가로(폭). 우리가 만든 xAxis로 맞춰야 하니까 Y축 회전 보정
+                    // 현재 rotation의 right가 xAxis가 되도록 yaw 보정
+                    Vector3 right = q.transform.right;
+                    float sign = Mathf.Sign(Vector3.Dot(Vector3.Cross(right, xAxis), Vector3.up));
+                    float angle = Vector3.Angle(right, xAxis) * sign;
+                    q.transform.rotation = Quaternion.AngleAxis(angle, Vector3.up) * q.transform.rotation;
+
+                    q.transform.localScale = new Vector3(len, h, 1f);
+
+                    ApplyMat(q);
+
+                    _spawnedRoomInner.Add(q);
+                }
+            }
+
+            void ApplyMat(GameObject go) {
+                if (_roomWallMat == null) {
+                    return;
+                }
+
+                MeshRenderer r = go.GetComponent<MeshRenderer>();
+                if (r != null) {
+                    r.sharedMaterial = _roomWallMat;
+                }
             }
         }
 
@@ -303,7 +273,7 @@ namespace Train.Environment.Scripts {
         public void ClearAll() {
             ClearSpawnedWalls();
             ClearSpawnedFloors();
-            ClearSpawnedRoomWallParts();
+            ClearSpawnedRoomInner();
         }
 
         private void ClearSpawnedWalls() {
@@ -326,14 +296,14 @@ namespace Train.Environment.Scripts {
             _spawnedFloors.Clear();
         }
 
-        private void ClearSpawnedRoomWallParts() {
-            for (int i = 0; i < _spawnedRoomWallParts.Count; i++) {
-                if (_spawnedRoomWallParts[i] != null) {
-                    Object.Destroy(_spawnedRoomWallParts[i]);
+        private void ClearSpawnedRoomInner() {
+            for (int i = 0; i < _spawnedRoomInner.Count; i++) {
+                if (_spawnedRoomInner[i] != null) {
+                    Object.Destroy(_spawnedRoomInner[i]);
                 }
             }
 
-            _spawnedRoomWallParts.Clear();
+            _spawnedRoomInner.Clear();
         }
 
         private static bool WallTouchesRoad(Map map, Vector2Int p) {
@@ -349,76 +319,6 @@ namespace Train.Environment.Scripts {
             }
 
             return false;
-        }
-
-        private static Vector2Int EdgeStart(Vector2Int p, Vector2Int d) =>
-            d == Vector2Int.up ? new Vector2Int(p.x, p.y + 1) :
-            d == Vector2Int.right ? new Vector2Int(p.x + 1, p.y + 1) :
-            d == Vector2Int.down ? new Vector2Int(p.x + 1, p.y) :
-            new Vector2Int(p.x, p.y);
-
-        private static Vector2Int EdgeEnd(Vector2Int p, Vector2Int d) =>
-            d == Vector2Int.up ? new Vector2Int(p.x + 1, p.y + 1) :
-            d == Vector2Int.right ? new Vector2Int(p.x + 1, p.y) :
-            d == Vector2Int.down ? new Vector2Int(p.x, p.y) :
-            new Vector2Int(p.x, p.y + 1);
-
-        private static void AddEdge(Dictionary<Vector2Int, List<Vector2Int>> g, Vector2Int a, Vector2Int b) {
-            if (!g.TryGetValue(a, out List<Vector2Int> la)) {
-                la = new List<Vector2Int>(2);
-                g[a] = la;
-            }
-
-            if (!g.TryGetValue(b, out List<Vector2Int> lb)) {
-                lb = new List<Vector2Int>(2);
-                g[b] = lb;
-            }
-
-            la.Add(b);
-            lb.Add(a);
-        }
-
-        private static float GetRoomBaseHeightNearCorner(Map map, Vector2Int corner) {
-            Vector2Int c0 = new(corner.x, corner.y);
-            Vector2Int c1 = new(corner.x - 1, corner.y);
-            Vector2Int c2 = new(corner.x, corner.y - 1);
-            Vector2Int c3 = new(corner.x - 1, corner.y - 1);
-
-            if (map.Bounds.Contains(c0)) {
-                Cell cell = map.GetCell(c0);
-                if (cell.roomId != -1) {
-                    return cell.height;
-                }
-            }
-
-            if (map.Bounds.Contains(c1)) {
-                Cell cell = map.GetCell(c1);
-                if (cell.roomId != -1) {
-                    return cell.height;
-                }
-            }
-
-            if (map.Bounds.Contains(c2)) {
-                Cell cell = map.GetCell(c2);
-                if (cell.roomId != -1) {
-                    return cell.height;
-                }
-            }
-
-            if (map.Bounds.Contains(c3)) {
-                Cell cell = map.GetCell(c3);
-                if (cell.roomId != -1) {
-                    return cell.height;
-                }
-            }
-
-            return 0f;
-        }
-
-        private static Vector3 GridCornerToWorld(Map map, Vector2Int p) {
-            float wx = map.Origin.x + (p.x * map.CellSize);
-            float wz = map.Origin.z + (p.y * map.CellSize);
-            return new Vector3(wx, 0f, wz);
         }
 
         private static Vector3 CellCenterWorld(Map map, Vector2Int p) {
