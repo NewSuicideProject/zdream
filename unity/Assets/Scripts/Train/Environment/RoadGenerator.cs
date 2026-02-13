@@ -62,7 +62,7 @@ namespace Train.Environment {
             Vector2Int doorA = a.GetDoorCell(b.center);
             Vector2Int doorB = b.GetDoorCell(a.center);
 
-            bool xThenY = randomizeLTurnOrder ? rng.NextDouble() < 0.5 : true;
+            bool xThenY = !randomizeLTurnOrder || rng.NextDouble() < 0.5;
 
             List<Vector2Int> path = new(
                 Mathf.Abs(doorA.x - doorB.x) + Mathf.Abs(doorA.y - doorB.y) + 2
@@ -114,8 +114,7 @@ namespace Train.Environment {
             // room 셀(door 포함)은 높이를 건드리지 않으니까,
             // 실제로 칠하는 셀만 기준으로 step을 잡아야 마지막 튐이 없어짐.
             List<Vector2Int> paint = new(roadCells.Count);
-            for (int i = 0; i < roadCells.Count; i++) {
-                Vector2Int p = roadCells[i];
+            foreach (Vector2Int p in roadCells) {
                 if (!map.Bounds.Contains(p)) {
                     continue;
                 }

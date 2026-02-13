@@ -43,12 +43,10 @@ namespace Train.Environment {
         [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f;
         [SerializeField] private float floorThickness = 0.2f;
 
-        [Header("Height by Distance")] [Min(1)] [SerializeField]
-        private int cellsPerLevel = 12; // 가까울수록 레벨차 제한
+        [Header("Road Height Constraint")] [Min(0f)] [SerializeField]
+        private float maxRoadRisePerCell = 0.5f;
 
-        [SerializeField] private Material roomWallMaterial;
-        [SerializeField] private float roomWallHeight = 5f;
-        [SerializeField] private float roomWallThickness = 0.5f;
+        [Header("Reset")] [SerializeField] private bool rerollSeedOnReset = true;
 
         private Map _map;
 
@@ -68,16 +66,21 @@ namespace Train.Environment {
                 wallPrefab,
                 wallCenterY,
                 floorPrefab,
-                floorThickness,
-                roomWallMaterial,
-                roomWallHeight,
-                roomWallThickness
+                floorThickness
             );
 
             _roadGenerator = new RoadGenerator();
         }
 
         private void Start() => Generate();
+
+        public void ResetEnvironment() {
+            if (rerollSeedOnReset) {
+                seed = 0;
+            }
+
+            Generate();
+        }
 
         public void Generate() {
             _organicShaper = new OrganicShaper(
@@ -86,6 +89,7 @@ namespace Train.Environment {
                 organicGrowRatio,
                 organicGrowMaxTriesPerCell
             );
+
             _roomGenerator = new RoomGenerator(_organicShaper);
 
             _rng = new Random(seed == 0 ? System.Environment.TickCount : seed);
@@ -105,11 +109,13 @@ namespace Train.Environment {
                 maxRoomLevel
             );
 
-            _roomGenerator.AssignHeightsByDistanceMst(
+            _roomGenerator.AssignHeightsByRoadConstraintMst(
                 _map,
                 _rng,
                 minRoomLevel,
-                maxRoomLevel
+                maxRoomLevel,
+                levelStepHeight,
+                maxRoadRisePerCell
             );
 
             foreach (Room room in _map.Rooms) {
@@ -127,34 +133,44 @@ namespace Train.Environment {
             _map.ApplyBorderWalls();
             _visualizer.Rebuild(_map);
 
-            if (_map.Rooms.Count >= 2) {
-                int a = 0, b = 1;
-                long best = -1;
+            PlaceFarthestRoomSpawns();
+        }
 
-                for (int i = 0; i < _map.Rooms.Count; i++)
-                for (int j = i + 1; j < _map.Rooms.Count; j++) {
-                    Vector2Int c1 = _map.Rooms[i].center;
-                    Vector2Int c2 = _map.Rooms[j].center;
-
-                    long dx = c1.x - c2.x;
-                    long dy = c1.y - c2.y;
-                    long d2 = (dx * dx) + (dy * dy);
-
-                    if (d2 > best) {
-                        best = d2;
-                        a = i;
-                        b = j;
-                    }
-                }
-
-                _visualizer.PlaceSpawnMarkers(
-                    _map,
-                    _map.Rooms[a].center,
-                    _map.Rooms[b].center,
-                    zombieSpawnMarker,
-                    targetSpawnMarker
-                );
+        private void PlaceFarthestRoomSpawns() {
+            if (zombieSpawnMarker == null || targetSpawnMarker == null) {
+                return;
             }
+
+            if (_map == null || _map.Rooms == null || _map.Rooms.Count < 2) {
+                return;
+            }
+
+            int a = 0, b = 1;
+            long best = -1;
+
+            for (int i = 0; i < _map.Rooms.Count; i++)
+            for (int j = i + 1; j < _map.Rooms.Count; j++) {
+                Vector2Int c1 = _map.Rooms[i].center;
+                Vector2Int c2 = _map.Rooms[j].center;
+
+                long dx = c1.x - c2.x;
+                long dy = c1.y - c2.y;
+                long d2 = (dx * dx) + (dy * dy);
+
+                if (d2 > best) {
+                    best = d2;
+                    a = i;
+                    b = j;
+                }
+            }
+
+            _visualizer.PlaceSpawnMarkers(
+                _map,
+                _map.Rooms[a].center,
+                _map.Rooms[b].center,
+                zombieSpawnMarker,
+                targetSpawnMarker
+            );
         }
     }
 }

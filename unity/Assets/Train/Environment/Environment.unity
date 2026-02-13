@@ -353,7 +353,7 @@ MonoBehaviour:
   targetSpawnMarker: {fileID: 1631997176}
   gridWidth: 125
   gridHeight: 125
-  cellSize: 1
+  cellSize: 2
   seed: 0
   roomCount: 22
   maxRoomRerolls: 60
@@ -366,20 +366,18 @@ MonoBehaviour:
   circleMinR: 3
   circleMaxR: 7
   roomPadding: 1
-  roadWidth: 1
+  roadWidth: 2
   randomizeLTurnOrder: 1
   organicIterations: 1
   organicCarveRatio: 0.06
   organicGrowRatio: 0.05
   organicGrowMaxTriesPerCell: 6
   minRoomLevel: 0
-  maxRoomLevel: 10
+  maxRoomLevel: 222
   levelStepHeight: 1
   floorThickness: 1
-  cellsPerLevel: 12
-  roomWallMaterial: {fileID: 2100000, guid: bb9ac831b49d54e4191e311fd9428241, type: 2}
-  roomWallHeight: 5
-  roomWallThickness: 0.5
+  maxRoadRisePerCell: 0.5
+  rerollSeedOnReset: 1
 --- !u!1 &1067998556
 GameObject:
   m_ObjectHideFlags: 0
