@@ -6,18 +6,13 @@ namespace Train.Agent {
         [SerializeField] private int gridSize = 10;
         [SerializeField] private float spacing = 0.25f;
         [SerializeField] private LayerMask targetLayer;
-        public Transform agentTransform;
 
         public float[,] HeightMap;
 
         private void Awake() => HeightMap = new float[gridSize, gridSize];
 
         private void Update() {
-            if (!agentTransform) {
-                return;
-            }
-
-            Vector3 position = agentTransform.position;
+            Vector3 position = transform.position;
 
             float gridHalfSize = (gridSize - 1) * spacing * 0.5f;
             Vector3 gridTopLeft = new(position.x - gridHalfSize,
@@ -38,11 +33,11 @@ namespace Train.Agent {
         }
 
         private void OnDrawGizmos() {
-            if (HeightMap == null || !agentTransform) {
+            if (HeightMap == null) {
                 return;
             }
 
-            Vector3 position = agentTransform.position;
+            Vector3 position = transform.position;
 
             float gridHalfSize = (gridSize - 1) * spacing * 0.5f;
             Vector3 gridTopLeft = new(position.x - gridHalfSize,
@@ -53,11 +48,11 @@ namespace Train.Agent {
                     Vector3 rayOrigin = gridTopLeft + new Vector3(x * spacing, 0, -z * spacing);
                     Vector3 hitPoint = new(rayOrigin.x, HeightMap[x, z], rayOrigin.z);
 
-                    Gizmos.color = Color.blue;
-                    Gizmos.DrawSphere(hitPoint, 0.025f);
-
                     Gizmos.color = Color.red;
-                    Gizmos.DrawSphere(rayOrigin, 0.025f);
+                    Gizmos.DrawSphere(hitPoint, 0.01f);
+
+                    Gizmos.color = Color.blue;
+                    Gizmos.DrawSphere(rayOrigin, 0.01f);
                 }
             }
         }

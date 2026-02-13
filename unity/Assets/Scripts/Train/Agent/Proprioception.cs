@@ -32,7 +32,7 @@ namespace Train.Agent {
         public float[] JointBlocks => jointBlocks;
         public float[] NormalizedJointBlocks => normalizedJointBlocks;
 
-        public Transform target;
+        public Transform targetTransform;
 
         private void Awake() => _hierarchy = GetComponent<AgentJointHierarchy>();
 
@@ -99,7 +99,8 @@ namespace Train.Agent {
             Quaternion yawQuat = Quaternion.LookRotation(projectedForward, Vector3.up);
             Matrix4x4 inverseMatrix = Matrix4x4.TRS(position, yawQuat, Vector3.one).inverse;
 
-            relativeTargetPosition = target ? inverseMatrix.MultiplyPoint3x4(target.position) : Vector3.zero;
+            relativeTargetPosition =
+                targetTransform ? inverseMatrix.MultiplyPoint3x4(targetTransform.position) : Vector3.zero;
 
             integrity = totalMass > 0f ? totalJoinedMass / totalMass : 0f;
         }
@@ -113,13 +114,16 @@ namespace Train.Agent {
             Transform pelvisTransform = _hierarchy.RootAgentNode.Body.transform;
 
             Gizmos.color = Color.lightGreen;
-            Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(gravity) * 0.25f);
+            Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(gravity) * 0.5f);
 
             Gizmos.color = Color.darkGreen;
-            Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(initialGravity) * 0.25f);
+            Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(initialGravity) * 0.5f);
 
             Gizmos.color = Color.blue;
             Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com));
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(projectedForward) * 0.5f);
         }
     }
 }

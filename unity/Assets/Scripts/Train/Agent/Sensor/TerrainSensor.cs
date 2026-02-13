@@ -22,7 +22,7 @@ namespace Train.Agent.Sensor {
 
         public int Write(ObservationWriter writer) {
             int idx = 0;
-            float agentHeight = _terrain.agentTransform.position.y;
+            float agentHeight = _terrain.transform.position.y;
 
             for (int z = 0; z < _gridSize; z++) {
                 for (int x = 0; x < _gridSize; x++) {

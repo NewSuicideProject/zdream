@@ -7,11 +7,7 @@ using UnityEngine.InputSystem;
 
 namespace Train.Agent {
     [RequireComponent(typeof(Proprioception))]
-    [RequireComponent(typeof(Navigation))]
-    [RequireComponent(typeof(Terrain))]
     public class Agent : Unity.MLAgents.Agent {
-        [SerializeField] private InputActionAsset inputActions;
-
         [Range(0.01f, 1f)] [SerializeField] private float passion = 0.5f;
         [SerializeField] private float expectedMaxSpeed = 20;
         [SerializeField] private float expectedMaxDistance = 20;
@@ -38,6 +34,7 @@ namespace Train.Agent {
         private Rigidbody[] _jointRigidbodies;
         private InputAction _moveAction;
         private Navigation _navigation;
+        private Terrain _terrain;
         private float[] _prevActions;
 
         private Proprioception _proprioception;
@@ -48,18 +45,16 @@ namespace Train.Agent {
         protected override void Awake() {
             base.Awake();
 
-            _proprioception = GetComponent<Proprioception>();
-            _jointHierarchy = GetComponent<AgentJointHierarchy>();
             _environment = GetComponentInParent<Environment.Environment>();
-            _navigation = GetComponent<Navigation>();
+
+            _jointHierarchy = GetComponent<AgentJointHierarchy>();
+            _proprioception = GetComponent<Proprioception>();
+
+            _navigation = GetComponentInChildren<Navigation>();
+            _terrain = GetComponentInChildren<Terrain>();
+
+            _proprioception.targetTransform = _environment.TargetTransform;
             _navigation.targetTransform = _environment.TargetTransform;
-
-            if (!inputActions) {
-                return;
-            }
-
-            InputActionMap playerMap = inputActions.FindActionMap("Player");
-            _moveAction = playerMap?.FindAction("Move");
         }
 
         private void Start() {
@@ -178,18 +173,6 @@ namespace Train.Agent {
                 AddReward(-failurePenalty);
             }
         }
-
-        public override void Heuristic(in ActionBuffers actionsOut) {
-            ActionSegment<float> continuousActionsOut = actionsOut.ContinuousActions;
-            Vector2 moveInput = Vector2.zero;
-            if (_moveAction != null) {
-                moveInput = _moveAction.ReadValue<Vector2>();
-            }
-
-            continuousActionsOut[0] = moveInput.x;
-            continuousActionsOut[1] = moveInput.y;
-        }
-
 
         private float CalculateFullReward(float pw, Vector3 velocity, Vector3 targetDir, float jitter, float energy,
             float upright, float speedMatch, float minPassionEpsilon) {

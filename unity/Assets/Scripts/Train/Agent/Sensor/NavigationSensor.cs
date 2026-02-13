@@ -26,8 +26,8 @@ namespace Train.Agent.Sensor {
         public int Write(ObservationWriter writer) {
             int idx = 0;
 
-            Vector3 position = _navigation.agentTransform.position;
-            Vector3 forward = _navigation.agentTransform.forward;
+            Vector3 position = _navigation.transform.position;
+            Vector3 forward = _navigation.transform.forward;
 
             Vector3 projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up);
 

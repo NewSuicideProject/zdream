@@ -815,8 +815,6 @@ GameObject:
   - component: {fileID: 6721007698222702340}
   - component: {fileID: 8780102705714806888}
   - component: {fileID: 7006036610937121702}
-  - component: {fileID: 7173728960566237186}
-  - component: {fileID: 4495481374906118358}
   - component: {fileID: 5321381840594856076}
   m_Layer: 0
   m_Name: Agent
@@ -933,43 +931,13 @@ MonoBehaviour:
   gravity: {x: 0, y: 0, z: 0}
   angularVelocity: {x: 0, y: 0, z: 0}
   linearVelocity: {x: 0, y: 0, z: 0}
-  position: {x: 0, y: 0, z: 0}
   integrity: 0
-  forward: {x: 0, y: 0, z: 0}
+  projectedForward: {x: 0, y: 0, z: 0}
+  relativeTargetPosition: {x: 0, y: 0, z: 0}
   contacts: []
   attaches: []
   jointBlocks: []
   normalizedJointBlocks: []
---- !u!114 &7173728960566237186
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1849166048388668536}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4438b8d4a4455b64784aaf3985703933, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Train.Agent.Scripts.Components.Terrain
-  heightOffset: 0.5
-  gridSize: 10
-  spacing: 0.25
-  targetLayer:
-    serializedVersion: 2
-    m_Bits: 8
---- !u!114 &4495481374906118358
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1849166048388668536}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68f569620f6016245b8a5063508a0aa7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Train.Agent.Scripts.Components.Navigation
   targetTransform: {fileID: 0}
 --- !u!114 &5321381840594856076
 MonoBehaviour:
@@ -3074,6 +3042,9 @@ GameObject:
   - component: {fileID: 3360759857597784372}
   - component: {fileID: 8684985529323476093}
   - component: {fileID: 6968654519417119673}
+  - component: {fileID: 436559899095837235}
+  - component: {fileID: 9180698709207714877}
+  - component: {fileID: 178468667798532537}
   m_Layer: 0
   m_Name: Pelvis
   m_TagString: Untagged
@@ -3186,6 +3157,69 @@ ArticulationBody:
   m_Immovable: 0
   m_UseGravity: 1
   m_CollisionDetectionMode: 0
+--- !u!114 &436559899095837235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8079182187004983998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4438b8d4a4455b64784aaf3985703933, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Train.Agent.Terrain
+  heightOffset: 0.5
+  gridSize: 10
+  spacing: 0.25
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 8
+--- !u!114 &9180698709207714877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8079182187004983998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68f569620f6016245b8a5063508a0aa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Train.Agent.Navigation
+  targetTransform: {fileID: 0}
+--- !u!114 &178468667798532537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8079182187004983998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
+  m_SerializedVersion: 0
+  m_AgentTypeID: 0
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 8
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.16666667
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 0}
+  m_BuildHeightMesh: 0
 --- !u!1 &8109027126898490216
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,8 +5,6 @@ using UnityEngine.InputSystem;
 
 namespace Test {
     public class Agent : Unity.MLAgents.Agent {
-        [SerializeField] private InputActionAsset inputActions;
-
         [SerializeField] private float expectedMaxSpeed = 20;
         [SerializeField] private float expectedMaxDistance = 20;
 
@@ -37,13 +35,6 @@ namespace Test {
 
             _distanceNormalizationFactor = 1f / expectedMaxDistance;
             _speedNormalizationFactor = 1f / expectedMaxSpeed;
-
-            if (!inputActions) {
-                return;
-            }
-
-            InputActionMap playerMap = inputActions.FindActionMap("Player");
-            _moveAction = playerMap?.FindAction("Move");
         }
 
         private void Start() => _targetTransform = _environment.TargetTransform;
@@ -123,18 +114,6 @@ namespace Test {
                 AddReward(-fallingPenalty);
                 EndEpisode();
             }
-        }
-
-        public override void Heuristic(in ActionBuffers actionsOut) {
-            ActionSegment<float> continuousActionsOut = actionsOut.ContinuousActions;
-            Vector2 moveInput = Vector2.zero;
-
-            if (_moveAction != null) {
-                moveInput = _moveAction.ReadValue<Vector2>();
-            }
-
-            continuousActionsOut[0] = moveInput.x;
-            continuousActionsOut[1] = moveInput.y;
         }
     }
 }
