@@ -81,7 +81,6 @@ namespace Train.Environment {
 
         private void Start() => Reset(initialSeed);
 
-        [ContextMenu("Reset")]
         public void Reset(int seed = 0) {
             _organicShaper = new OrganicShaper(
                 organicIterations,

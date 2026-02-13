@@ -2,7 +2,7 @@
 using Joint;
 using UnityEngine;
 
-namespace Train.Agent.Sever {
+namespace Train.Agent.Joint {
     public struct JointLimitCache {
         public float LowerLimit;
         public float UpperLimit;
@@ -62,13 +62,17 @@ namespace Train.Agent.Sever {
             }
         }
 
+        private void ResetBody() {
+            Body.jointPosition = _zeroSpace;
+            Body.jointForce = _zeroSpace;
+            Body.jointVelocity = _zeroSpace;
+            Body.angularVelocity = Vector3.zero;
+            Body.linearVelocity = Vector3.zero;
+        }
+
         public override void Reset() {
             if (!IsSevered) {
-                Body.jointPosition = _zeroSpace;
-                Body.jointForce = _zeroSpace;
-                Body.jointVelocity = _zeroSpace;
-                Body.angularVelocity = Vector3.zero;
-                Body.linearVelocity = Vector3.zero;
+                ResetBody();
             }
 
             base.Reset();
@@ -82,12 +86,8 @@ namespace Train.Agent.Sever {
             IsSevered = false;
             GameObject.transform.localScale = Vector3.one;
             Body.enabled = true;
+            ResetBody();
             _collider.enabled = true;
-            Body.jointPosition = _zeroSpace;
-            Body.jointForce = _zeroSpace;
-            Body.jointVelocity = _zeroSpace;
-            Body.angularVelocity = Vector3.zero;
-            Body.linearVelocity = Vector3.zero;
 
             foreach (JointNodeBase child in Children) {
                 child.Join();

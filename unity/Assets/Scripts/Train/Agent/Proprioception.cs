@@ -1,20 +1,18 @@
 using System.Linq;
-using Sever;
-using Train.Agent.Sever;
+using Train.Agent.Joint;
 using UnityEngine;
 
 namespace Train.Agent {
-    [RequireComponent(typeof(JointHierarchyBase))]
+    [RequireComponent(typeof(AgentJointHierarchy))]
     public class Proprioception : MonoBehaviour {
         [SerializeField] [ReadOnly] private Vector3 initialGravity;
-        [SerializeField] [ReadOnly] private Vector3 initialCoM;
         [SerializeField] [ReadOnly] private Vector3 com;
         [SerializeField] [ReadOnly] private Vector3 gravity;
         [SerializeField] [ReadOnly] private Vector3 angularVelocity;
         [SerializeField] [ReadOnly] private Vector3 linearVelocity;
-        [SerializeField] [ReadOnly] private Vector3 position;
         [SerializeField] [ReadOnly] private float integrity;
-        [SerializeField] [ReadOnly] private Vector3 forward;
+        [SerializeField] [ReadOnly] private Vector3 projectedForward;
+        [SerializeField] [ReadOnly] private Vector3 relativeTargetPosition;
         [SerializeField] [ReadOnly] private float[] contacts;
         [SerializeField] [ReadOnly] private float[] attaches;
         [SerializeField] [ReadOnly] private float[] jointBlocks;
@@ -22,18 +20,19 @@ namespace Train.Agent {
         private AgentJointHierarchy _hierarchy;
         private int _totalDoF;
         public Vector3 InitialGravity => initialGravity;
-        public Vector3 InitialCoM => initialCoM;
         public Vector3 Com => com;
         public Vector3 Gravity => gravity;
         public Vector3 AngularVelocity => angularVelocity;
         public Vector3 LinearVelocity => linearVelocity;
-        public Vector3 Position => position;
         public float Integrity => integrity;
-        public Vector3 Forward => forward;
+        public Vector3 ProjectedForward => projectedForward;
+        public Vector3 RelativeTargetPosition => relativeTargetPosition;
         public float[] Contacts => contacts;
         public float[] Attaches => attaches;
         public float[] JointBlocks => jointBlocks;
         public float[] NormalizedJointBlocks => normalizedJointBlocks;
+
+        public Transform target;
 
         private void Awake() => _hierarchy = GetComponent<AgentJointHierarchy>();
 
@@ -45,7 +44,6 @@ namespace Train.Agent {
             normalizedJointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count];
 
             Update();
-            initialCoM = com;
             initialGravity = gravity;
         }
 
@@ -87,8 +85,21 @@ namespace Train.Agent {
 
             angularVelocity = _hierarchy.RootAgentNode.Body.angularVelocity;
             linearVelocity = _hierarchy.RootAgentNode.Body.linearVelocity;
-            position = _hierarchy.RootAgentNode.Body.transform.position;
-            forward = _hierarchy.RootAgentNode.Body.transform.forward;
+
+            Vector3 forward = _hierarchy.RootAgentNode.Body.transform.forward;
+            Vector3 position = _hierarchy.RootAgentNode.Body.transform.position;
+            projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up);
+
+            if (projectedForward.sqrMagnitude < 0.001f) {
+                projectedForward = Vector3.forward;
+            } else {
+                projectedForward.Normalize();
+            }
+
+            Quaternion yawQuat = Quaternion.LookRotation(projectedForward, Vector3.up);
+            Matrix4x4 inverseMatrix = Matrix4x4.TRS(position, yawQuat, Vector3.one).inverse;
+
+            relativeTargetPosition = target ? inverseMatrix.MultiplyPoint3x4(target.position) : Vector3.zero;
 
             integrity = totalMass > 0f ? totalJoinedMass / totalMass : 0f;
         }
@@ -107,14 +118,8 @@ namespace Train.Agent {
             Gizmos.color = Color.darkGreen;
             Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(initialGravity) * 0.25f);
 
-            Gizmos.color = Color.lightBlue;
+            Gizmos.color = Color.blue;
             Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com));
-
-            Gizmos.color = Color.darkBlue;
-            Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(initialCoM));
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com - initialCoM));
         }
     }
 }

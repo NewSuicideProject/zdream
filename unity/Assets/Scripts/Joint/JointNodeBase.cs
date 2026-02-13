@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Sever {
+namespace Joint {
     public class JointNodeBase {
         public readonly List<JointNodeBase> Children = new();
         public readonly GameObject GameObject;

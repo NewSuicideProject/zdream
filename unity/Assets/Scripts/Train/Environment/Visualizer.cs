@@ -5,7 +5,8 @@ namespace Train.Environment {
     public class Visualizer {
         private readonly GameObject _floorPrefab;
         private readonly float _floorThickness;
-        private readonly Transform _parent;
+        private readonly Transform _wallContainer;
+        private readonly Transform _floorContainer;
 
         private readonly List<GameObject> _spawnedFloors = new();
         private readonly List<GameObject> _spawnedWalls = new();
@@ -17,13 +18,15 @@ namespace Train.Environment {
         private bool _wallPrefabSizeCached;
 
         public Visualizer(
-            Transform parent,
+            Transform wallContainer,
             GameObject wallPrefab,
             float wallCenterY,
             GameObject floorPrefab,
+            Transform floorContainer,
             float floorThickness
         ) {
-            _parent = parent;
+            _wallContainer = wallContainer;
+            _floorContainer = floorContainer;
             _wallPrefab = wallPrefab;
             _wallCenterY = wallCenterY;
 
@@ -43,10 +46,6 @@ namespace Train.Environment {
         public void RebuildWalls(Map map) {
             ClearSpawnedWalls();
 
-            if (_wallPrefab == null) {
-                return;
-            }
-
             if (!_wallPrefabSizeCached) {
                 CacheWallPrefabSize();
             }
@@ -63,7 +62,7 @@ namespace Train.Environment {
                 Vector3 pos = CellCenterWorld(map, p);
                 pos.y = baseY + _wallCenterY;
 
-                GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
+                GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _wallContainer);
                 w.name = $"Wall_{x}_{y}";
 
                 FitWallToCellXZ(w.transform, map.CellSize);
@@ -88,14 +87,7 @@ namespace Train.Environment {
                 Vector3 pos = CellCenterWorld(map, p);
                 pos.y = topY - (_floorThickness * 0.5f);
 
-                GameObject f;
-                if (_floorPrefab != null) {
-                    f = Object.Instantiate(_floorPrefab, pos, Quaternion.identity, _parent);
-                } else {
-                    f = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    f.transform.SetParent(_parent, true);
-                    f.transform.position = pos;
-                }
+                GameObject f = Object.Instantiate(_floorPrefab, pos, Quaternion.identity, _floorContainer);
 
                 f.name = $"Floor_{x}_{y}";
                 f.transform.localScale = new Vector3(map.CellSize, _floorThickness, map.CellSize);
@@ -103,20 +95,15 @@ namespace Train.Environment {
             }
         }
 
-        public void PlaceSpawnMarkers(
+        public static void PlaceSpawnMarkers(
             Map map,
             Vector2Int zombieCell,
             Vector2Int targetCell,
-            Transform zombieMarker,
-            Transform targetMarker
+            Transform agentTransform,
+            Transform targetTransform
         ) {
-            if (zombieMarker != null) {
-                zombieMarker.position = CellTopWorld(map, zombieCell);
-            }
-
-            if (targetMarker != null) {
-                targetMarker.position = CellTopWorld(map, targetCell);
-            }
+            agentTransform.position = CellTopWorld(map, zombieCell);
+            targetTransform.position = CellTopWorld(map, targetCell);
         }
 
         public void ClearAll() {
@@ -159,6 +146,7 @@ namespace Train.Environment {
         private void ClearSpawnedWalls() {
             for (int i = 0; i < _spawnedWalls.Count; i++) {
                 if (_spawnedWalls[i] != null) {
+                    _spawnedWalls[i].SetActive(false);
                     Object.Destroy(_spawnedWalls[i]);
                 }
             }
@@ -169,6 +157,7 @@ namespace Train.Environment {
         private void ClearSpawnedFloors() {
             for (int i = 0; i < _spawnedFloors.Count; i++) {
                 if (_spawnedFloors[i] != null) {
+                    _spawnedFloors[i].SetActive(false);
                     Object.Destroy(_spawnedFloors[i]);
                 }
             }

@@ -1,7 +1,7 @@
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
-namespace Train.Agent.Sensors {
+namespace Train.Agent.Sensor {
     public class NavigationSensor : ISensor {
         private const int _tokenSize = 5;
 
@@ -9,14 +9,12 @@ namespace Train.Agent.Sensors {
         private readonly int _maxToken;
         private readonly Navigation _navigation;
         private readonly ObservationSpec _observationSpec;
-        private readonly Proprioception _proprioception;
 
         private readonly int _size;
 
-        public NavigationSensor(Navigation navigation, Proprioception proprioception,
+        public NavigationSensor(Navigation navigation,
             int maxToken = 3, float expectedMaxDistance = 20.0f) {
             _navigation = navigation;
-            _proprioception = proprioception;
             _maxToken = maxToken;
             _expectedMaxDistance = expectedMaxDistance;
             _size = _maxToken * _tokenSize;
@@ -28,8 +26,8 @@ namespace Train.Agent.Sensors {
         public int Write(ObservationWriter writer) {
             int idx = 0;
 
-            Vector3 position = _proprioception.Position;
-            Vector3 forward = _proprioception.Forward;
+            Vector3 position = _navigation.agentTransform.position;
+            Vector3 forward = _navigation.agentTransform.forward;
 
             Vector3 projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up);
 

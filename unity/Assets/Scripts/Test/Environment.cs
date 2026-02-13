@@ -10,11 +10,15 @@ namespace Test {
         [SerializeField] private GameObject agentPrefab;
         [SerializeField] public GameObject targetPrefab;
 
+        [SerializeField] private float timeScale = 2f;
+
 
         private Transform _agentTransform;
         public Transform TargetTransform { get; private set; }
 
         private void Awake() {
+            Time.timeScale = timeScale;
+
             GameObject agentInstance = Instantiate(agentPrefab, Vector3.zero, Quaternion.identity, transform);
             _agentTransform = agentInstance.transform;
 

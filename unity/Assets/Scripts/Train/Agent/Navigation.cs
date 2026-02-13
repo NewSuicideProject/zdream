@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 namespace Train.Agent {
     [RequireComponent(typeof(NavMeshSurface))]
-    public class Navigator : MonoBehaviour {
+    public class Navigation : MonoBehaviour {
         public Transform targetTransform;
         public Transform agentTransform;
         private NavMeshPath _navMeshPath;
@@ -19,9 +19,7 @@ namespace Train.Agent {
             Reset();
         }
 
-        [ContextMenu("Reset")]
         public void Reset() => _navMeshSurface.BuildNavMesh();
-
 
         private void Update() {
             if (!targetTransform || !agentTransform) {
@@ -30,7 +28,6 @@ namespace Train.Agent {
 
             NavMesh.CalculatePath(agentTransform.position, targetTransform.position, NavMesh.AllAreas, _navMeshPath);
         }
-
 
         private void OnDrawGizmos() {
             if (Corners.Length == 0) {

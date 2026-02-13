@@ -1,23 +1,23 @@
 using UnityEngine;
 
 namespace Train.Agent {
-    [RequireComponent(typeof(Proprioception))]
     public class Terrain : MonoBehaviour {
         [SerializeField] private float heightOffset = 0.5f;
         [SerializeField] private int gridSize = 10;
         [SerializeField] private float spacing = 0.25f;
         [SerializeField] private LayerMask targetLayer;
-        private Proprioception _proprioception;
+        public Transform agentTransform;
 
         public float[,] HeightMap;
 
-        private void Awake() {
-            _proprioception = GetComponentInChildren<Proprioception>();
-            HeightMap = new float[gridSize, gridSize];
-        }
+        private void Awake() => HeightMap = new float[gridSize, gridSize];
 
         private void Update() {
-            Vector3 position = _proprioception.Position;
+            if (!agentTransform) {
+                return;
+            }
+
+            Vector3 position = agentTransform.position;
 
             float gridHalfSize = (gridSize - 1) * spacing * 0.5f;
             Vector3 gridTopLeft = new(position.x - gridHalfSize,
@@ -38,11 +38,11 @@ namespace Train.Agent {
         }
 
         private void OnDrawGizmos() {
-            if (HeightMap == null) {
+            if (HeightMap == null || !agentTransform) {
                 return;
             }
 
-            Vector3 position = _proprioception.Position;
+            Vector3 position = agentTransform.position;
 
             float gridHalfSize = (gridSize - 1) * spacing * 0.5f;
             Vector3 gridTopLeft = new(position.x - gridHalfSize,

@@ -1,7 +1,7 @@
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
-namespace Train.Agent.Sensors {
+namespace Train.Agent.Sensor {
     public class ProprioceptionSensor : ISensor {
         private readonly float _expectedMaxDistance;
 
@@ -12,14 +12,11 @@ namespace Train.Agent.Sensors {
 
         private readonly int _size;
 
-        public Transform Target;
-
         public ProprioceptionSensor(Proprioception proprioception, Transform target,
             float expectedMaxSpeed = 20f,
             float expectedMaxDistance = 20f,
             float expectedMaxThickness = 1f) {
             _proprioception = proprioception;
-            Target = target;
             _expectedMaxSpeed = expectedMaxSpeed;
             _expectedMaxDistance = expectedMaxDistance;
             _expectedMaxThickness = expectedMaxThickness;
@@ -63,30 +60,14 @@ namespace Train.Agent.Sensors {
             writer[idx++] = NormalizeSpeed(linearVelocity.y);
             writer[idx++] = NormalizeSpeed(linearVelocity.z);
 
-            Vector3 forward = _proprioception.Forward;
-            Vector3 position = _proprioception.Position;
-            Vector3 projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up);
-
-            if (projectedForward.sqrMagnitude < 0.001f) {
-                projectedForward = Vector3.forward;
-            } else {
-                projectedForward.Normalize();
-            }
-
+            Vector3 projectedForward = _proprioception.ProjectedForward;
             writer[idx++] = projectedForward.x;
             writer[idx++] = projectedForward.z;
 
-            Quaternion yawQuat = Quaternion.LookRotation(projectedForward, Vector3.up);
-            Matrix4x4 inverseMatrix = Matrix4x4.TRS(position, yawQuat, Vector3.one).inverse;
-
-            Vector3 localPosition = Vector3.zero;
-            if (Target != null) {
-                localPosition = inverseMatrix.MultiplyPoint3x4(Target.position);
-            }
-
-            writer[idx++] = NormalizeDistance(localPosition.x);
-            writer[idx++] = NormalizeDistance(localPosition.y);
-            writer[idx++] = NormalizeDistance(localPosition.z);
+            Vector3 relativeTargetPosition = _proprioception.RelativeTargetPosition;
+            writer[idx++] = NormalizeDistance(relativeTargetPosition.x);
+            writer[idx++] = NormalizeDistance(relativeTargetPosition.y);
+            writer[idx++] = NormalizeDistance(relativeTargetPosition.z);
 
             writer[idx++] = _proprioception.Integrity;
 

@@ -3,7 +3,7 @@ using System.Linq;
 using Joint;
 using UnityEngine;
 
-namespace Train.Agent.Sever {
+namespace Train.Agent.Joint {
     public class AgentJointHierarchy : JointHierarchyBase {
         public AgentJointNode RootAgentNode;
         public List<AgentJointNode> TrainNodes;
@@ -34,7 +34,6 @@ namespace Train.Agent.Sever {
             return node;
         }
 
-        [ContextMenu("Reset")]
         public override void Reset() {
             RootAgentNode.Body.TeleportRoot(transform.TransformPoint(_initialRootRelativePosition),
                 transform.rotation * _initialRootRelativeRotation);

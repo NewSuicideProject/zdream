@@ -814,7 +814,6 @@ GameObject:
   - component: {fileID: 7770060243630415592}
   - component: {fileID: 6721007698222702340}
   - component: {fileID: 8780102705714806888}
-  - component: {fileID: 1393156304446174912}
   - component: {fileID: 7006036610937121702}
   - component: {fileID: 7173728960566237186}
   - component: {fileID: 4495481374906118358}
@@ -856,12 +855,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Policies.BehaviorParameters
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 1
+      m_NumContinuousActions: 25
       BranchSizes: 
-    VectorActionSize: 01000000
+    VectorActionSize: 19000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -917,18 +916,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296f8fcf88db44cf89077a232886aa15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Train.Sever.TrainJointHierachy
---- !u!114 &1393156304446174912
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1849166048388668536}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c67fb62bd3d64e43a2d39aea5698705, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Train.Zombie.ZombieTest
 --- !u!114 &7006036610937121702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -942,7 +929,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Train.Proprioception
   initialGravity: {x: 0, y: 0, z: 0}
-  initialCoM: {x: 0, y: 0, z: 0}
   com: {x: 0, y: 0, z: 0}
   gravity: {x: 0, y: 0, z: 0}
   angularVelocity: {x: 0, y: 0, z: 0}
@@ -1014,7 +1000,7 @@ MonoBehaviour:
   m_TileSize: 256
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
-  m_MinRegionArea: 2
+  m_MinRegionArea: 4
   m_NavMeshData: {fileID: 0}
   m_BuildHeightMesh: 0
 --- !u!1 &1922574190645850265

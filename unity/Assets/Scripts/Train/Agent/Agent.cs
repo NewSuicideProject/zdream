@@ -7,8 +7,8 @@ using UnityEngine.InputSystem;
 
 namespace Train.Agent {
     [RequireComponent(typeof(Proprioception))]
-    [RequireComponent(typeof(AgentJointHierarchy))]
     [RequireComponent(typeof(Navigation))]
+    [RequireComponent(typeof(Terrain))]
     public class Agent : Unity.MLAgents.Agent {
         [SerializeField] private InputActionAsset inputActions;
 

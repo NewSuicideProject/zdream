@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Sever {
+namespace Joint {
     public class JointHierarchyBase : MonoBehaviour {
-        public List<JointNodeBase> Nodes;
+        protected List<JointNodeBase> Nodes;
         protected JointNodeBase RootNode { get; private set; }
 
         protected virtual void Awake() {
