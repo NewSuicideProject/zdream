@@ -25,7 +25,7 @@ namespace Sever {
                 }
             }
 
-            RootNode = GetJointNode(rootJoint);
+            RootNode = GetJointNode(rootJoint, null);
 
             Nodes = new List<JointNodeBase>();
             GetNodes(RootNode);
@@ -64,12 +64,12 @@ namespace Sever {
             }
         }
 
-        protected virtual JointNodeBase GetJointNode(GameObject joint) {
-            JointNodeBase node = new(joint);
+        protected virtual JointNodeBase GetJointNode(GameObject joint, JointNodeBase parent) {
+            JointNodeBase node = new(joint, parent);
             GameObject[] childrenJoint = GetChildrenJoint(joint);
 
             foreach (GameObject childJoint in childrenJoint) {
-                node.Children.Add(GetJointNode(childJoint));
+                node.Children.Add(GetJointNode(childJoint, node));
             }
 
             return node;

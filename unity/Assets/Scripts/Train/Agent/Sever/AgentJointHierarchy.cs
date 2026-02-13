@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Sever;
-using Train.Agent.Scripts.Sever;
 using UnityEngine;
 
 namespace Train.Agent.Sever {
@@ -19,12 +18,12 @@ namespace Train.Agent.Sever {
 
         protected override bool IsJoint(GameObject candidate) => candidate.GetComponent<ArticulationBody>() != null;
 
-        protected override JointNodeBase GetJointNode(GameObject joint) {
-            AgentJointNode node = new(joint);
+        protected override JointNodeBase GetJointNode(GameObject joint, JointNodeBase parent) {
+            AgentJointNode node = new(joint, (AgentJointNode)parent);
 
             GameObject[] childrenJoint = GetChildrenJoint(joint);
             foreach (GameObject childJoint in childrenJoint) {
-                node.Children.Add(GetJointNode(childJoint));
+                node.Children.Add(GetJointNode(childJoint, node));
             }
 
             return node;

@@ -2,7 +2,7 @@
 using Sever;
 using UnityEngine;
 
-namespace Train.Agent.Scripts.Sever {
+namespace Train.Agent.Sever {
     public struct JointLimitCache {
         public float LowerLimit;
         public float UpperLimit;
@@ -15,7 +15,7 @@ namespace Train.Agent.Scripts.Sever {
         public readonly ArticulationBody Body;
         public readonly int DoF;
 
-        public AgentJointNode(GameObject gameObject) : base(gameObject) {
+        public AgentJointNode(GameObject gameObject, AgentJointNode parent) : base(gameObject, parent) {
             Body = gameObject.GetComponent<ArticulationBody>();
             _collider = gameObject.GetComponent<Collider>();
             if (_collider == null) {
