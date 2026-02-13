@@ -1,5 +1,5 @@
 using System.Linq;
-using Train.Agent.Sever;
+using Train.Agent.Joint;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
@@ -33,7 +33,7 @@ namespace Train.Agent {
 
         private float _distanceScale;
 
-        [SerializeField] private Environment.Environment environment;
+        private Environment.Environment _environment;
         private AgentJointHierarchy _jointHierarchy;
         private Rigidbody[] _jointRigidbodies;
         private InputAction _moveAction;
@@ -50,9 +50,9 @@ namespace Train.Agent {
 
             _proprioception = GetComponent<Proprioception>();
             _jointHierarchy = GetComponent<AgentJointHierarchy>();
+            _environment = GetComponentInParent<Environment.Environment>();
             _navigation = GetComponent<Navigation>();
-
-            _distanceScale = expectedMaxDistance;
+            _navigation.targetTransform = _environment.TargetTransform;
 
             if (!inputActions) {
                 return;
@@ -63,7 +63,7 @@ namespace Train.Agent {
         }
 
         private void Start() {
-            // _targetTransform = _environment.TargetTransform;
+            _targetTransform = _environment.TargetTransform;
 
             int totalDoF = _jointHierarchy.TrainNodes.Sum(n => n.DoF);
             _prevActions = new float[totalDoF];
@@ -100,9 +100,8 @@ namespace Train.Agent {
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
-
+            _environment.Reset();
             _jointHierarchy.Reset();
-            // _environment.Reset();
             _navigation.Reset();
         }
 

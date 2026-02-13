@@ -3,14 +3,19 @@ using Random = System.Random;
 
 namespace Train.Environment {
     public class Environment : MonoBehaviour {
-        [SerializeField] private Transform wallParent;
         [SerializeField] private GameObject wallPrefab;
         [SerializeField] private GameObject floorPrefab;
 
+        private Transform _wallContainer;
+        private Transform _floorContainer;
+
         [SerializeField] private float wallCenterY = 2.5f;
 
-        [SerializeField] private Transform zombieSpawnMarker;
-        [SerializeField] private Transform targetSpawnMarker;
+        [SerializeField] private GameObject agentPrefab;
+        [SerializeField] private GameObject targetPrefab;
+
+        private Transform _agentTransform;
+        public Transform TargetTransform { get; private set; }
 
         [Min(8)] [SerializeField] private int gridWidth = 64;
         [Min(8)] [SerializeField] private int gridHeight = 64;
@@ -54,15 +59,20 @@ namespace Train.Environment {
         private Visualizer _visualizer;
 
         private void Awake() {
-            if (wallParent == null) {
-                wallParent = transform;
-            }
+            TargetTransform = Instantiate(targetPrefab, transform).transform;
+            _agentTransform = Instantiate(agentPrefab, transform).transform;
+
+            _wallContainer = new GameObject("WallContainer").transform;
+            _wallContainer.parent = transform;
+            _floorContainer = new GameObject("FloorContainer").transform;
+            _floorContainer.parent = transform;
 
             _visualizer = new Visualizer(
-                wallParent,
+                _wallContainer,
                 wallPrefab,
                 wallCenterY,
                 floorPrefab,
+                _floorContainer,
                 floorThickness
             );
 
@@ -71,6 +81,7 @@ namespace Train.Environment {
 
         private void Start() => Reset(initialSeed);
 
+        [ContextMenu("Reset")]
         public void Reset(int seed = 0) {
             _organicShaper = new OrganicShaper(
                 organicIterations,
@@ -126,11 +137,7 @@ namespace Train.Environment {
         }
 
         private void PlaceFarthestRoomSpawns() {
-            if (zombieSpawnMarker == null || targetSpawnMarker == null) {
-                return;
-            }
-
-            if (_map == null || _map.Rooms == null || _map.Rooms.Count < 2) {
+            if (_map?.Rooms == null || _map.Rooms.Count < 2) {
                 return;
             }
 
@@ -153,12 +160,12 @@ namespace Train.Environment {
                 }
             }
 
-            _visualizer.PlaceSpawnMarkers(
+            Visualizer.PlaceSpawnMarkers(
                 _map,
                 _map.Rooms[a].center,
                 _map.Rooms[b].center,
-                zombieSpawnMarker,
-                targetSpawnMarker
+                _agentTransform,
+                TargetTransform
             );
         }
     }

@@ -25,7 +25,7 @@ namespace Train.Agent.Sensors {
             _expectedMaxThickness = expectedMaxThickness;
 
             _size = 3 + // gravity
-                    3 + // CoM diff
+                    3 + // CoM
                     3 + // angular velocity
                     3 + // linear velocity
                     2 + // projected forward
@@ -48,10 +48,10 @@ namespace Train.Agent.Sensors {
             writer[idx++] = gravity.y;
             writer[idx++] = gravity.z;
 
-            Vector3 comDiff = _proprioception.Com - _proprioception.InitialCoM;
-            writer[idx++] = NormalizeThickness(comDiff.x);
-            writer[idx++] = NormalizeThickness(comDiff.y);
-            writer[idx++] = NormalizeThickness(comDiff.z);
+            Vector3 com = _proprioception.Com;
+            writer[idx++] = NormalizeThickness(com.x);
+            writer[idx++] = NormalizeThickness(com.y);
+            writer[idx++] = NormalizeThickness(com.z);
 
             Vector3 angularVelocity = _proprioception.AngularVelocity;
             writer[idx++] = NormalizeSpeed(angularVelocity.x);

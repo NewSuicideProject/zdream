@@ -4,31 +4,31 @@ using UnityEngine;
 using UnityEngine.AI;
 
 namespace Train.Agent {
-    [RequireComponent(typeof(Proprioception), typeof(NavMeshSurface))]
-    public class Navigation : MonoBehaviour {
-        [SerializeField] private Transform targetTransform;
+    [RequireComponent(typeof(NavMeshSurface))]
+    public class Navigator : MonoBehaviour {
+        public Transform targetTransform;
+        public Transform agentTransform;
         private NavMeshPath _navMeshPath;
         private NavMeshSurface _navMeshSurface;
-        private Proprioception _proprioception;
 
         public Vector3[] Corners => _navMeshPath != null ? _navMeshPath.corners : Array.Empty<Vector3>();
 
         private void Awake() {
             _navMeshPath = new NavMeshPath();
             _navMeshSurface = GetComponent<NavMeshSurface>();
-            _proprioception = GetComponent<Proprioception>();
             Reset();
         }
 
+        [ContextMenu("Reset")]
         public void Reset() => _navMeshSurface.BuildNavMesh();
 
 
         private void Update() {
-            if (!targetTransform) {
+            if (!targetTransform || !agentTransform) {
                 return;
             }
 
-            NavMesh.CalculatePath(_proprioception.Position, targetTransform.position, NavMesh.AllAreas, _navMeshPath);
+            NavMesh.CalculatePath(agentTransform.position, targetTransform.position, NavMesh.AllAreas, _navMeshPath);
         }
 
 
