@@ -1,7 +1,8 @@
+using Train.Sensor;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
-namespace Train.Agent.Sensor {
+namespace Train.Sensor {
     public class NavigationSensor : ISensor {
         private const int _tokenSize = 5;
 

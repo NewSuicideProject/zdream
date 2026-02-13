@@ -1,7 +1,7 @@
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
-namespace Train.Agent.Sensor {
+namespace Train.Sensor {
     public class ProprioceptionSensor : ISensor {
         private readonly float _expectedMaxDistance;
 

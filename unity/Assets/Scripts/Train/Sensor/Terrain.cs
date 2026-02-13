@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Train.Agent {
+namespace Train.Sensor {
     public class Terrain : MonoBehaviour {
         [SerializeField] private float heightOffset = 0.5f;
         [SerializeField] private int gridSize = 10;

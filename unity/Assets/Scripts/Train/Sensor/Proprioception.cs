@@ -1,8 +1,8 @@
 using System.Linq;
-using Train.Agent.Joint;
+using Train.Joint;
 using UnityEngine;
 
-namespace Train.Agent {
+namespace Train.Sensor {
     [RequireComponent(typeof(AgentJointHierarchy))]
     public class Proprioception : MonoBehaviour {
         [SerializeField] [ReadOnly] private Vector3 initialGravity;

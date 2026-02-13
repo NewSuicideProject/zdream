@@ -1,11 +1,13 @@
 using System.Linq;
-using Train.Agent.Joint;
+using Train.Joint;
+using Train.Sensor;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Terrain = Train.Sensor.Terrain;
 
-namespace Train.Agent {
+namespace Train {
     [RequireComponent(typeof(Proprioception))]
     public class Agent : Unity.MLAgents.Agent {
         [Range(0.01f, 1f)] [SerializeField] private float passion = 0.5f;

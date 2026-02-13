@@ -3,7 +3,7 @@ using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace Train.Agent {
+namespace Train.Sensor {
     public class Navigation : MonoBehaviour {
         public Transform targetTransform;
         private NavMeshPath _navMeshPath;

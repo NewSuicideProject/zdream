@@ -3,7 +3,7 @@ using System.Linq;
 using Joint;
 using UnityEngine;
 
-namespace Train.Agent.Joint {
+namespace Train.Joint {
     public class AgentJointHierarchy : JointHierarchyBase {
         public AgentJointNode RootAgentNode;
         public List<AgentJointNode> TrainNodes;

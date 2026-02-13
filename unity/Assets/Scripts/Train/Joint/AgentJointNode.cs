@@ -2,7 +2,7 @@
 using Joint;
 using UnityEngine;
 
-namespace Train.Agent.Joint {
+namespace Train.Joint {
     public struct JointLimitCache {
         public float LowerLimit;
         public float UpperLimit;

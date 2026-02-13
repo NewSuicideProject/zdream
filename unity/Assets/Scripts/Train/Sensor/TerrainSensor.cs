@@ -1,7 +1,6 @@
 using Unity.MLAgents.Sensors;
-using UnityEngine;
 
-namespace Train.Agent.Sensor {
+namespace Train.Sensor {
     public class TerrainSensor : ISensor {
         private readonly float _expectedMaxHeight;
         private readonly int _gridSize;
