@@ -351,29 +351,29 @@ MonoBehaviour:
   wallCenterY: 1
   zombieSpawnMarker: {fileID: 343075148}
   targetSpawnMarker: {fileID: 1631997176}
-  gridWidth: 125
-  gridHeight: 125
-  cellSize: 2
+  gridWidth: 128
+  gridHeight: 128
+  cellSize: 1
   seed: 0
-  roomCount: 22
+  roomCount: 16
   maxRoomRerolls: 60
   circleRoomChance: 0.35
   rectSizeRange:
-    x: 5
-    y: 5
-    width: 22
-    height: 22
-  circleMinR: 3
-  circleMaxR: 7
+    x: 4
+    y: 4
+    width: 16
+    height: 16
+  circleMinR: 4
+  circleMaxR: 8
   roomPadding: 1
   roadWidth: 2
   randomizeLTurnOrder: 1
-  organicIterations: 1
+  organicIterations: 2
   organicCarveRatio: 0.06
   organicGrowRatio: 0.05
   organicGrowMaxTriesPerCell: 6
   minRoomLevel: 0
-  maxRoomLevel: 222
+  maxRoomLevel: 16
   levelStepHeight: 1
   floorThickness: 1
   maxRoadRisePerCell: 0.5
