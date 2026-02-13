@@ -2,19 +2,16 @@ using Unity.MLAgents.Sensors;
 
 namespace Train.Sensor {
     public class TerrainSensor : ISensor {
-        private readonly float _expectedMaxHeight;
         private readonly int _gridSize;
         private readonly ObservationSpec _observationSpec;
         private readonly int _size;
         private readonly Terrain _terrain;
 
-        public TerrainSensor(Terrain terrain, int gridSize,
-            float expectedMaxHeight) {
+        public TerrainSensor(Terrain terrain, int gridSize) {
             _terrain = terrain;
             _gridSize = gridSize;
             _size = _gridSize * _gridSize;
             _observationSpec = ObservationSpec.Vector(_size);
-            _expectedMaxHeight = expectedMaxHeight;
         }
 
         public string GetName() => "terrain";
@@ -26,7 +23,7 @@ namespace Train.Sensor {
             for (int z = 0; z < _gridSize; z++) {
                 for (int x = 0; x < _gridSize; x++) {
                     float relativeHeight = _terrain.HeightMap[x, z] - agentHeight;
-                    writer[idx++] = NormalizeHeight(relativeHeight);
+                    writer[idx++] = Normalization.NormalizeHeight(relativeHeight);
                 }
             }
 
@@ -34,15 +31,11 @@ namespace Train.Sensor {
         }
 
         public byte[] GetCompressedObservation() => null;
+        public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
 
         public ObservationSpec GetObservationSpec() => _observationSpec;
 
-        public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
-
         public void Update() { }
-
         public void Reset() { }
-
-        private float NormalizeHeight(float height) => Normalization.Tanh(height, _expectedMaxHeight);
     }
 }

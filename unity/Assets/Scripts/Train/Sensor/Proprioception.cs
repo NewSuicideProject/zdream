@@ -1,10 +1,11 @@
 using System.Linq;
 using Train.Joint;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 namespace Train.Sensor {
     [RequireComponent(typeof(AgentJointHierarchy))]
-    public class Proprioception : MonoBehaviour {
+    public class Proprioception : SensorComponent {
         [SerializeField] [ReadOnly] private Vector3 initialGravity;
         [SerializeField] [ReadOnly] private Vector3 com;
         [SerializeField] [ReadOnly] private Vector3 gravity;
@@ -17,6 +18,13 @@ namespace Train.Sensor {
         [SerializeField] [ReadOnly] private float[] attaches;
         [SerializeField] [ReadOnly] private float[] jointBlocks;
         [SerializeField] [ReadOnly] private float[] normalizedJointBlocks;
+
+        private ProprioceptionSensor _proprioceptionSensor;
+
+        public override ISensor[] CreateSensors() {
+            _proprioceptionSensor = new ProprioceptionSensor(this);
+            return new ISensor[] { _proprioceptionSensor };
+        }
 
         public Vector3 InitialGravity => initialGravity;
         public Vector3 Com => com;
@@ -123,7 +131,7 @@ namespace Train.Sensor {
             Gizmos.color = Color.blue;
             Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com));
 
-            Gizmos.color = Color.red;
+            Gizmos.color = Color.lightCoral;
             Gizmos.DrawRay(pelvisPosition, projectedForward * 0.5f);
         }
     }

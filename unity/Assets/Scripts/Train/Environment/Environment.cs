@@ -21,7 +21,7 @@ namespace Train.Environment {
         [Min(8)] [SerializeField] private int gridHeight = 64;
         [Min(0.1f)] [SerializeField] private float cellSize = 1f;
 
-        [SerializeField] private int initialSeed;
+        [SerializeField] private int seed;
 
         [Min(2)] [SerializeField] private int roomCount = 14;
         [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
@@ -79,9 +79,9 @@ namespace Train.Environment {
             _roadGenerator = new RoadGenerator();
         }
 
-        private void Start() => Reset(initialSeed);
+        private void Start() => Reset();
 
-        public void Reset(int seed = 0) {
+        public void Reset() {
             _organicShaper = new OrganicShaper(
                 organicIterations,
                 organicCarveRatio,

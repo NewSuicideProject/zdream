@@ -1,17 +1,25 @@
 using System;
 using Unity.AI.Navigation;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace Train.Sensor {
-    public class Navigation : MonoBehaviour {
+    public class Navigation : SensorComponent {
         public Transform targetTransform;
         private NavMeshPath _navMeshPath;
         private NavMeshSurface _navMeshSurface;
         private GameObject _navMeshObject;
         [SerializeField] private LayerMask targetLayer;
 
+        private NavigationSensor _navigationSensor;
+
         public Vector3[] Corners => _navMeshPath != null ? _navMeshPath.corners : Array.Empty<Vector3>();
+
+        public override ISensor[] CreateSensors() {
+            _navigationSensor = new NavigationSensor(this, Config.NavigationSensor.MaxToken);
+            return new ISensor[] { _navigationSensor };
+        }
 
         private void Awake() {
             _navMeshObject = new GameObject("NavMeshSurface");

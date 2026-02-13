@@ -4,15 +4,11 @@ using Train.Sensor;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using Terrain = Train.Sensor.Terrain;
 
 namespace Train {
     [RequireComponent(typeof(Proprioception))]
     public class Agent : Unity.MLAgents.Agent {
         [Range(0.01f, 1f)] [SerializeField] private float passion = 0.5f;
-        [SerializeField] private float expectedMaxSpeed = 20;
-        [SerializeField] private float expectedMaxDistance = 20;
 
         [SerializeField] private float staySuccessReward = 20f;
         [SerializeField] private float stayingReward = 10f;
@@ -29,15 +25,12 @@ namespace Train {
         [SerializeField] private float uprightRewardMultiplier = 1.0f;
         [SerializeField] private float speedMatchRewardMultiplier = 1.0f;
 
-        private Environment.Environment _environment;
         private AgentJointHierarchy _jointHierarchy;
-        private Rigidbody[] _jointRigidbodies;
-        private InputAction _moveAction;
-        private Navigation _navigation;
-        private Terrain _terrain;
         private float[] _prevActions;
 
+        private Environment.Environment _environment;
         private Proprioception _proprioception;
+        private Navigation _navigation;
         private float _stayTime;
         private Transform _targetTransform;
 
@@ -51,7 +44,6 @@ namespace Train {
             _proprioception = GetComponent<Proprioception>();
 
             _navigation = GetComponentInChildren<Navigation>();
-            _terrain = GetComponentInChildren<Terrain>();
 
             _proprioception.targetTransform = _environment.TargetTransform;
             _navigation.targetTransform = _environment.TargetTransform;
@@ -62,16 +54,6 @@ namespace Train {
 
             int totalDoF = _jointHierarchy.TrainNodes.Sum(n => n.DoF);
             _prevActions = new float[totalDoF];
-        }
-
-        protected override void OnEnable() {
-            base.OnEnable();
-            _moveAction?.Enable();
-        }
-
-        protected override void OnDisable() {
-            base.OnDisable();
-            _moveAction?.Disable();
         }
 
         private void OnTriggerExit(Collider other) {
@@ -90,8 +72,6 @@ namespace Train {
             AddReward(stayingReward * Time.fixedDeltaTime);
             _stayTime += Time.fixedDeltaTime;
         }
-
-        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, expectedMaxDistance);
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
@@ -144,7 +124,8 @@ namespace Train {
 
 
             float uprightBonus = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
-            float targetSpeedReward = Mathf.Exp(-Mathf.Pow(expectedMaxSpeed - currentVelocity.magnitude, 2));
+            float targetSpeedReward =
+                Mathf.Exp(-Mathf.Pow(Normalization.ExpectedMaxSpeed - currentVelocity.magnitude, 2));
 
             float integratedReward = CalculateFullReward(
                 passion,
@@ -160,7 +141,7 @@ namespace Train {
             AddReward(integratedReward * Time.fixedDeltaTime);
 
             float distanceToTarget = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
-            AddReward(-NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier *
+            AddReward(-Normalization.NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier *
                       Time.fixedDeltaTime);
 
 

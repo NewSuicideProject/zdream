@@ -1,7 +1,6 @@
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Test {
     public class Agent : Unity.MLAgents.Agent {
@@ -11,6 +10,7 @@ namespace Test {
         [SerializeField] private float staySuccessReward = 20f;
         [SerializeField] private float stayingReward = 10f;
         [SerializeField] private float staySuccessThreshold = 5f;
+        private float _stayTime;
 
         [SerializeField] private float fallingPenalty = 50f;
         [SerializeField] private float distancePenaltyMultiplier = 0.25f;
@@ -18,14 +18,12 @@ namespace Test {
         [SerializeField] private float actionMultiplier = 10f;
 
         private float _distanceNormalizationFactor;
+        private float _speedNormalizationFactor;
 
         private Environment _environment;
-        private InputAction _moveAction;
         private Rigidbody _rigidbody;
-        private float _speedNormalizationFactor;
-        private float _stayTime;
-        private Transform _targetTransform;
 
+        private Transform _targetTransform;
 
         protected override void Awake() {
             base.Awake();
@@ -38,17 +36,6 @@ namespace Test {
         }
 
         private void Start() => _targetTransform = _environment.TargetTransform;
-
-        protected override void OnEnable() {
-            base.OnEnable();
-            _moveAction?.Enable();
-        }
-
-        protected override void OnDisable() {
-            base.OnDisable();
-            _moveAction?.Disable();
-        }
-
 
         private void OnTriggerExit(Collider other) {
             if (other.transform != _targetTransform) {
@@ -68,7 +55,6 @@ namespace Test {
         }
 
         private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceNormalizationFactor);
-
         private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _speedNormalizationFactor);
 
         private Vector3 NormalizeCoordinate(Vector3 coordinate) =>

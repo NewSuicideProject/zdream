@@ -3,23 +3,13 @@ using UnityEngine;
 
 namespace Train.Sensor {
     public class ProprioceptionSensor : ISensor {
-        private readonly float _expectedMaxDistance;
-
-        private readonly float _expectedMaxSpeed;
-        private readonly float _expectedMaxThickness;
         private readonly ObservationSpec _observationSpec;
         private readonly Proprioception _proprioception;
 
         private readonly int _size;
 
-        public ProprioceptionSensor(Proprioception proprioception, Transform target,
-            float expectedMaxSpeed = 20f,
-            float expectedMaxDistance = 20f,
-            float expectedMaxThickness = 1f) {
+        public ProprioceptionSensor(Proprioception proprioception) {
             _proprioception = proprioception;
-            _expectedMaxSpeed = expectedMaxSpeed;
-            _expectedMaxDistance = expectedMaxDistance;
-            _expectedMaxThickness = expectedMaxThickness;
 
             _size = 3 + // gravity
                     3 + // CoM
@@ -46,28 +36,28 @@ namespace Train.Sensor {
             writer[idx++] = gravity.z;
 
             Vector3 com = _proprioception.Com;
-            writer[idx++] = NormalizeThickness(com.x);
-            writer[idx++] = NormalizeThickness(com.y);
-            writer[idx++] = NormalizeThickness(com.z);
+            writer[idx++] = Normalization.NormalizeThickness(com.x);
+            writer[idx++] = Normalization.NormalizeThickness(com.y);
+            writer[idx++] = Normalization.NormalizeThickness(com.z);
 
             Vector3 angularVelocity = _proprioception.AngularVelocity;
-            writer[idx++] = NormalizeSpeed(angularVelocity.x);
-            writer[idx++] = NormalizeSpeed(angularVelocity.y);
-            writer[idx++] = NormalizeSpeed(angularVelocity.z);
+            writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.x);
+            writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.y);
+            writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.z);
 
             Vector3 linearVelocity = _proprioception.LinearVelocity;
-            writer[idx++] = NormalizeSpeed(linearVelocity.x);
-            writer[idx++] = NormalizeSpeed(linearVelocity.y);
-            writer[idx++] = NormalizeSpeed(linearVelocity.z);
+            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.x);
+            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.y);
+            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.z);
 
             Vector3 projectedForward = _proprioception.ProjectedForward;
             writer[idx++] = projectedForward.x;
             writer[idx++] = projectedForward.z;
 
             Vector3 relativeTargetPosition = _proprioception.RelativeTargetPosition;
-            writer[idx++] = NormalizeDistance(relativeTargetPosition.x);
-            writer[idx++] = NormalizeDistance(relativeTargetPosition.y);
-            writer[idx++] = NormalizeDistance(relativeTargetPosition.z);
+            writer[idx++] = Normalization.NormalizeDistance(relativeTargetPosition.x);
+            writer[idx++] = Normalization.NormalizeDistance(relativeTargetPosition.y);
+            writer[idx++] = Normalization.NormalizeDistance(relativeTargetPosition.z);
 
             writer[idx++] = _proprioception.Integrity;
 
@@ -93,11 +83,5 @@ namespace Train.Sensor {
 
         public void Update() { }
         public void Reset() { }
-
-        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _expectedMaxDistance);
-
-        private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _expectedMaxSpeed);
-
-        private float NormalizeThickness(float thickness) => Normalization.Tanh(thickness, _expectedMaxThickness);
     }
 }

@@ -1,4 +1,3 @@
-using Train.Sensor;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
@@ -6,7 +5,6 @@ namespace Train.Sensor {
     public class NavigationSensor : ISensor {
         private const int _tokenSize = 5;
 
-        private readonly float _expectedMaxDistance;
         private readonly int _maxToken;
         private readonly Navigation _navigation;
         private readonly ObservationSpec _observationSpec;
@@ -14,10 +12,9 @@ namespace Train.Sensor {
         private readonly int _size;
 
         public NavigationSensor(Navigation navigation,
-            int maxToken = 3, float expectedMaxDistance = 20.0f) {
+            int maxToken = 3) {
             _navigation = navigation;
             _maxToken = maxToken;
-            _expectedMaxDistance = expectedMaxDistance;
             _size = _maxToken * _tokenSize;
             _observationSpec = ObservationSpec.VariableLength(maxToken, _tokenSize);
         }
@@ -54,9 +51,9 @@ namespace Train.Sensor {
                 Vector3 localPosition = inverseMatrix.MultiplyPoint3x4(tokenPosition);
                 Vector3 localDirection = inverseMatrix.MultiplyVector(tokenDirection);
 
-                writer[idx++] = NormalizeDistance(localPosition.z);
-                writer[idx++] = NormalizeDistance(localPosition.x);
-                writer[idx++] = NormalizeDistance(localPosition.y);
+                writer[idx++] = Normalization.NormalizeDistance(localPosition.z);
+                writer[idx++] = Normalization.NormalizeDistance(localPosition.x);
+                writer[idx++] = Normalization.NormalizeDistance(localPosition.y);
                 writer[idx++] = localDirection.x;
                 writer[idx++] = localDirection.z;
             }
@@ -77,7 +74,5 @@ namespace Train.Sensor {
 
         public void Update() { }
         public void Reset() { }
-
-        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _expectedMaxDistance);
     }
 }

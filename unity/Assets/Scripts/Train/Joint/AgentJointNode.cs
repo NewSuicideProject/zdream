@@ -9,7 +9,6 @@ namespace Train.Joint {
     }
 
     public class AgentJointNode : JointNodeBase {
-        private const float _expectedMaxSpeed = 10f;
         private readonly Collider _collider;
         private readonly JointLimitCache[] _jointLimitCache;
 
@@ -19,10 +18,7 @@ namespace Train.Joint {
 
         public AgentJointNode(GameObject gameObject, AgentJointNode parent) : base(gameObject, parent) {
             Body = gameObject.GetComponent<ArticulationBody>();
-            _collider = gameObject.GetComponent<Collider>();
-            if (_collider == null) {
-                _collider = gameObject.GetComponentInChildren<Collider>();
-            }
+            _collider = gameObject.GetComponentInChildren<Collider>();
 
             DoF = Body.dofCount;
             _zeroSpace = DoF switch {
@@ -94,8 +90,6 @@ namespace Train.Joint {
             }
         }
 
-        private static float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _expectedMaxSpeed);
-
         public ArticulationDrive GetDrive(int axisIndex) =>
             axisIndex switch {
                 0 => Body.xDrive,
@@ -115,7 +109,7 @@ namespace Train.Joint {
             for (int i = 0; i < DoF; i++) {
                 float value = positions[i];
                 if (normalize) {
-                    value = Normalization.LinearMinMax(
+                    value = global::Normalization.LinearMinMax(
                         value,
                         _jointLimitCache[i].LowerLimit,
                         _jointLimitCache[i].UpperLimit
@@ -142,7 +136,7 @@ namespace Train.Joint {
             for (int i = 0; i < DoF; i++) {
                 float value = velocities[i];
                 if (normalize) {
-                    value = NormalizeSpeed(value);
+                    value = Normalization.NormalizeSpeed(value);
                 }
 
                 buffer[baseIndex + i] = value;

@@ -1,26 +1,35 @@
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 namespace Train.Sensor {
-    public class Terrain : MonoBehaviour {
-        [SerializeField] private float heightOffset = 0.5f;
-        [SerializeField] private int gridSize = 10;
-        [SerializeField] private float spacing = 0.25f;
+    public class Terrain : SensorComponent {
         [SerializeField] private LayerMask targetLayer;
+        private float _spacing;
 
         public float[,] HeightMap;
 
-        private void Awake() => HeightMap = new float[gridSize, gridSize];
+        private TerrainSensor _terrainSensor;
+
+        public override ISensor[] CreateSensors() {
+            _terrainSensor = new TerrainSensor(this, Config.Terrain.Resolution);
+            return new ISensor[] { _terrainSensor };
+        }
+
+        private void Awake() {
+            _spacing = Normalization.ExpectedMaxThickness / (Config.Terrain.Resolution - 1);
+            HeightMap = new float[Config.Terrain.Resolution, Config.Terrain.Resolution];
+        }
 
         private void Update() {
             Vector3 position = transform.position;
 
-            float gridHalfSize = (gridSize - 1) * spacing * 0.5f;
+            float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
             Vector3 gridTopLeft = new(position.x - gridHalfSize,
-                position.y + heightOffset, position.z + gridHalfSize);
+                position.y, position.z + gridHalfSize);
 
-            for (int z = 0; z < gridSize; z++) {
-                for (int x = 0; x < gridSize; x++) {
-                    Vector3 rayOrigin = gridTopLeft + new Vector3(x * spacing, 0, -z * spacing);
+            for (int z = 0; z < Config.Terrain.Resolution; z++) {
+                for (int x = 0; x < Config.Terrain.Resolution; x++) {
+                    Vector3 rayOrigin = gridTopLeft + new Vector3(x * _spacing, 0, -z * _spacing);
 
                     if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit,
                             Mathf.Infinity, targetLayer)) {
@@ -39,13 +48,13 @@ namespace Train.Sensor {
 
             Vector3 position = transform.position;
 
-            float gridHalfSize = (gridSize - 1) * spacing * 0.5f;
+            float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
             Vector3 gridTopLeft = new(position.x - gridHalfSize,
-                position.y + heightOffset, position.z + gridHalfSize);
+                position.y, position.z + gridHalfSize);
 
-            for (int z = 0; z < gridSize; z++) {
-                for (int x = 0; x < gridSize; x++) {
-                    Vector3 rayOrigin = gridTopLeft + new Vector3(x * spacing, 0, -z * spacing);
+            for (int z = 0; z < Config.Terrain.Resolution; z++) {
+                for (int x = 0; x < Config.Terrain.Resolution; x++) {
+                    Vector3 rayOrigin = gridTopLeft + new Vector3(x * _spacing, 0, -z * _spacing);
                     Vector3 hitPoint = new(rayOrigin.x, HeightMap[x, z], rayOrigin.z);
 
                     Gizmos.color = Color.red;
