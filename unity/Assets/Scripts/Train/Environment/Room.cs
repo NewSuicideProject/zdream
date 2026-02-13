@@ -64,16 +64,16 @@ namespace Train.Environment {
             int r = rng.Next(circleMinR, circleMaxR + 1);
 
             const int border = 1;
-            int maxCX = map.Width - border - r - 1;
-            int maxCY = map.Height - border - r - 1;
+            int maxCx = map.Width - border - r - 1;
+            int maxCy = map.Height - border - r - 1;
 
-            if (maxCX < border + r || maxCY < border + r) {
+            if (maxCx < border + r || maxCy < border + r) {
                 this.id = -1;
                 return;
             }
 
-            int cx = rng.Next(border + r, maxCX + 1);
-            int cy = rng.Next(border + r, maxCY + 1);
+            int cx = rng.Next(border + r, maxCx + 1);
+            int cy = rng.Next(border + r, maxCy + 1);
 
             this.id = id;
             bounds = new RectInt(cx - r, cy - r, (r * 2) + 1, (r * 2) + 1);

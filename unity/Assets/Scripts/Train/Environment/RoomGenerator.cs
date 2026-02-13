@@ -13,7 +13,7 @@ namespace Train.Environment {
             int roomCount,
             int maxRoomRerolls,
             float circleRoomChance,
-            RectInt rectSizeRange, // x=minW, y=minH, width=maxW, height=maxH
+            RectInt rectSizeRange,
             int circleMinR,
             int circleMaxR,
             int roomPadding,
@@ -58,11 +58,13 @@ namespace Train.Environment {
             }
         }
 
-        public void AssignHeightsByDistanceMst(
+        public void AssignHeightsByRoadConstraintMst(
             Map map,
             Random rng,
             int minLevel,
-            int maxLevel
+            int maxLevel,
+            float levelStepHeight,
+            float maxRoadRisePerCell
         ) {
             int n = map.Rooms.Count;
             if (n <= 0) {
@@ -136,15 +138,53 @@ namespace Train.Environment {
                 adj[e.b].Add(e.a);
             }
 
-            int root = rng.Next(n);
             for (int i = 0; i < n; i++) {
                 map.Rooms[i].heightLevel = int.MinValue;
             }
 
+            int root = rng.Next(n);
             map.Rooms[root].heightLevel = rng.Next(minLevel, maxLevel + 1);
 
             Queue<int> q = new(n);
             q.Enqueue(root);
+
+            int MaxDeltaLevelFloor(float heightDeltaWorld) {
+                if (levelStepHeight <= 0.0001f) {
+                    return 0;
+                }
+
+                if (heightDeltaWorld <= 0f) {
+                    return 0;
+                }
+
+                return Mathf.FloorToInt(heightDeltaWorld / levelStepHeight);
+            }
+
+            int AllowedDeltaByEdge(int aIdx, int bIdx) {
+                Room a = map.Rooms[aIdx];
+                Room b = map.Rooms[bIdx];
+
+                Vector2Int doorA = a.GetDoorCell(b.center);
+                Vector2Int doorB = b.GetDoorCell(a.center);
+
+                int dist = Mathf.Abs(doorA.x - doorB.x) + Mathf.Abs(doorA.y - doorB.y);
+
+                // Road painting excludes the two door cells (they are room floors).
+                int paintCount = Mathf.Max(0, dist - 1);
+
+                if (paintCount <= 0) {
+                    return 0;
+                }
+
+                int segments = paintCount - 1;
+                if (segments <= 0) {
+                    // One painted cell -> no ramp possible without a doorway jump.
+                    return 0;
+                }
+
+                float maxTotalDeltaWorld = maxRoadRisePerCell * segments;
+                return MaxDeltaLevelFloor(maxTotalDeltaWorld);
+            }
 
             while (q.Count > 0) {
                 int cur = q.Dequeue();
@@ -156,12 +196,9 @@ namespace Train.Environment {
                         continue;
                     }
 
-                    Vector2Int a = map.Rooms[cur].center;
-                    Vector2Int b = map.Rooms[nb].center;
-                    int dist = Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+                    int allowed = AllowedDeltaByEdge(cur, nb);
 
-                    int allowed = Mathf.Max(1, dist / 4);
-                    int delta = rng.Next(-allowed, allowed + 1);
+                    int delta = allowed <= 0 ? 0 : rng.Next(-allowed, allowed + 1);
 
                     map.Rooms[nb].heightLevel =
                         Mathf.Clamp(curLevel + delta, minLevel, maxLevel);
@@ -170,7 +207,6 @@ namespace Train.Environment {
                 }
             }
         }
-
 
         public void WriteRoomToGrid(Map map, Room room, float levelStepHeight) {
             float roomHeight = Utility.LevelToHeight(room.heightLevel, levelStepHeight);
@@ -197,8 +233,8 @@ namespace Train.Environment {
                 return false;
             }
 
-            for (int i = 0; i < map.Rooms.Count; i++) {
-                RectInt otherExpanded = ExpandRect(map.Rooms[i].bounds, roomPadding);
+            foreach (Room t in map.Rooms) {
+                RectInt otherExpanded = ExpandRect(t.bounds, roomPadding);
                 if (expanded.Overlaps(otherExpanded)) {
                     return false;
                 }

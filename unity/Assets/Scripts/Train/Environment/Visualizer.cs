@@ -6,26 +6,22 @@ namespace Train.Environment {
         private readonly GameObject _floorPrefab;
         private readonly float _floorThickness;
         private readonly Transform _parent;
-        private readonly float _roomWallHeight;
 
-        // 환경에서 넘겨줘도 지금은 안 씀(큐브 벽으로 복귀)
-        private readonly Material _roomWallMat;
-        private readonly float _roomWallThickness;
         private readonly List<GameObject> _spawnedFloors = new();
-
         private readonly List<GameObject> _spawnedWalls = new();
+
         private readonly float _wallCenterY;
         private readonly GameObject _wallPrefab;
+
+        private Vector3 _wallPrefabWorldSize = Vector3.one;
+        private bool _wallPrefabSizeCached;
 
         public Visualizer(
             Transform parent,
             GameObject wallPrefab,
             float wallCenterY,
             GameObject floorPrefab,
-            float floorThickness,
-            Material roomWallMat,
-            float roomWallHeight,
-            float roomWallThickness
+            float floorThickness
         ) {
             _parent = parent;
             _wallPrefab = wallPrefab;
@@ -34,9 +30,8 @@ namespace Train.Environment {
             _floorPrefab = floorPrefab;
             _floorThickness = Mathf.Max(0.01f, floorThickness);
 
-            _roomWallMat = roomWallMat;
-            _roomWallHeight = roomWallHeight;
-            _roomWallThickness = roomWallThickness;
+
+            CacheWallPrefabSize();
         }
 
         public void Rebuild(Map map) {
@@ -50,6 +45,10 @@ namespace Train.Environment {
 
             if (_wallPrefab == null) {
                 return;
+            }
+
+            if (!_wallPrefabSizeCached) {
+                CacheWallPrefabSize();
             }
 
             for (int y = 0; y < map.Height; y++)
@@ -66,6 +65,9 @@ namespace Train.Environment {
 
                 GameObject w = Object.Instantiate(_wallPrefab, pos, Quaternion.identity, _parent);
                 w.name = $"Wall_{x}_{y}";
+
+                FitWallToCellXZ(w.transform, map.CellSize);
+
                 _spawnedWalls.Add(w);
             }
         }
@@ -120,6 +122,38 @@ namespace Train.Environment {
         public void ClearAll() {
             ClearSpawnedWalls();
             ClearSpawnedFloors();
+        }
+
+        private void FitWallToCellXZ(Transform wallTr, float cellSize) {
+            float baseX = Mathf.Max(0.0001f, _wallPrefabWorldSize.x);
+            float baseZ = Mathf.Max(0.0001f, _wallPrefabWorldSize.z);
+
+            Vector3 s = wallTr.localScale;
+            s.x *= cellSize / baseX;
+            s.z *= cellSize / baseZ;
+            wallTr.localScale = s;
+        }
+
+        private void CacheWallPrefabSize() {
+            _wallPrefabSizeCached = false;
+            _wallPrefabWorldSize = Vector3.one;
+
+            if (_wallPrefab == null) {
+                return;
+            }
+
+            Renderer r = _wallPrefab.GetComponentInChildren<Renderer>(true);
+            if (r == null) {
+                return;
+            }
+
+            Vector3 size = r.bounds.size;
+            if (size.x <= 0f || size.z <= 0f) {
+                return;
+            }
+
+            _wallPrefabWorldSize = size;
+            _wallPrefabSizeCached = true;
         }
 
         private void ClearSpawnedWalls() {
