@@ -74,5 +74,7 @@ namespace Sever {
 
             return node;
         }
+
+        public virtual void Reset() => RootNode.Reset();
     }
 }

@@ -33,7 +33,7 @@ namespace Train.Agent {
 
         private float _distanceScale;
 
-        private Environment.Environment _environment;
+        [SerializeField] private Environment.Environment environment;
         private AgentJointHierarchy _jointHierarchy;
         private Rigidbody[] _jointRigidbodies;
         private InputAction _moveAction;
@@ -48,7 +48,6 @@ namespace Train.Agent {
         protected override void Awake() {
             base.Awake();
 
-            _environment = GetComponentInParent<Environment.Environment>();
             _proprioception = GetComponent<Proprioception>();
             _jointHierarchy = GetComponent<AgentJointHierarchy>();
             _navigation = GetComponent<Navigation>();
@@ -102,8 +101,7 @@ namespace Train.Agent {
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
 
-            //_jointHierarchy.Reset();
-
+            _jointHierarchy.Reset();
             // _environment.Reset();
             _navigation.Reset();
         }

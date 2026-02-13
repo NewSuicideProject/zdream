@@ -8,10 +8,15 @@ namespace Train.Agent.Sever {
         public AgentJointNode RootAgentNode;
         public List<AgentJointNode> TrainNodes;
 
+        private Vector3 _initialRootRelativePosition;
+        private Quaternion _initialRootRelativeRotation;
+
         protected override void Awake() {
             base.Awake();
 
             RootAgentNode = (AgentJointNode)RootNode;
+            _initialRootRelativePosition = RootAgentNode.GameObject.transform.localPosition;
+            _initialRootRelativeRotation = RootAgentNode.GameObject.transform.localRotation;
 
             TrainNodes = Nodes.Cast<AgentJointNode>().ToList();
         }
@@ -27,6 +32,13 @@ namespace Train.Agent.Sever {
             }
 
             return node;
+        }
+
+        [ContextMenu("Reset")]
+        public override void Reset() {
+            RootAgentNode.Body.TeleportRoot(transform.TransformPoint(_initialRootRelativePosition),
+                transform.rotation * _initialRootRelativeRotation);
+            base.Reset();
         }
     }
 }

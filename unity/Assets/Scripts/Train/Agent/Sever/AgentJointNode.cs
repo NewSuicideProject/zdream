@@ -12,6 +12,8 @@ namespace Train.Agent.Sever {
         private const float _expectedMaxSpeed = 10f;
         private readonly Collider _collider;
         private readonly JointLimitCache[] _jointLimitCache;
+
+        private readonly ArticulationReducedSpace _zeroSpace;
         public readonly ArticulationBody Body;
         public readonly int DoF;
 
@@ -23,6 +25,13 @@ namespace Train.Agent.Sever {
             }
 
             DoF = Body.dofCount;
+            _zeroSpace = DoF switch {
+                0 => new ArticulationReducedSpace(),
+                1 => new ArticulationReducedSpace(0f),
+                2 => new ArticulationReducedSpace(0f, 0f),
+                3 => new ArticulationReducedSpace(0f, 0f, 0f),
+                _ => throw new ArgumentOutOfRangeException(nameof(DoF), $"Unsupported DoF count {DoF}")
+            };
 
             if (DoF <= 0) {
                 return;
@@ -53,6 +62,18 @@ namespace Train.Agent.Sever {
             }
         }
 
+        public override void Reset() {
+            if (!IsSevered) {
+                Body.jointPosition = _zeroSpace;
+                Body.jointForce = _zeroSpace;
+                Body.jointVelocity = _zeroSpace;
+                Body.angularVelocity = Vector3.zero;
+                Body.linearVelocity = Vector3.zero;
+            }
+
+            base.Reset();
+        }
+
         public override void Join() {
             if (!IsSevered) {
                 return;
@@ -60,8 +81,13 @@ namespace Train.Agent.Sever {
 
             IsSevered = false;
             GameObject.transform.localScale = Vector3.one;
-            _collider.enabled = true;
             Body.enabled = true;
+            _collider.enabled = true;
+            Body.jointPosition = _zeroSpace;
+            Body.jointForce = _zeroSpace;
+            Body.jointVelocity = _zeroSpace;
+            Body.angularVelocity = Vector3.zero;
+            Body.linearVelocity = Vector3.zero;
 
             foreach (JointNodeBase child in Children) {
                 child.Join();

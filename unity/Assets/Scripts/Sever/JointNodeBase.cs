@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Sever {
     public class JointNodeBase {
         public readonly List<JointNodeBase> Children = new();
-        protected readonly GameObject GameObject;
-        protected readonly JointNodeBase Parent;
+        public readonly GameObject GameObject;
+        public readonly JointNodeBase Parent;
 
         public JointNodeBase(GameObject gameObject, JointNodeBase parent) {
             GameObject = gameObject;

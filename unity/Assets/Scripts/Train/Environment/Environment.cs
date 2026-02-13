@@ -16,7 +16,7 @@ namespace Train.Environment {
         [Min(8)] [SerializeField] private int gridHeight = 64;
         [Min(0.1f)] [SerializeField] private float cellSize = 1f;
 
-        [SerializeField] private int seed;
+        [SerializeField] private int initialSeed;
 
         [Min(2)] [SerializeField] private int roomCount = 14;
         [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
@@ -37,16 +37,13 @@ namespace Train.Environment {
         [Range(0f, 0.25f)] [SerializeField] private float organicGrowRatio = 0.05f;
         [Min(1)] [SerializeField] private int organicGrowMaxTriesPerCell = 6;
 
-        [Header("Height")] [SerializeField] private int minRoomLevel = -2;
-        [SerializeField] private int maxRoomLevel = 2;
+        [Header("Height")] [SerializeField] private int minRoomLevel = -4;
+        [SerializeField] private int maxRoomLevel = 4;
 
-        [Min(0.01f)] [SerializeField] private float levelStepHeight = 1.0f;
+        [Min(0.01f)] [SerializeField] private float levelHeight = 1.0f;
         [SerializeField] private float floorThickness = 0.2f;
 
-        [Header("Road Height Constraint")] [Min(0f)] [SerializeField]
-        private float maxRoadRisePerCell = 0.5f;
-
-        [Header("Reset")] [SerializeField] private bool rerollSeedOnReset = true;
+        [Min(0f)] [SerializeField] private float maxStepHeight = 0.5f;
 
         private Map _map;
 
@@ -72,17 +69,9 @@ namespace Train.Environment {
             _roadGenerator = new RoadGenerator();
         }
 
-        private void Start() => Generate();
+        private void Start() => Reset(initialSeed);
 
-        public void ResetEnvironment() {
-            if (rerollSeedOnReset) {
-                seed = 0;
-            }
-
-            Generate();
-        }
-
-        public void Generate() {
+        public void Reset(int seed = 0) {
             _organicShaper = new OrganicShaper(
                 organicIterations,
                 organicCarveRatio,
@@ -114,12 +103,12 @@ namespace Train.Environment {
                 _rng,
                 minRoomLevel,
                 maxRoomLevel,
-                levelStepHeight,
-                maxRoadRisePerCell
+                levelHeight,
+                maxStepHeight
             );
 
             foreach (Room room in _map.Rooms) {
-                _roomGenerator.WriteRoomToGrid(_map, room, levelStepHeight);
+                _roomGenerator.WriteRoomToGrid(_map, room, levelHeight);
             }
 
             _roadGenerator.ConnectRoomsAndRoadHeight(
@@ -127,7 +116,7 @@ namespace Train.Environment {
                 _rng,
                 roadWidth,
                 randomizeLTurnOrder,
-                levelStepHeight
+                levelHeight
             );
 
             _map.ApplyBorderWalls();
