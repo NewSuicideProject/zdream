@@ -17,8 +17,7 @@ namespace Train.Agent {
         [SerializeField] [ReadOnly] private float[] attaches;
         [SerializeField] [ReadOnly] private float[] jointBlocks;
         [SerializeField] [ReadOnly] private float[] normalizedJointBlocks;
-        private AgentJointHierarchy _hierarchy;
-        private int _totalDoF;
+
         public Vector3 InitialGravity => initialGravity;
         public Vector3 Com => com;
         public Vector3 Gravity => gravity;
@@ -32,7 +31,9 @@ namespace Train.Agent {
         public float[] JointBlocks => jointBlocks;
         public float[] NormalizedJointBlocks => normalizedJointBlocks;
 
+        private AgentJointHierarchy _hierarchy;
         public Transform targetTransform;
+        private int _totalDoF;
 
         private void Awake() => _hierarchy = GetComponent<AgentJointHierarchy>();
 
@@ -123,7 +124,7 @@ namespace Train.Agent {
             Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com));
 
             Gizmos.color = Color.red;
-            Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(projectedForward) * 0.5f);
+            Gizmos.DrawRay(pelvisPosition, projectedForward * 0.5f);
         }
     }
 }

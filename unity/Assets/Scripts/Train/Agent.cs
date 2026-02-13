@@ -27,8 +27,6 @@ namespace Train.Agent {
         [SerializeField] private float uprightRewardMultiplier = 1.0f;
         [SerializeField] private float speedMatchRewardMultiplier = 1.0f;
 
-        private float _distanceScale;
-
         private Environment.Environment _environment;
         private AgentJointHierarchy _jointHierarchy;
         private Rigidbody[] _jointRigidbodies;
@@ -91,7 +89,7 @@ namespace Train.Agent {
             _stayTime += Time.fixedDeltaTime;
         }
 
-        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceScale);
+        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, expectedMaxDistance);
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;

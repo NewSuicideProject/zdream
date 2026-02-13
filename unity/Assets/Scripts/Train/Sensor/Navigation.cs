@@ -8,12 +8,17 @@ namespace Train.Agent {
         public Transform targetTransform;
         private NavMeshPath _navMeshPath;
         private NavMeshSurface _navMeshSurface;
+        private GameObject _navMeshObject;
+        [SerializeField] private LayerMask targetLayer;
 
         public Vector3[] Corners => _navMeshPath != null ? _navMeshPath.corners : Array.Empty<Vector3>();
 
         private void Awake() {
+            _navMeshObject = new GameObject("NavMeshSurface");
+            DontDestroyOnLoad(_navMeshObject);
+            _navMeshSurface = _navMeshObject.AddComponent<NavMeshSurface>();
+            _navMeshSurface.layerMask = targetLayer;
             _navMeshPath = new NavMeshPath();
-            _navMeshSurface = GetComponent<NavMeshSurface>();
             Reset();
         }
 
