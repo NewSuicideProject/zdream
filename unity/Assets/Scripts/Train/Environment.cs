@@ -130,7 +130,7 @@ namespace Train {
                 levelHeight
             );
 
-            _map.ApplyBorderWalls();
+            _map.ApplyBorders();
             _visualizer.Rebuild(_map);
 
             PlaceFarthestRoomSpawns();

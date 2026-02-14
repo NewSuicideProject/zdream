@@ -14,14 +14,15 @@ namespace Train.PEG {
         public Map(int width, int height, float cellSize) {
             CellSize = cellSize;
 
-            Origin = GetGridOrigin(width, height, cellSize);
+            Origin = new Vector3(-(width * cellSize * 0.5f), 0f, -(height * cellSize * 0.5f));
             Cells = new Cell[height, width];
             Rooms = new List<Room>();
             Bounds = new RectInt(0, 0, width, height);
 
-            for (int y = 0; y < Height; y++)
-            for (int x = 0; x < Width; x++) {
-                Cells[y, x] = new Cell(true);
+            for (int y = 0; y < Height; y++) {
+                for (int x = 0; x < Width; x++) {
+                    Cells[y, x] = new Cell(true);
+                }
             }
         }
 
@@ -30,7 +31,7 @@ namespace Train.PEG {
 
         public ref Cell GetCell(Vector2Int p) => ref Cells[p.y, p.x];
 
-        public void ApplyBorderWalls() {
+        public void ApplyBorders() {
             for (int x = 0; x < Width; x++) {
                 Cells[0, x].isWall = true;
                 Cells[Height - 1, x].isWall = true;
@@ -66,28 +67,6 @@ namespace Train.PEG {
                     cell.isBorder = isBorder;
                 }
             }
-        }
-
-        public bool IsExposedEdge(Vector2Int p) {
-            foreach (Vector2Int dir in Utility.Cardinal) {
-                Vector2Int n = p + dir;
-                if (!Bounds.Contains(n) || GetCell(n).isWall) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static Vector3 GetGridOrigin(int width, int height, float cellWorldSize) {
-            float totalW = width * cellWorldSize;
-            float totalH = height * cellWorldSize;
-
-            return new Vector3(
-                -(totalW * 0.5f),
-                0f,
-                -(totalH * 0.5f)
-            );
         }
     }
 }

@@ -46,9 +46,10 @@ namespace Train.PEG {
             center = new Vector2Int(leftX + (roomW / 2), bottomY + (roomH / 2));
             heightLevel = rng.Next(minRoomLevel, maxRoomLevel + 1);
 
-            for (int y = bounds.yMin; y < bounds.yMax; y++)
-            for (int x = bounds.xMin; x < bounds.xMax; x++) {
-                Floors.Add(new Vector2Int(x, y));
+            for (int y = bounds.yMin; y < bounds.yMax; y++) {
+                for (int x = bounds.xMin; x < bounds.xMax; x++) {
+                    Floors.Add(new Vector2Int(x, y));
+                }
             }
         }
 
@@ -82,42 +83,44 @@ namespace Train.PEG {
 
             int rSq = r * r;
 
-            for (int y = bounds.yMin; y <= bounds.yMax - 1; y++)
-            for (int x = bounds.xMin; x <= bounds.xMax - 1; x++) {
-                int dx = x - cx;
-                int dy = y - cy;
-                if ((dx * dx) + (dy * dy) <= rSq) {
-                    Floors.Add(new Vector2Int(x, y));
+            for (int y = bounds.yMin; y <= bounds.yMax - 1; y++) {
+                for (int x = bounds.xMin; x <= bounds.xMax - 1; x++) {
+                    int dx = x - cx;
+                    int dy = y - cy;
+                    if ((dx * dx) + (dy * dy) <= rSq) {
+                        Floors.Add(new Vector2Int(x, y));
+                    }
                 }
             }
         }
 
         public bool IsValid => id >= 0 && Floors.Count > 0;
 
-        public int GetNeighborCount(Vector2Int c) {
-            int n = 0;
-            foreach (Vector2Int dir in Utility.Cardinal) {
-                Vector2Int neighbor = c + dir;
-                if (Floors.Contains(neighbor)) {
-                    n++;
+
+        public bool IsBorderCell(Vector2Int candidate) {
+            if (!Floors.Contains(candidate)) {
+                return false;
+            }
+
+            foreach (Vector2Int direction in Utility.Cardinal) {
+                Vector2Int neighbor = candidate + direction;
+                if (!Floors.Contains(neighbor)) {
+                    return true;
                 }
             }
 
-            return n;
+            return false;
         }
 
         public List<Vector2Int> GetBorderCells() {
             List<Vector2Int> result = new();
 
-            for (int y = bounds.yMin; y < bounds.yMax; y++)
-            for (int x = bounds.xMin; x < bounds.xMax; x++) {
-                Vector2Int p = new(x, y);
-                if (!Floors.Contains(p)) {
-                    continue;
-                }
-
-                if (GetNeighborCount(p) < 4) {
-                    result.Add(p);
+            for (int y = bounds.yMin; y < bounds.yMax; y++) {
+                for (int x = bounds.xMin; x < bounds.xMax; x++) {
+                    Vector2Int p = new(x, y);
+                    if (IsBorderCell(p)) {
+                        result.Add(p);
+                    }
                 }
             }
 
@@ -130,7 +133,7 @@ namespace Train.PEG {
             int bestScore = int.MaxValue;
 
             foreach (Vector2Int c in Floors) {
-                if (GetNeighborCount(c) == 4) {
+                if (!IsBorderCell(c)) {
                     continue;
                 }
 

@@ -3,12 +3,12 @@ using System;
 namespace Train.PEG {
     [Serializable]
     public struct Cell {
-        public bool isWall; // logical wall
-        public bool isBorder; // active wall for rendering
-        public bool isRoad; // road floor marker
+        public bool isWall;
+        public bool isBorder;
+        public bool isRoad;
 
-        public int roomId; // -1 = none
-        public float height; // top height
+        public int roomId;
+        public float height;
 
         public Cell(bool isWall, float height = 0f, int roomId = -1) {
             this.isWall = isWall;
