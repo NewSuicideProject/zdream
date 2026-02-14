@@ -1,6 +1,6 @@
 using System;
 
-namespace Train.Environment {
+namespace Train.PEG {
     [Serializable]
     public struct Cell {
         public bool isWall; // logical wall

@@ -28,7 +28,7 @@ namespace Train {
         private AgentJointHierarchy _jointHierarchy;
         private float[] _prevActions;
 
-        private Environment.Environment _environment;
+        private Environment _environment;
         private Proprioception _proprioception;
         private Navigation _navigation;
         private float _stayTime;
@@ -38,7 +38,7 @@ namespace Train {
         protected override void Awake() {
             base.Awake();
 
-            _environment = GetComponentInParent<Environment.Environment>();
+            _environment = GetComponentInParent<Environment>();
 
             _jointHierarchy = GetComponent<AgentJointHierarchy>();
             _proprioception = GetComponent<Proprioception>();

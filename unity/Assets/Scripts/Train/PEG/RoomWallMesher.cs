@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Train.Environment {
+namespace Train.PEG {
     public static class RoomWallMesher {
         public static GameObject Build(
             Map map,

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Train.Environment {
+namespace Train.PEG {
     public class Visualizer {
         private readonly GameObject _floorPrefab;
         private readonly float _floorThickness;

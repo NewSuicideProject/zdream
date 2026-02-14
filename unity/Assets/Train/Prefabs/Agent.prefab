@@ -887,8 +887,6 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 3000
   passion: 0.5
-  expectedMaxSpeed: 20
-  expectedMaxDistance: 20
   staySuccessReward: 20
   stayingReward: 10
   staySuccessThreshold: 5
@@ -911,7 +909,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 296f8fcf88db44cf89077a232886aa15, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Train.Sever.TrainJointHierachy
+  m_EditorClassIdentifier: Assembly-CSharp::Train.Joint.AgentJointHierarchy
 --- !u!114 &7006036610937121702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3134,9 +3132,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4438b8d4a4455b64784aaf3985703933, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Train.Agent.Terrain
-  heightOffset: 0.5
-  gridSize: 10
-  spacing: 0.25
   targetLayer:
     serializedVersion: 2
     m_Bits: 8

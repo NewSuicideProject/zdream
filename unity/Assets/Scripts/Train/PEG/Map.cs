@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Train.Environment {
+namespace Train.PEG {
     public class Map {
         public readonly float CellSize;
         public readonly List<Room> Rooms;

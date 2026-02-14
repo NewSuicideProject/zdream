@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
 
-namespace Train.Environment {
+namespace Train.PEG {
     public class OrganicShaper {
         private readonly float _carveRatio;
         private readonly int _growMaxTries;

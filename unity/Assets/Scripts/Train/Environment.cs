@@ -1,7 +1,8 @@
+using Train.PEG;
 using UnityEngine;
 using Random = System.Random;
 
-namespace Train.Environment {
+namespace Train {
     public class Environment : MonoBehaviour {
         [SerializeField] private GameObject wallPrefab;
         [SerializeField] private GameObject floorPrefab;
