@@ -1,7 +1,6 @@
 using System.Linq;
 using Train.Joint;
 using Train.Sensor;
-using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
@@ -85,14 +84,8 @@ namespace Train {
                     float targetValue = continuousActions[actionIndex++];
 
                     ArticulationDrive drive = node.GetDrive(i);
-
                     drive.target = targetValue * Config.Reward.ActionMultiplier;
-
-                    switch (i) {
-                        case 0: node.Body.xDrive = drive; break;
-                        case 1: node.Body.yDrive = drive; break;
-                        case 2: node.Body.zDrive = drive; break;
-                    }
+                    node.SetDrive(i, drive);
                 }
             }
 
@@ -155,7 +148,7 @@ namespace Train {
             float jitterPenalty = jitter * Config.Reward.JitterPenaltyMultiplier;
             float energyPenalty = energy * invPw * Config.Reward.EnergyPenaltyMultiplier;
             float uprightReward = upright * invPw * Config.Reward.UprightRewardMultiplier;
-            float speedMatchReward = speedMatch * pw * Config.Reward.SpeedMatchRewardMultiplier;
+            float speedMatchReward = speedMatch * pw * Config.Reward.SpeedRewardMultiplier;
 
             return speedReward - jitterPenalty - energyPenalty + uprightReward + speedMatchReward;
         }

@@ -33,7 +33,7 @@ namespace Train {
             public static float JitterPenaltyMultiplier = 0.1f;
             public static float EnergyPenaltyMultiplier = 0.01f;
             public static float UprightRewardMultiplier = 1.0f;
-            public static float SpeedMatchRewardMultiplier = 1.0f;
+            public static float SpeedRewardMultiplier = 1.0f;
 
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
@@ -53,8 +53,8 @@ namespace Train {
                     envParams.GetWithDefault("reward__energy_penalty_multiplier", EnergyPenaltyMultiplier);
                 UprightRewardMultiplier =
                     envParams.GetWithDefault("reward__upright_reward_multiplier", UprightRewardMultiplier);
-                SpeedMatchRewardMultiplier =
-                    envParams.GetWithDefault("reward__speed_match_reward_multiplier", SpeedMatchRewardMultiplier);
+                SpeedRewardMultiplier =
+                    envParams.GetWithDefault("reward__speed_reward_multiplier", SpeedRewardMultiplier);
             }
         }
 
