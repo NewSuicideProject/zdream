@@ -127,6 +127,17 @@ namespace Train.PEG {
             return result;
         }
 
+        public int GetNeighborCount(Vector2Int candidate) {
+            int count = 0;
+
+            foreach (Vector2Int direction in Utility.Cardinal) {
+                if (Floors.Contains(candidate + direction)) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
 
         public Vector2Int GetDoorCell(Vector2Int toward) {
             Vector2Int best = center;
