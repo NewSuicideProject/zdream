@@ -7,7 +7,7 @@ namespace Train {
 
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
-                MaxToken = (int)envParams.GetWithDefault("navigation_sensor_max_token", MaxToken);
+                MaxToken = (int)envParams.GetWithDefault("navigation_sensor__max_token", MaxToken);
             }
         }
 
@@ -16,7 +16,7 @@ namespace Train {
 
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
-                Resolution = (int)envParams.GetWithDefault("terrain_resolution", Resolution);
+                Resolution = (int)envParams.GetWithDefault("terrain__resolution", Resolution);
             }
         }
 
@@ -38,23 +38,23 @@ namespace Train {
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
 
-                StaySuccessReward = envParams.GetWithDefault("stay_success_reward", StaySuccessReward);
-                StayingReward = envParams.GetWithDefault("staying_reward", StayingReward);
-                StaySuccessThreshold = envParams.GetWithDefault("stay_success_threshold", StaySuccessThreshold);
+                StaySuccessReward = envParams.GetWithDefault("reward__stay_success_reward", StaySuccessReward);
+                StayingReward = envParams.GetWithDefault("reward__staying_reward", StayingReward);
+                StaySuccessThreshold = envParams.GetWithDefault("reward__stay_success_threshold", StaySuccessThreshold);
 
-                FailurePenalty = envParams.GetWithDefault("failure_penalty", FailurePenalty);
+                FailurePenalty = envParams.GetWithDefault("reward__failure_penalty", FailurePenalty);
                 DistancePenaltyMultiplier =
-                    envParams.GetWithDefault("distance_penalty_multiplier", DistancePenaltyMultiplier);
-                ActionMultiplier = envParams.GetWithDefault("action_multiplier", ActionMultiplier);
+                    envParams.GetWithDefault("reward__distance_penalty_multiplier", DistancePenaltyMultiplier);
+                ActionMultiplier = envParams.GetWithDefault("reward__action_multiplier", ActionMultiplier);
 
                 JitterPenaltyMultiplier =
-                    envParams.GetWithDefault("jitter_penalty_multiplier", JitterPenaltyMultiplier);
+                    envParams.GetWithDefault("reward__jitter_penalty_multiplier", JitterPenaltyMultiplier);
                 EnergyPenaltyMultiplier =
-                    envParams.GetWithDefault("energy_penalty_multiplier", EnergyPenaltyMultiplier);
+                    envParams.GetWithDefault("reward__energy_penalty_multiplier", EnergyPenaltyMultiplier);
                 UprightRewardMultiplier =
-                    envParams.GetWithDefault("upright_reward_multiplier", UprightRewardMultiplier);
+                    envParams.GetWithDefault("reward__upright_reward_multiplier", UprightRewardMultiplier);
                 SpeedMatchRewardMultiplier =
-                    envParams.GetWithDefault("speed_match_reward_multiplier", SpeedMatchRewardMultiplier);
+                    envParams.GetWithDefault("reward__speed_match_reward_multiplier", SpeedMatchRewardMultiplier);
             }
         }
 
@@ -62,24 +62,26 @@ namespace Train {
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
 
-                PhaseAMultiplier = envParams.GetWithDefault("phase_a_multiplier", PhaseAMultiplier);
-                PhaseBMultiplier = envParams.GetWithDefault("phase_b_multiplier", PhaseBMultiplier);
-                PhaseCMultiplier = envParams.GetWithDefault("phase_c_multiplier", PhaseCMultiplier);
+                ARatio = envParams.GetWithDefault("phase__a_ratio", ARatio);
+                BRatio = envParams.GetWithDefault("phase__b_ratio", BRatio);
+                CRatio = envParams.GetWithDefault("phase__c_ratio", CRatio);
             }
 
-            public static float PhaseAMultiplier; // Agent try to stand up and stabilize (proprioception)
-            public static float PhaseBMultiplier; // Agent try to move towards the target (navigation)
-            public static float PhaseCMultiplier; // Agent try to overcome the terrain (terrain)
+            public static float ARatio; // Agent try to stand up and stabilize (proprioception)
+            public static float BRatio; // Agent try to move towards the target (navigation)
+            public static float CRatio; // Agent try to overcome the terrain (terrain)
         }
 
         public static class Normalization {
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
 
-                ExpectedMaxSpeed = envParams.GetWithDefault("expected_max_speed", ExpectedMaxSpeed);
-                ExpectedMaxDistance = envParams.GetWithDefault("expected_max_distance", ExpectedMaxDistance);
-                ExpectedMaxThickness = envParams.GetWithDefault("expected_max_thickness", ExpectedMaxThickness);
-                ExpectedMaxHeight = envParams.GetWithDefault("expected_max_height", ExpectedMaxHeight);
+                ExpectedMaxSpeed = envParams.GetWithDefault("normalization__expected_max_speed", ExpectedMaxSpeed);
+                ExpectedMaxHeight = envParams.GetWithDefault("normalization__expected_max_height", ExpectedMaxHeight);
+                ExpectedMaxDistance =
+                    envParams.GetWithDefault("normalization__expected_max_distance", ExpectedMaxDistance);
+                ExpectedMaxThickness =
+                    envParams.GetWithDefault("normalization__expected_max_thickness", ExpectedMaxThickness);
             }
 
             public static float ExpectedMaxSpeed = 20f;

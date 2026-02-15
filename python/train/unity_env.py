@@ -2,15 +2,32 @@ import numpy as np
 from gymnasium import Env, spaces
 from mlagents_envs.base_env import ActionTuple
 from mlagents_envs.environment import UnityEnvironment
+from mlagents_envs.side_channel.engine_configuration_channel import (
+    EngineConfigurationChannel,
+)
+from mlagents_envs.side_channel.environment_parameters_channel import (
+    EnvironmentParametersChannel,
+)
 
 
 class UnityEnv(Env):
-    def __init__(self, unity_path: str):
+    def __init__(
+        self, unity_path: str, base_port: int = None, unity_kwargs: dict = None
+    ):
         super().__init__()
+
+        self.engine_channel = EngineConfigurationChannel()
+        self.env_params_channel = EnvironmentParametersChannel()
+
+        if unity_kwargs:
+            for key, value in unity_kwargs.items():
+                self.env_params_channel.set_float_parameter(key, float(value))
 
         self.env = UnityEnvironment(
             file_name=unity_path,
+            base_port=base_port,
             no_graphics=True,
+            side_channels=[self.engine_channel, self.env_params_channel],
         )
         self.env.reset()
 

@@ -20,11 +20,12 @@ class Config:
         if self.config_path is None:
             self.config_path = Path(__file__).parent / "examples" / "config.yml.example"
 
+        self.policy_kwargs = {}
+        self.unity_kwargs = {}
+
         with open(self.config_path, encoding="utf-8") as file:
             for key, value in yaml.safe_load(file).items():
                 setattr(self, key, value)
-
-        self.policy_kwargs: dict
 
         if "features_extractor_class" in self.policy_kwargs:
             class_name = self.policy_kwargs["features_extractor_class"]
