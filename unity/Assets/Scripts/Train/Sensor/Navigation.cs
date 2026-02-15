@@ -17,7 +17,7 @@ namespace Train.Sensor {
         public Vector3[] Corners => _navMeshPath != null ? _navMeshPath.corners : Array.Empty<Vector3>();
 
         public override ISensor[] CreateSensors() {
-            _navigationSensor = new NavigationSensor(this, Config.NavigationSensor.MaxToken);
+            _navigationSensor = new NavigationSensor(this);
             return new ISensor[] { _navigationSensor };
         }
 

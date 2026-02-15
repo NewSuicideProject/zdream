@@ -11,12 +11,11 @@ namespace Train.Sensor {
 
         private readonly int _size;
 
-        public NavigationSensor(Navigation navigation,
-            int maxToken = 3) {
+        public NavigationSensor(Navigation navigation) {
             _navigation = navigation;
-            _maxToken = maxToken;
+            _maxToken = Config.NavigationSensor.MaxToken;
             _size = _maxToken * _tokenSize;
-            _observationSpec = ObservationSpec.VariableLength(maxToken, _tokenSize);
+            _observationSpec = ObservationSpec.VariableLength(_maxToken, _tokenSize);
         }
 
         public string GetName() => "navigation";
