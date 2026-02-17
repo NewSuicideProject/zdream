@@ -10,12 +10,11 @@ namespace Train.Sensor {
         [SerializeField] [ReadOnly] private Vector3 com;
         [SerializeField] [ReadOnly] private Vector3 gravity;
         [SerializeField] [ReadOnly] private Vector3 angularVelocity;
-        [SerializeField] [ReadOnly] private Vector3 linearVelocity;
+        [SerializeField] [ReadOnly] private Vector3 projectedVelocity;
         [SerializeField] [ReadOnly] private float integrity;
         [SerializeField] [ReadOnly] private Vector3 projectedForward;
         [SerializeField] [ReadOnly] private Vector3 relativeTargetPosition;
         [SerializeField] [ReadOnly] private float[] contacts;
-        [SerializeField] [ReadOnly] private float[] attaches;
         [SerializeField] [ReadOnly] private float[] jointBlocks;
         [SerializeField] [ReadOnly] private float[] normalizedJointBlocks;
 
@@ -30,12 +29,11 @@ namespace Train.Sensor {
         public Vector3 Com => com;
         public Vector3 Gravity => gravity;
         public Vector3 AngularVelocity => angularVelocity;
-        public Vector3 LinearVelocity => linearVelocity;
+        public Vector3 ProjectedVelocity => projectedVelocity;
         public float Integrity => integrity;
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
         public float[] Contacts => contacts;
-        public float[] Attaches => attaches;
         public float[] JointBlocks => jointBlocks;
         public float[] NormalizedJointBlocks => normalizedJointBlocks;
 
@@ -48,16 +46,18 @@ namespace Train.Sensor {
         private void Start() {
             _totalDoF = _hierarchy.TrainNodes.Sum(node => node.DoF);
             contacts = new float[4];
-            attaches = new float[4];
             jointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count];
             normalizedJointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count];
 
-            Update();
+            FixedUpdate();
             initialGravity = gravity;
         }
 
-        private void Update() {
-            gravity = _hierarchy.RootAgentNode.Body.transform.InverseTransformDirection(Physics.gravity).normalized;
+        private void FixedUpdate() {
+            Transform rootTransform = _hierarchy.RootAgentNode.GameObject.transform;
+            ArticulationBody rootBody = _hierarchy.RootAgentNode.Body;
+
+            gravity = rootTransform.InverseTransformDirection(Physics.gravity).normalized;
 
             Vector3 totalWeightedPos = Vector3.zero;
             float totalMass = 0f;
@@ -87,18 +87,25 @@ namespace Train.Sensor {
                 totalJoinedMass += mass;
             }
 
-            com = _hierarchy.RootAgentNode.Body.transform.InverseTransformPoint(
-                totalJoinedMass > 0f
-                    ? totalWeightedPos / totalJoinedMass
-                    : Vector3.zero);
+            com = rootTransform.InverseTransformPoint(totalJoinedMass > 0f
+                ? totalWeightedPos / totalJoinedMass
+                : Vector3.zero);
 
-            angularVelocity = _hierarchy.RootAgentNode.Body.angularVelocity;
-            linearVelocity = _hierarchy.RootAgentNode.Body.linearVelocity;
+            angularVelocity = rootTransform.InverseTransformDirection(rootBody.angularVelocity);
 
-            Vector3 forward = _hierarchy.RootAgentNode.Body.transform.forward;
-            Vector3 position = _hierarchy.RootAgentNode.Body.transform.position;
+            Vector3 linearVelocity =
+                rootTransform.InverseTransformDirection(rootBody.linearVelocity);
+            projectedVelocity = Vector3.ProjectOnPlane(linearVelocity, Vector3.up);
+            if (projectedVelocity.sqrMagnitude < 0.001f) {
+                projectedVelocity = Vector3.zero;
+            } else {
+                projectedVelocity.Normalize();
+            }
+
+            Vector3 forward = rootTransform.forward;
+            Vector3 position = rootTransform.position;
+
             projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up);
-
             if (projectedForward.sqrMagnitude < 0.001f) {
                 projectedForward = Vector3.forward;
             } else {

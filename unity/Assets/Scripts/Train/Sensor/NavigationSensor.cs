@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace Train.Sensor {
     public class NavigationSensor : ISensor {
-        private const int _tokenSize = 5;
+        private const int _tokenSize = 6;
+        // relative position (3), relative direction (2), valid flag (1)
 
         private readonly int _maxToken;
         private readonly Navigation _navigation;
@@ -55,6 +56,7 @@ namespace Train.Sensor {
                 writer[idx++] = Normalization.NormalizeDistance(localPosition.y);
                 writer[idx++] = localDirection.x;
                 writer[idx++] = localDirection.z;
+                writer[idx++] = 1f;
             }
 
             for (int i = tokenCount; i < _maxToken; i++) {

@@ -89,7 +89,7 @@ namespace Train {
                 }
             }
 
-            Vector3 currentVelocity = _proprioception.LinearVelocity;
+            Vector3 currentVelocity = _proprioception.ProjectedVelocity;
             Vector3 targetDir = (_targetTransform.localPosition - transform.localPosition).normalized;
 
             float energySum = 0f;
