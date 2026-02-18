@@ -8,8 +8,7 @@ using UnityEngine;
 namespace Train {
     [RequireComponent(typeof(Proprioception))]
     public class Agent : Unity.MLAgents.Agent {
-        [Range(0.01f, 1f)] [SerializeField] private float passion = 0.5f;
-
+        [Range(0f, 1f)] [SerializeField] private float passion = 0.5f;
 
         private AgentJointHierarchy _jointHierarchy;
         private float[] _prevActions;
@@ -98,25 +97,28 @@ namespace Train {
 
             float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier;
 
-            float velocityMatch =
+            float passionInverseMultiplier = 1f / (passion + 1f);
+            float passionMultiplier = passion;
+
+            float directionMatch =
                 Vector3.Dot(
                     _proprioception.RelativeLinearVelocity.normalized,
                     _proprioception.RelativeTargetPosition.normalized);
-            float velocityReward = velocityMatch * Config.Reward.SpeedRewardMultiplier;
+            float directionReward = directionMatch * Config.Reward.DirectionRewardMultiplier;
 
             float energySum = _jointHierarchy.TrainNodes.Sum(node => node.Body.angularVelocity.magnitude);
-            float energyPenalty = energySum * Config.Reward.EnergyPenaltyMultiplier;
+            float energyPenalty = energySum * passionInverseMultiplier * Config.Reward.EnergyPenaltyMultiplier;
 
             float uprightMatch = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
-            float uprightReward = uprightMatch * Config.Reward.UprightRewardMultiplier;
+            float uprightReward = uprightMatch * passionInverseMultiplier * Config.Reward.UprightRewardMultiplier;
 
-            float distanceToTarget = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
-            float distancePenalty = Normalization.NormalizeDistance(distanceToTarget) *
+            float distance = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
+            float distancePenalty = Normalization.NormalizeDistance(distance) * passionMultiplier *
                                     Config.Reward.DistancePenaltyMultiplier;
 
-            float integratedReward = velocityReward - jitterPenalty - energyPenalty + uprightReward - distancePenalty;
+            float fullReward = directionReward - jitterPenalty - energyPenalty + uprightReward - distancePenalty;
 
-            AddReward(integratedReward * Time.fixedDeltaTime);
+            AddReward(fullReward * Time.fixedDeltaTime);
 
             if (_stayTime > Config.Reward.StaySuccessThreshold) {
                 AddReward(Config.Reward.StaySuccessReward);

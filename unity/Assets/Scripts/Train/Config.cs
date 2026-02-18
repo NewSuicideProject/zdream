@@ -25,15 +25,14 @@ namespace Train {
             public static float StayingReward = 10f;
             public static float StaySuccessThreshold = 5f;
 
-            public static float FailurePenalty = 50f;
             public static float DistancePenaltyMultiplier = 0.25f;
-
-            public static float ActionMultiplier = 10f;
 
             public static float JitterPenaltyMultiplier = 0.1f;
             public static float EnergyPenaltyMultiplier = 0.01f;
             public static float UprightRewardMultiplier = 1.0f;
-            public static float SpeedRewardMultiplier = 1.0f;
+            public static float DirectionRewardMultiplier = 1.0f;
+
+            public static float ActionMultiplier = 10f;
 
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
@@ -42,19 +41,18 @@ namespace Train {
                 StayingReward = envParams.GetWithDefault("reward__staying_reward", StayingReward);
                 StaySuccessThreshold = envParams.GetWithDefault("reward__stay_success_threshold", StaySuccessThreshold);
 
-                FailurePenalty = envParams.GetWithDefault("reward__failure_penalty", FailurePenalty);
                 DistancePenaltyMultiplier =
                     envParams.GetWithDefault("reward__distance_penalty_multiplier", DistancePenaltyMultiplier);
-                ActionMultiplier = envParams.GetWithDefault("reward__action_multiplier", ActionMultiplier);
-
                 JitterPenaltyMultiplier =
                     envParams.GetWithDefault("reward__jitter_penalty_multiplier", JitterPenaltyMultiplier);
                 EnergyPenaltyMultiplier =
                     envParams.GetWithDefault("reward__energy_penalty_multiplier", EnergyPenaltyMultiplier);
                 UprightRewardMultiplier =
                     envParams.GetWithDefault("reward__upright_reward_multiplier", UprightRewardMultiplier);
-                SpeedRewardMultiplier =
-                    envParams.GetWithDefault("reward__speed_reward_multiplier", SpeedRewardMultiplier);
+                DirectionRewardMultiplier =
+                    envParams.GetWithDefault("reward__direction_reward_multiplier", DirectionRewardMultiplier);
+
+                ActionMultiplier = envParams.GetWithDefault("reward__action_multiplier", ActionMultiplier);
             }
         }
 
