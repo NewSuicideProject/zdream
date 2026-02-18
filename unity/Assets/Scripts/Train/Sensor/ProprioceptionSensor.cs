@@ -14,7 +14,7 @@ namespace Train.Sensor {
             _size = 3 + // gravity
                     3 + // CoM
                     3 + // angular velocity
-                    3 + // linear velocity
+                    3 + // relative linear velocity
                     2 + // projected forward
                     3 + // relative target position
                     1 + // integrity
@@ -44,7 +44,7 @@ namespace Train.Sensor {
             writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.y);
             writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.z);
 
-            Vector3 linearVelocity = _proprioception.ProjectedVelocity;
+            Vector3 linearVelocity = _proprioception.RelativeLinearVelocity;
             writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.x);
             writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.y);
             writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.z);

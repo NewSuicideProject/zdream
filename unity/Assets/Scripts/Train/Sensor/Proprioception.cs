@@ -10,7 +10,7 @@ namespace Train.Sensor {
         [SerializeField] [ReadOnly] private Vector3 com;
         [SerializeField] [ReadOnly] private Vector3 gravity;
         [SerializeField] [ReadOnly] private Vector3 angularVelocity;
-        [SerializeField] [ReadOnly] private Vector3 projectedVelocity;
+        [SerializeField] [ReadOnly] private Vector3 relativeLinearVelocity;
         [SerializeField] [ReadOnly] private float integrity;
         [SerializeField] [ReadOnly] private Vector3 projectedForward;
         [SerializeField] [ReadOnly] private Vector3 relativeTargetPosition;
@@ -29,7 +29,7 @@ namespace Train.Sensor {
         public Vector3 Com => com;
         public Vector3 Gravity => gravity;
         public Vector3 AngularVelocity => angularVelocity;
-        public Vector3 ProjectedVelocity => projectedVelocity;
+        public Vector3 RelativeLinearVelocity => relativeLinearVelocity;
         public float Integrity => integrity;
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
@@ -91,17 +91,6 @@ namespace Train.Sensor {
                 ? totalWeightedPos / totalJoinedMass
                 : Vector3.zero);
 
-            angularVelocity = rootTransform.InverseTransformDirection(rootBody.angularVelocity);
-
-            Vector3 linearVelocity =
-                rootTransform.InverseTransformDirection(rootBody.linearVelocity);
-            projectedVelocity = Vector3.ProjectOnPlane(linearVelocity, Vector3.up);
-            if (projectedVelocity.sqrMagnitude < 0.001f) {
-                projectedVelocity = Vector3.zero;
-            } else {
-                projectedVelocity.Normalize();
-            }
-
             Vector3 forward = rootTransform.forward;
             Vector3 position = rootTransform.position;
 
@@ -114,6 +103,9 @@ namespace Train.Sensor {
 
             Quaternion yawQuat = Quaternion.LookRotation(projectedForward, Vector3.up);
             Matrix4x4 inverseMatrix = Matrix4x4.TRS(position, yawQuat, Vector3.one).inverse;
+
+            angularVelocity = rootTransform.InverseTransformDirection(rootBody.angularVelocity);
+            relativeLinearVelocity = inverseMatrix.MultiplyVector(rootBody.linearVelocity);
 
             relativeTargetPosition =
                 targetTransform ? inverseMatrix.MultiplyPoint3x4(targetTransform.position) : Vector3.zero;
