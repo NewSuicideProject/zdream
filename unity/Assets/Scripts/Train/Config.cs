@@ -65,11 +65,15 @@ namespace Train {
                 ARatio = envParams.GetWithDefault("phase__a_ratio", ARatio);
                 BRatio = envParams.GetWithDefault("phase__b_ratio", BRatio);
                 CRatio = envParams.GetWithDefault("phase__c_ratio", CRatio);
+                DRatio = envParams.GetWithDefault("phase__d_ratio", DRatio);
+                ERatio = envParams.GetWithDefault("phase__e_ratio", ERatio);
             }
 
             public static float ARatio; // Agent try to stand up and stabilize (proprioception)
             public static float BRatio; // Agent try to move towards the target (navigation)
-            public static float CRatio; // Agent try to overcome the terrain (terrain)
+            public static float CRatio; // Phase B with Passion
+            public static float DRatio; // Agent try to overcome the terrain (terrain)
+            public static float ERatio; // Phase D with Passion
         }
 
         public static class Normalization {

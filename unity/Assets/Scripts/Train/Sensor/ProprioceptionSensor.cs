@@ -44,10 +44,10 @@ namespace Train.Sensor {
             writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.y);
             writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.z);
 
-            Vector3 linearVelocity = _proprioception.RelativeLinearVelocity;
-            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.x);
-            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.y);
-            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.z);
+            Vector3 relativeLinearVelocity = _proprioception.RelativeLinearVelocity;
+            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.x);
+            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.y);
+            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.z);
 
             Vector3 projectedForward = _proprioception.ProjectedForward;
             writer[idx++] = projectedForward.x;

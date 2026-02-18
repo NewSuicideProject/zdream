@@ -102,13 +102,13 @@ namespace Train.Sensor {
             }
 
             Quaternion yawQuat = Quaternion.LookRotation(projectedForward, Vector3.up);
-            Matrix4x4 inverseMatrix = Matrix4x4.TRS(position, yawQuat, Vector3.one).inverse;
+            Quaternion inverseYaw = Quaternion.Inverse(yawQuat);
 
             angularVelocity = rootTransform.InverseTransformDirection(rootBody.angularVelocity);
-            relativeLinearVelocity = inverseMatrix.MultiplyVector(rootBody.linearVelocity);
 
+            relativeLinearVelocity = inverseYaw * rootBody.linearVelocity;
             relativeTargetPosition =
-                targetTransform ? inverseMatrix.MultiplyPoint3x4(targetTransform.position) : Vector3.zero;
+                targetTransform ? inverseYaw * (targetTransform.position - position) : Vector3.zero;
 
             integrity = totalMass > 0f ? totalJoinedMass / totalMass : 0f;
         }
