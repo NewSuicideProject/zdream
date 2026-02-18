@@ -2,15 +2,15 @@ using Unity.MLAgents.Sensors;
 
 namespace Train.Sensor {
     public class TerrainSensor : ISensor {
-        private readonly int _gridSize;
+        private readonly int _resolution;
         private readonly ObservationSpec _observationSpec;
         private readonly int _size;
         private readonly Terrain _terrain;
 
-        public TerrainSensor(Terrain terrain, int gridSize) {
+        public TerrainSensor(Terrain terrain) {
             _terrain = terrain;
-            _gridSize = gridSize;
-            _size = _gridSize * _gridSize;
+            _resolution = Config.Terrain.Resolution;
+            _size = _resolution * _resolution;
             _observationSpec = ObservationSpec.Vector(_size);
         }
 
@@ -20,8 +20,8 @@ namespace Train.Sensor {
             int idx = 0;
             float agentHeight = _terrain.transform.position.y;
 
-            for (int z = 0; z < _gridSize; z++) {
-                for (int x = 0; x < _gridSize; x++) {
+            for (int z = 0; z < _resolution; z++) {
+                for (int x = 0; x < _resolution; x++) {
                     float relativeHeight = _terrain.HeightMap[x, z] - agentHeight;
                     writer[idx++] = Normalization.NormalizeHeight(relativeHeight);
                 }

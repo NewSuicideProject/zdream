@@ -11,12 +11,12 @@ namespace Train.Sensor {
         private TerrainSensor _terrainSensor;
 
         public override ISensor[] CreateSensors() {
-            _terrainSensor = new TerrainSensor(this, Config.Terrain.Resolution);
+            _terrainSensor = new TerrainSensor(this);
             return new ISensor[] { _terrainSensor };
         }
 
         private void Awake() {
-            _spacing = Normalization.ExpectedMaxThickness / (Config.Terrain.Resolution - 1);
+            _spacing = Config.Normalization.ExpectedMaxThickness / (Config.Terrain.Resolution - 1);
             HeightMap = new float[Config.Terrain.Resolution, Config.Terrain.Resolution];
         }
 

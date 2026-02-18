@@ -7,9 +7,39 @@ policy_kwargs:
             max_token: 3
             nhead: 4
         proprioception_kwargs:
-            hidden_dims: [64, 128, 256]
+            hidden_dims: [512, 512, 512]
         terrain_kwargs:
-            hidden_dims: [64, 128, 256]
+            hidden_dims: [128, 64, 32]
+
+        navigation_ratio: 0.0
+        terrain_ratio: 0.0
+        proprioception_ratio: 1.0
     net_arch:
         pi: [256, 256]
         qf: [256, 256]
+
+unity_kwargs:
+    navigation_sensor__max_token: 100
+
+    terrain__resolution: 10
+
+    reward__stay_success_reward: 20.0
+    reward__staying_reward: 10.0
+    reward__stay_success_threshold: 5.0
+    reward__distance_penalty_multiplier: 0.25
+    reward__action_multiplier: 10.0
+    reward__jitter_penalty_multiplier: 0.1
+    reward__energy_penalty_multiplier: 0.01
+    reward__upright_reward_multiplier: 1.0
+    reward__direction_reward_multiplier: 1.0
+
+    phase__a_ratio: 0.0 # Agent try to stand up and stabilize (proprioception)
+    phase__b_ratio: 0.0 # Agent try to move towards the target (navigation)
+    phase__c_ratio: 0.0 # Phase B with Passion
+    phase__d_ratio: 0.0 # Agent try to overcome the terrain (terrain)
+    phase__e_ratio: 0.0 # Phase D with Passion
+
+    normalization__expected_max_speed: 20.0
+    normalization__expected_max_distance: 10.0
+    normalization__expected_max_thickness: 2.5
+    normalization__expected_max_height: 2.5

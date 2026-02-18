@@ -13,6 +13,9 @@ class FeatureExtractor(BaseFeaturesExtractor):
         navigation_kwargs=None,
         proprioception_kwargs=None,
         terrain_kwargs=None,
+        navigation_ratio=1.0,
+        terrain_ratio=1.0,
+        proprioception_ratio=1.0,
     ):
         super().__init__(observation_space, features_dim=1)
 
@@ -24,7 +27,6 @@ class FeatureExtractor(BaseFeaturesExtractor):
             terrain_kwargs = {}
 
         self.navigation = NavigationEncoder(
-            input_dim=observation_space["navigation"].shape[0],
             **navigation_kwargs,
         )
 
@@ -38,6 +40,21 @@ class FeatureExtractor(BaseFeaturesExtractor):
             **proprioception_kwargs,
         )
 
+        self.register_buffer(
+            "navigation_ratio", torch.tensor(navigation_ratio, dtype=torch.float32)
+        )
+        self.register_buffer(
+            "terrain_ratio", torch.tensor(terrain_ratio, dtype=torch.float32)
+        )
+        self.register_buffer(
+            "proprioception_ratio",
+            torch.tensor(proprioception_ratio, dtype=torch.float32),
+        )
+
+        self.proprioception_ratio: torch.Tensor
+        self.terrain_ratio: torch.Tensor
+        self.navigation_ratio: torch.Tensor
+
         self._features_dim = (
             self.navigation.output_dim
             + self.terrain.output_dim
@@ -45,8 +62,8 @@ class FeatureExtractor(BaseFeaturesExtractor):
         )
 
     def forward(self, obs):
-        nav = self.navigation(obs["navigation"])
-        ter = self.terrain(obs["terrain"])
-        prop = self.proprioception(obs["proprioception"])
+        nav = self.navigation(obs["navigation"]) * self.navigation_ratio
+        ter = self.terrain(obs["terrain"]) * self.terrain_ratio
+        prop = self.proprioception(obs["proprioception"]) * self.proprioception_ratio
 
         return torch.cat([nav, ter, prop], dim=1)

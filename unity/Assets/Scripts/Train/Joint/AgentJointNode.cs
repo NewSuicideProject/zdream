@@ -99,6 +99,15 @@ namespace Train.Joint {
                     $"Invalid axis index {axisIndex}")
             };
 
+        public void SetDrive(int axisIndex, ArticulationDrive drive) {
+            switch (axisIndex) {
+                case 0: Body.xDrive = drive; break;
+                case 1: Body.yDrive = drive; break;
+                case 2: Body.zDrive = drive; break;
+                default: throw new ArgumentOutOfRangeException(nameof(axisIndex), $"Invalid axis index {axisIndex}");
+            }
+        }
+
         public void GetJointPositions(float[] buffer, int baseIndex = 0, bool normalize = false) {
             if (IsSevered) {
                 Array.Clear(buffer, baseIndex, DoF);

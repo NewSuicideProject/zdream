@@ -14,12 +14,11 @@ namespace Train.Sensor {
             _size = 3 + // gravity
                     3 + // CoM
                     3 + // angular velocity
-                    3 + // linear velocity
+                    3 + // relative linear velocity
                     2 + // projected forward
                     3 + // relative target position
                     1 + // integrity
                     _proprioception.Contacts.Length +
-                    _proprioception.Attaches.Length +
                     _proprioception.NormalizedJointBlocks.Length;
 
             _observationSpec = ObservationSpec.Vector(_size);
@@ -45,10 +44,10 @@ namespace Train.Sensor {
             writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.y);
             writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.z);
 
-            Vector3 linearVelocity = _proprioception.LinearVelocity;
-            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.x);
-            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.y);
-            writer[idx++] = Normalization.NormalizeSpeed(linearVelocity.z);
+            Vector3 relativeLinearVelocity = _proprioception.RelativeLinearVelocity;
+            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.x);
+            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.y);
+            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.z);
 
             Vector3 projectedForward = _proprioception.ProjectedForward;
             writer[idx++] = projectedForward.x;
@@ -63,10 +62,6 @@ namespace Train.Sensor {
 
             foreach (float contact in _proprioception.Contacts) {
                 writer[idx++] = contact;
-            }
-
-            foreach (float attach in _proprioception.Attaches) {
-                writer[idx++] = attach;
             }
 
             foreach (float jointBlock in _proprioception.NormalizedJointBlocks) {

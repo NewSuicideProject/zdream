@@ -7,23 +7,9 @@ using UnityEngine;
 
 namespace Train {
     [RequireComponent(typeof(Proprioception))]
+    [RequireComponent(typeof(AgentJointHierarchy))]
     public class Agent : Unity.MLAgents.Agent {
-        [Range(0.01f, 1f)] [SerializeField] private float passion = 0.5f;
-
-        [SerializeField] private float staySuccessReward = 20f;
-        [SerializeField] private float stayingReward = 10f;
-        [SerializeField] private float staySuccessThreshold = 5f;
-
-        [SerializeField] private float failurePenalty = 50f;
-        [SerializeField] private float distancePenaltyMultiplier = 0.25f;
-
-        [SerializeField] private float actionMultiplier = 10f;
-        [SerializeField] private float minPassion = 0.01f;
-
-        [SerializeField] private float jitterPenaltyMultiplier = 0.1f;
-        [SerializeField] private float energyPenaltyMultiplier = 0.01f;
-        [SerializeField] private float uprightRewardMultiplier = 1.0f;
-        [SerializeField] private float speedMatchRewardMultiplier = 1.0f;
+        private float _passion = 0.5f;
 
         private AgentJointHierarchy _jointHierarchy;
         private float[] _prevActions;
@@ -33,7 +19,6 @@ namespace Train {
         private Navigation _navigation;
         private float _stayTime;
         private Transform _targetTransform;
-
 
         protected override void Awake() {
             base.Awake();
@@ -69,103 +54,94 @@ namespace Train {
                 return;
             }
 
-            AddReward(stayingReward * Time.fixedDeltaTime);
+            AddReward(Config.Reward.StayingReward * Time.fixedDeltaTime);
             _stayTime += Time.fixedDeltaTime;
         }
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
+
+            Config.NavigationSensor.Reset();
+            Config.Normalization.Reset();
+            Config.Terrain.Reset();
+            Config.Reward.Reset();
+            Config.Phase.Reset();
+
+            _passion = 0.5f + (Random.Range(-0.5f, 0.5f) * Mathf.Max(Config.Phase.CRatio, Config.Phase.ERatio));
+
             _environment.Reset();
             _jointHierarchy.Reset();
             _navigation.Reset();
         }
 
-        public override void CollectObservations(VectorSensor sensor) {
-        }
+        public override void CollectObservations(VectorSensor sensor) => sensor.AddObservation(_passion);
 
         public override void OnActionReceived(ActionBuffers actionBuffers) {
             ActionSegment<float> continuousActions = actionBuffers.ContinuousActions;
-            int actionIndex = 0;
+            int index = 0;
 
             foreach (AgentJointNode node in _jointHierarchy.TrainNodes) {
                 for (int i = 0; i < node.DoF; i++) {
-                    float targetValue = continuousActions[actionIndex++];
+                    float targetValue = continuousActions[index++];
 
                     ArticulationDrive drive = node.GetDrive(i);
-
-                    drive.target = targetValue * actionMultiplier;
-
-                    switch (i) {
-                        case 0: node.Body.xDrive = drive; break;
-                        case 1: node.Body.yDrive = drive; break;
-                        case 2: node.Body.zDrive = drive; break;
-                    }
+                    drive.target = targetValue * Config.Reward.ActionMultiplier;
+                    node.SetDrive(i, drive);
                 }
             }
 
-            Vector3 currentVelocity = _proprioception.LinearVelocity;
-            Vector3 targetDir = (_targetTransform.localPosition - transform.localPosition).normalized;
-
-            float energySum = 0f;
-
-            foreach (AgentJointNode node in _jointHierarchy.TrainNodes) {
-                if (node.Body != null) {
-                    energySum += node.Body.angularVelocity.magnitude;
-                }
-            }
-
-            float actionJitterSum = 0f;
-
+            float jitterSum = 0f;
             for (int i = 0; i < continuousActions.Length; i++) {
                 float diff = continuousActions[i] - _prevActions[i];
-                actionJitterSum += diff * diff;
+                jitterSum += diff * diff;
                 _prevActions[i] = continuousActions[i];
             }
 
+            float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier;
 
-            float uprightBonus = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
-            float targetSpeedReward =
-                Mathf.Exp(-Mathf.Pow(Normalization.ExpectedMaxSpeed - currentVelocity.magnitude, 2));
+            float targetDirectionMatch =
+                Vector3.Dot(
+                    _proprioception.RelativeLinearVelocity.normalized,
+                    _proprioception.RelativeTargetPosition.normalized);
+            float targetDirectionMatchReward = targetDirectionMatch * _passion *
+                                               Config.Reward.DirectionRewardMultiplier *
+                                               Config.Phase.BRatio;
 
-            float integratedReward = CalculateFullReward(
-                passion,
-                currentVelocity,
-                targetDir,
-                actionJitterSum,
-                energySum,
-                uprightBonus,
-                targetSpeedReward,
-                minPassion
-            );
+            float navigationDirectionMatchReward = 0;
+            if (_navigation.Corners.Count != 0) {
+                float navigationDirectionMatch =
+                    Vector3.Dot(
+                        _navigation.Corners.First().RelativePosition.normalized,
+                        _proprioception.RelativeLinearVelocity.normalized);
+                navigationDirectionMatchReward = navigationDirectionMatch * _passion *
+                                                 Config.Reward.DirectionRewardMultiplier * 2 *
+                                                 Config.Phase.CRatio;
+            }
 
-            AddReward(integratedReward * Time.fixedDeltaTime);
+            float energySum = continuousActions.Select(a => a * a).Sum();
+            float energyPenalty = energySum * (1f - _passion) * Config.Reward.EnergyPenaltyMultiplier *
+                                  Config.Phase.BRatio;
 
-            float distanceToTarget = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
-            AddReward(-Normalization.NormalizeDistance(distanceToTarget) * distancePenaltyMultiplier *
-                      Time.fixedDeltaTime);
+            float uprightMatch = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
+            float uprightReward = uprightMatch * (1f - _passion) * Config.Reward.UprightRewardMultiplier *
+                                  Config.Phase.ARatio;
 
+            float distance = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
+            float distancePenalty = Normalization.NormalizeDistance(distance) * _passion *
+                                    Config.Reward.DistancePenaltyMultiplier * Config.Phase.BRatio;
 
-            if (_stayTime >= staySuccessThreshold) {
-                AddReward(staySuccessReward);
+            float fullReward = targetDirectionMatchReward + navigationDirectionMatchReward - jitterPenalty -
+                               energyPenalty + uprightReward -
+                               distancePenalty;
+
+            AddReward(fullReward * Time.fixedDeltaTime);
+
+            if (_stayTime > Config.Reward.StaySuccessThreshold) {
+                AddReward(Config.Reward.StaySuccessReward);
                 EndEpisode();
             } else if (transform.localPosition.y < 0f) {
                 EndEpisode();
-            } else if (StepCount >= MaxStep - 1) {
-                AddReward(-failurePenalty);
             }
-        }
-
-        private float CalculateFullReward(float pw, Vector3 velocity, Vector3 targetDir, float jitter, float energy,
-            float upright, float speedMatch, float minPassionEpsilon) {
-            float invPw = 1.0f / Mathf.Max(pw, minPassionEpsilon);
-
-            float speedReward = Vector3.Dot(velocity, targetDir) * pw;
-            float jitterPenalty = jitter * jitterPenaltyMultiplier;
-            float energyPenalty = energy * invPw * energyPenaltyMultiplier;
-            float uprightReward = upright * invPw * uprightRewardMultiplier;
-            float speedMatchReward = speedMatch * pw * speedMatchRewardMultiplier;
-
-            return speedReward - jitterPenalty - energyPenalty + uprightReward + speedMatchReward;
         }
     }
 }
