@@ -5,6 +5,8 @@ namespace Test {
     public class PlaneEnvironment : Environment {
         [SerializeField] private float spawnRange = 20f;
         [SerializeField] private float minSpawnDistance = 5f;
+        [SerializeField] private Vector3 agentSpawnOffest = Vector3.zero;
+        [SerializeField] private Vector3 targetSpawnOffest = Vector3.zero;
 
         public override void Reset() {
             Vector3 agentScale = AgentTransform.localScale;
@@ -36,15 +38,15 @@ namespace Test {
             do {
                 float targetRandomX = Random.Range(-targetSafeRange, targetSafeRange);
                 float targetRandomZ = Random.Range(-targetSafeRange, targetSafeRange);
-                targetPos = new Vector3(targetRandomX, targetScale.y / 2f, targetRandomZ);
+                targetPos = new Vector3(targetRandomX, 0, targetRandomZ);
 
                 float agentRandomX = Random.Range(-agentSafeRange, agentSafeRange);
                 float agentRandomZ = Random.Range(-agentSafeRange, agentSafeRange);
-                agentPos = new Vector3(agentRandomX, AgentTransform.localScale.y / 2f, agentRandomZ);
+                agentPos = new Vector3(agentRandomX, 0, agentRandomZ);
             } while (Vector3.Distance(targetPos, agentPos) < minSpawnDistance);
 
-            TargetTransform.localPosition = targetPos;
-            AgentTransform.localPosition = agentPos;
+            TargetTransform.localPosition = targetPos + targetSpawnOffest;
+            AgentTransform.localPosition = agentPos + agentSpawnOffest;
         }
     }
 }

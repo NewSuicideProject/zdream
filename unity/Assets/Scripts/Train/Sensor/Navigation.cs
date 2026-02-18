@@ -71,6 +71,10 @@ namespace Train.Sensor {
 
             Vector3[] corners = _navMeshPath.corners;
 
+            if (corners.Length == 0) {
+                return;
+            }
+
             Gizmos.color = Color.red;
 
             for (int i = 0; i < corners.Length - 1; i++) {
