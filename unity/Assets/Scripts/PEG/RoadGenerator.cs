@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
 
-namespace Train.PEG {
+namespace PEG {
     public class RoadGenerator {
         public void ConnectRoomsAndRoadHeight(
             Map map,

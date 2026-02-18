@@ -1,9 +1,9 @@
-using Train.PEG;
+using PEG;
 using UnityEngine;
 using Random = System.Random;
 
 namespace Train {
-    public class Environment : MonoBehaviour {
+    public class PegEnvironment : Environment {
         [SerializeField] private GameObject wallPrefab;
         [SerializeField] private GameObject floorPrefab;
 
@@ -11,12 +11,6 @@ namespace Train {
         private Transform _floorContainer;
 
         [SerializeField] private float wallCenterY = 2.5f;
-
-        [SerializeField] private GameObject agentPrefab;
-        [SerializeField] private GameObject targetPrefab;
-
-        private Transform _agentTransform;
-        public Transform TargetTransform { get; private set; }
 
         [Min(8)] [SerializeField] private int gridWidth = 64;
         [Min(8)] [SerializeField] private int gridHeight = 64;
@@ -59,9 +53,8 @@ namespace Train {
         private RoomGenerator _roomGenerator;
         private Visualizer _visualizer;
 
-        private void Awake() {
-            TargetTransform = Instantiate(targetPrefab, transform).transform;
-            _agentTransform = Instantiate(agentPrefab, transform).transform;
+        protected override void Awake() {
+            base.Awake();
 
             _wallContainer = new GameObject("WallContainer").transform;
             _wallContainer.parent = transform;
@@ -82,7 +75,7 @@ namespace Train {
 
         private void Start() => Reset();
 
-        public void Reset() {
+        public override void Reset() {
             _organicShaper = new OrganicShaper(
                 organicIterations,
                 organicCarveRatio,
@@ -164,7 +157,7 @@ namespace Train {
                 _map,
                 _map.Rooms[a].center,
                 _map.Rooms[b].center,
-                _agentTransform,
+                AgentTransform,
                 TargetTransform
             );
         }

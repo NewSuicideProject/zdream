@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1272871652606335571}
   - component: {fileID: 5199895564648225775}
   m_Layer: 3
-  m_Name: Environment
+  m_Name: PEGEnvironment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

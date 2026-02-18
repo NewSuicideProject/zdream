@@ -855,16 +855,16 @@ MonoBehaviour:
     VectorObservationSize: 1
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 25
+      m_NumContinuousActions: 31
       BranchSizes: 
-    VectorActionSize: 19000000
+    VectorActionSize: 1f000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: Train
+  m_BehaviorName: agent
   TeamId: 0
   m_UseChildSensors: 1
   m_UseChildActuators: 1
@@ -885,8 +885,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 3000
-  passion: 0.5
+  MaxStep: 5000
 --- !u!114 &8780102705714806888
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -915,12 +914,11 @@ MonoBehaviour:
   com: {x: 0, y: 0, z: 0}
   gravity: {x: 0, y: 0, z: 0}
   angularVelocity: {x: 0, y: 0, z: 0}
-  linearVelocity: {x: 0, y: 0, z: 0}
+  relativeLinearVelocity: {x: 0, y: 0, z: 0}
   integrity: 0
   projectedForward: {x: 0, y: 0, z: 0}
   relativeTargetPosition: {x: 0, y: 0, z: 0}
   contacts: []
-  attaches: []
   jointBlocks: []
   normalizedJointBlocks: []
   targetTransform: {fileID: 0}

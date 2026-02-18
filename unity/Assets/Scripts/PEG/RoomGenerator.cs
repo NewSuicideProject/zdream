@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
 
-namespace Train.PEG {
+namespace PEG {
     public class RoomGenerator {
         private readonly OrganicShaper _organicShaper;
         public RoomGenerator(OrganicShaper organicShaper) => _organicShaper = organicShaper;

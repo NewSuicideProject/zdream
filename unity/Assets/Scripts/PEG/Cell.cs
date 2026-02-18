@@ -1,6 +1,6 @@
 using System;
 
-namespace Train.PEG {
+namespace PEG {
     [Serializable]
     public struct Cell {
         public bool isWall;

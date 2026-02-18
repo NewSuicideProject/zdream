@@ -2,32 +2,12 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Test {
-    public class Environment : MonoBehaviour {
+    public class PlaneEnvironment : Environment {
         [SerializeField] private float spawnRange = 20f;
-
         [SerializeField] private float minSpawnDistance = 5f;
 
-        [SerializeField] private GameObject agentPrefab;
-        [SerializeField] public GameObject targetPrefab;
-
-        [SerializeField] private float timeScale = 2f;
-
-
-        private Transform _agentTransform;
-        public Transform TargetTransform { get; private set; }
-
-        private void Awake() {
-            Time.timeScale = timeScale;
-
-            GameObject agentInstance = Instantiate(agentPrefab, Vector3.zero, Quaternion.identity, transform);
-            _agentTransform = agentInstance.transform;
-
-            GameObject targetInstance = Instantiate(targetPrefab, Vector3.zero, Quaternion.identity, transform);
-            TargetTransform = targetInstance.transform;
-        }
-
-        public void Reset() {
-            Vector3 agentScale = _agentTransform.localScale;
+        public override void Reset() {
+            Vector3 agentScale = AgentTransform.localScale;
             Vector3 targetScale = TargetTransform.localScale;
 
             float agentRadius = Mathf.Max(agentScale.x, agentScale.z) * 0.5f;
@@ -60,11 +40,11 @@ namespace Test {
 
                 float agentRandomX = Random.Range(-agentSafeRange, agentSafeRange);
                 float agentRandomZ = Random.Range(-agentSafeRange, agentSafeRange);
-                agentPos = new Vector3(agentRandomX, _agentTransform.localScale.y / 2f, agentRandomZ);
+                agentPos = new Vector3(agentRandomX, AgentTransform.localScale.y / 2f, agentRandomZ);
             } while (Vector3.Distance(targetPos, agentPos) < minSpawnDistance);
 
             TargetTransform.localPosition = targetPos;
-            _agentTransform.localPosition = agentPos;
+            AgentTransform.localPosition = agentPos;
         }
     }
 }

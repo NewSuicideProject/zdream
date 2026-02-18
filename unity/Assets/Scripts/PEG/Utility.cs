@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Train.PEG {
+namespace PEG {
     public static class Utility {
         public static readonly Vector2Int[]
             Cardinal = { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down };
