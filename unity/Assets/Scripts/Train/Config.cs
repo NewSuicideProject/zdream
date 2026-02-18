@@ -1,4 +1,5 @@
 ﻿using Unity.MLAgents;
+using UnityEngine;
 
 namespace Train {
     public static class Config {
@@ -60,11 +61,11 @@ namespace Train {
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
 
-                ARatio = envParams.GetWithDefault("phase__a_ratio", ARatio);
-                BRatio = envParams.GetWithDefault("phase__b_ratio", BRatio);
-                CRatio = envParams.GetWithDefault("phase__c_ratio", CRatio);
-                DRatio = envParams.GetWithDefault("phase__d_ratio", DRatio);
                 ERatio = envParams.GetWithDefault("phase__e_ratio", ERatio);
+                DRatio = Mathf.Max(envParams.GetWithDefault("phase__d_ratio", DRatio), ERatio);
+                CRatio = Mathf.Max(envParams.GetWithDefault("phase__c_ratio", CRatio), DRatio, ERatio);
+                BRatio = Mathf.Max(envParams.GetWithDefault("phase__b_ratio", BRatio), CRatio, DRatio, ERatio);
+                ARatio = Mathf.Max(envParams.GetWithDefault("phase__a_ratio", ARatio), BRatio, CRatio, DRatio, ERatio);
             }
 
             public static float ARatio; // Agent try to stand up and stabilize (proprioception)

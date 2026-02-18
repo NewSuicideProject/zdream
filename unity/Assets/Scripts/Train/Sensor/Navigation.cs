@@ -1,10 +1,15 @@
-using System;
+using System.Collections.Generic;
 using Unity.AI.Navigation;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace Train.Sensor {
+    public struct Corner {
+        public Vector3 RelativePosition;
+        public Vector3 Direction;
+    }
+
     public class Navigation : SensorComponent {
         public Transform targetTransform;
         private NavMeshPath _navMeshPath;
@@ -14,7 +19,7 @@ namespace Train.Sensor {
 
         private NavigationSensor _navigationSensor;
 
-        public Vector3[] Corners => _navMeshPath != null ? _navMeshPath.corners : Array.Empty<Vector3>();
+        public readonly List<Corner> Corners = new();
 
         public override ISensor[] CreateSensors() {
             _navigationSensor = new NavigationSensor(this);
@@ -37,22 +42,42 @@ namespace Train.Sensor {
                 return;
             }
 
+            Vector3 projectedForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+            if (projectedForward.sqrMagnitude < 0.001f) {
+                projectedForward = Vector3.forward;
+            } else {
+                projectedForward.Normalize();
+            }
+
+            Quaternion inverseYaw = Quaternion.Inverse(Quaternion.LookRotation(projectedForward, Vector3.up));
+
+            Corners.Clear();
             NavMesh.CalculatePath(transform.position, targetTransform.position, NavMesh.AllAreas, _navMeshPath);
+            for (int i = 1; i < _navMeshPath.corners.Length - 1; i++) {
+                Vector3 corner = _navMeshPath.corners[i];
+                Vector3 nextCorner = _navMeshPath.corners[i + 1];
+
+                Corners.Add(new Corner {
+                    RelativePosition = inverseYaw * (corner - transform.position),
+                    Direction = inverseYaw * (nextCorner - corner).normalized
+                });
+            }
         }
 
         private void OnDrawGizmos() {
-            if (Corners.Length == 0) {
+            Vector3[] corners = _navMeshPath.corners;
+            if (corners.Length == 0) {
                 return;
             }
 
             Gizmos.color = Color.red;
 
-            for (int i = 0; i < Corners.Length - 1; i++) {
-                Gizmos.DrawSphere(Corners[i], 0.05f);
-                Gizmos.DrawLine(Corners[i], Corners[i + 1]);
+            for (int i = 0; i < corners.Length - 1; i++) {
+                Gizmos.DrawSphere(corners[i], 0.05f);
+                Gizmos.DrawLine(corners[i], corners[i + 1]);
             }
 
-            Gizmos.DrawSphere(Corners[^1], 0.1f);
+            Gizmos.DrawSphere(corners[^1], 0.1f);
         }
     }
 }

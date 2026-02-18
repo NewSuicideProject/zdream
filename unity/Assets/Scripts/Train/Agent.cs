@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Train {
     [RequireComponent(typeof(Proprioception))]
     public class Agent : Unity.MLAgents.Agent {
-        [Range(0f, 1f)] [SerializeField] private float passion = 0.5f;
+        private float _passion = 0.5f;
 
         private AgentJointHierarchy _jointHierarchy;
         private float[] _prevActions;
@@ -18,7 +18,6 @@ namespace Train {
         private Navigation _navigation;
         private float _stayTime;
         private Transform _targetTransform;
-
 
         protected override void Awake() {
             base.Awake();
@@ -67,12 +66,14 @@ namespace Train {
             Config.Reward.Reset();
             Config.Phase.Reset();
 
+            _passion = 0.5f + (Random.Range(-0.5f, 0.5f) * Mathf.Max(Config.Phase.CRatio, Config.Phase.ERatio));
+
             _environment.Reset();
             _jointHierarchy.Reset();
             _navigation.Reset();
         }
 
-        public override void CollectObservations(VectorSensor sensor) => sensor.AddObservation(passion);
+        public override void CollectObservations(VectorSensor sensor) => sensor.AddObservation(_passion);
 
         public override void OnActionReceived(ActionBuffers actionBuffers) {
             ActionSegment<float> continuousActions = actionBuffers.ContinuousActions;
@@ -97,26 +98,40 @@ namespace Train {
 
             float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier;
 
-            float passionInverseMultiplier = 1f / (passion + 1f);
-            float passionMultiplier = passion;
-
-            float directionMatch =
+            float targetDirectionMatch =
                 Vector3.Dot(
                     _proprioception.RelativeLinearVelocity.normalized,
                     _proprioception.RelativeTargetPosition.normalized);
-            float directionReward = directionMatch * Config.Reward.DirectionRewardMultiplier;
+            float targetDirectionMatchReward = targetDirectionMatch * _passion *
+                                               Config.Reward.DirectionRewardMultiplier *
+                                               Config.Phase.BRatio;
 
-            float energySum = _jointHierarchy.TrainNodes.Sum(node => node.Body.angularVelocity.magnitude);
-            float energyPenalty = energySum * passionInverseMultiplier * Config.Reward.EnergyPenaltyMultiplier;
+            float navigationDirectionMatchReward = 0;
+            if (_navigation.Corners.Count != 0) {
+                float navigationDirectionMatch =
+                    Vector3.Dot(
+                        _navigation.Corners.First().RelativePosition.normalized,
+                        _proprioception.RelativeLinearVelocity.normalized);
+                navigationDirectionMatchReward = navigationDirectionMatch * _passion *
+                                                 Config.Reward.DirectionRewardMultiplier * 2 *
+                                                 Config.Phase.CRatio;
+            }
+
+            float energySum = continuousActions.Select(a => a * a).Sum();
+            float energyPenalty = energySum * (1f - _passion) * Config.Reward.EnergyPenaltyMultiplier *
+                                  Config.Phase.BRatio;
 
             float uprightMatch = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
-            float uprightReward = uprightMatch * passionInverseMultiplier * Config.Reward.UprightRewardMultiplier;
+            float uprightReward = uprightMatch * (1f - _passion) * Config.Reward.UprightRewardMultiplier *
+                                  Config.Phase.ARatio;
 
             float distance = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
-            float distancePenalty = Normalization.NormalizeDistance(distance) * passionMultiplier *
-                                    Config.Reward.DistancePenaltyMultiplier;
+            float distancePenalty = Normalization.NormalizeDistance(distance) * _passion *
+                                    Config.Reward.DistancePenaltyMultiplier * Config.Phase.BRatio;
 
-            float fullReward = directionReward - jitterPenalty - energyPenalty + uprightReward - distancePenalty;
+            float fullReward = targetDirectionMatchReward + navigationDirectionMatchReward - jitterPenalty -
+                               energyPenalty + uprightReward -
+                               distancePenalty;
 
             AddReward(fullReward * Time.fixedDeltaTime);
 

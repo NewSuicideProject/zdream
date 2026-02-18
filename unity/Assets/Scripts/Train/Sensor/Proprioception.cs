@@ -91,24 +91,20 @@ namespace Train.Sensor {
                 ? totalWeightedPos / totalJoinedMass
                 : Vector3.zero);
 
-            Vector3 forward = rootTransform.forward;
-            Vector3 position = rootTransform.position;
-
-            projectedForward = Vector3.ProjectOnPlane(forward, Vector3.up);
+            projectedForward = Vector3.ProjectOnPlane(rootTransform.forward, Vector3.up);
             if (projectedForward.sqrMagnitude < 0.001f) {
                 projectedForward = Vector3.forward;
             } else {
                 projectedForward.Normalize();
             }
 
-            Quaternion yawQuat = Quaternion.LookRotation(projectedForward, Vector3.up);
-            Quaternion inverseYaw = Quaternion.Inverse(yawQuat);
+            Quaternion inverseYaw = Quaternion.Inverse(Quaternion.LookRotation(projectedForward, Vector3.up));
 
             angularVelocity = rootTransform.InverseTransformDirection(rootBody.angularVelocity);
 
             relativeLinearVelocity = inverseYaw * rootBody.linearVelocity;
             relativeTargetPosition =
-                targetTransform ? inverseYaw * (targetTransform.position - position) : Vector3.zero;
+                targetTransform ? inverseYaw * (targetTransform.position - rootTransform.position) : Vector3.zero;
 
             integrity = totalMass > 0f ? totalJoinedMass / totalMass : 0f;
         }
@@ -130,7 +126,7 @@ namespace Train.Sensor {
             Gizmos.color = Color.blue;
             Gizmos.DrawLine(pelvisPosition, pelvisTransform.TransformPoint(com));
 
-            Gizmos.color = Color.lightCoral;
+            Gizmos.color = Color.red;
             Gizmos.DrawRay(pelvisPosition, projectedForward * 0.5f);
         }
     }
