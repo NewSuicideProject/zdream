@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Train {
     [RequireComponent(typeof(Proprioception))]
+    [RequireComponent(typeof(AgentJointHierarchy))]
     public class Agent : Unity.MLAgents.Agent {
         private float _passion = 0.5f;
 
