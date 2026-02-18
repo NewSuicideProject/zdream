@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from gymnasium import Env, spaces
 from mlagents_envs.base_env import ActionTuple
@@ -8,6 +10,9 @@ from mlagents_envs.side_channel.engine_configuration_channel import (
 from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class UnityEnv(Env):
@@ -23,12 +28,15 @@ class UnityEnv(Env):
             for key, value in unity_kwargs.items():
                 self.env_params_channel.set_float_parameter(key, float(value))
 
+        logger.info("waiting unity")
         self.env = UnityEnvironment(
             file_name=unity_path,
             base_port=base_port,
             no_graphics=True,
             side_channels=[self.engine_channel, self.env_params_channel],
         )
+        logger.info("unity connected")
+
         self.env.reset()
 
         self.behavior = list(self.env.behavior_specs.keys())[0]

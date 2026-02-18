@@ -16,9 +16,9 @@ from .unity_env import UnityEnv
 logger = logging.getLogger(__name__)
 
 
-def make_unity_env(file_name, base_port, worker_id, env_params):
+def make_unity_env(file_name, base_port, worker_id):
     port = base_port + worker_id
-    return UnityEnv(file_name=file_name, base_port=port, env_params=env_params)
+    return UnityEnv(file_name=file_name, base_port=port)
 
 
 def run():
@@ -31,32 +31,13 @@ def run():
     checkpoint_dir = base_dir / "checkpoints"
 
     if config.env_count > 1:
-        envs = [
-            partial(
-                make_unity_env,
-                str(config.unity_path),
-                5004,
-                0,
-                getattr(config, "unity_env_params", {}),
-            )
-        ]
+        envs = [partial(make_unity_env, str(config.unity_path), 5004, 0)]
         for i in range(1, config.env_count):
-            envs.append(
-                partial(
-                    make_unity_env,
-                    str(config.unity_server_path),
-                    5004,
-                    i,
-                    getattr(config, "unity_env_params", {}),
-                )
-            )
+            envs.append(partial(make_unity_env, str(config.unity_server_path), 5004, i))
         env = SubprocVecEnv(envs)
         env = VecMonitor(env)
     else:
-        env = UnityEnv(
-            file_name=str(config.unity_path) if config.unity_path else None,
-            env_params=getattr(config, "unity_env_params", {}),
-        )
+        env = UnityEnv(file_name=str(config.unity_path) if config.unity_path else None)
         env = Monitor(env)
 
     checkpoint_callback = CheckpointCallback(

@@ -2,34 +2,3 @@ policy_kwargs:
     net_arch:
         pi: [128, 128]
         qf: [128, 128]
-
-# Unity Environment Parameters
-unity_env_params:
-    # NavigationSensor Configuration
-    navigation_sensor_max_token: 100
-
-    # Terrain Configuration
-    terrain_resolution: 10
-
-    # Reward Configuration
-    stay_success_reward: 20.0
-    staying_reward: 10.0
-    stay_success_threshold: 5.0
-    failure_penalty: 50.0
-    distance_penalty_multiplier: 0.25
-    action_multiplier: 10.0
-    jitter_penalty_multiplier: 0.1
-    energy_penalty_multiplier: 0.01
-    upright_reward_multiplier: 1.0
-    speed_match_reward_multiplier: 1.0
-
-    # Phase Configuration
-    phase_a_multiplier: 0.0
-    phase_b_multiplier: 0.0
-    phase_c_multiplier: 0.0
-
-    # Normalization Configuration
-    expected_max_speed: 20.0
-    expected_max_distance: 10.0
-    expected_max_thickness: 2.5
-    expected_max_height: 2.5
