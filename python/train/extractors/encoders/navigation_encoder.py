@@ -64,6 +64,10 @@ class NavigationEncoder(nn.Module):
 
         x = self.input_projection(x)
         x = x + self.pos_embedding[:, : x.size(1), :]
+
+        if padding_mask.all():
+            return th.zeros(batch_size, self.d_model, device=x.device, dtype=x.dtype)
+
         x = self.transformer_blocks(x, src_key_padding_mask=padding_mask)
         x = x * valid_mask
         x = x.sum(dim=1)
