@@ -25,7 +25,7 @@ def run():
     logger.info(f"config: {config}")
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    base_dir = Path.cwd() / "tests" / timestamp
+    base_dir = Path.cwd() / timestamp
     log_dir = base_dir / "log"
     model_path = base_dir / "result.zip"
     checkpoint_dir = base_dir / "checkpoints"
