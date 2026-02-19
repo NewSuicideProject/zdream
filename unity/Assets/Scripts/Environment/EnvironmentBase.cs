@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class Environment : MonoBehaviour {
+public class EnvironmentBase : MonoBehaviour {
     [SerializeField] protected GameObject agentPrefab;
     [SerializeField] protected GameObject targetPrefab;
 
