@@ -9,6 +9,7 @@ namespace Train {
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
                 MaxToken = (int)envParams.GetWithDefault("navigation_sensor__max_token", MaxToken);
+                Debug.Log($"NavigationSensor Reset\nMaxToken={MaxToken}");
             }
         }
 
@@ -18,6 +19,7 @@ namespace Train {
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
                 Resolution = (int)envParams.GetWithDefault("terrain__resolution", Resolution);
+                Debug.Log($"Terrain Reset\nResolution={Resolution}");
             }
         }
 
@@ -30,7 +32,7 @@ namespace Train {
 
             public static float JitterPenaltyMultiplier = 0.1f;
             public static float EnergyPenaltyMultiplier = 0.01f;
-            public static float UprightRewardMultiplier = 1.0f;
+            public static float UprightRewardMultiplier = 10.0f;
             public static float DirectionRewardMultiplier = 1.0f;
 
             public static float ActionMultiplier = 10f;
@@ -54,6 +56,18 @@ namespace Train {
                     envParams.GetWithDefault("reward__direction_reward_multiplier", DirectionRewardMultiplier);
 
                 ActionMultiplier = envParams.GetWithDefault("reward__action_multiplier", ActionMultiplier);
+
+                Debug.Log(
+                    "Reward Reset\n" +
+                    $"StaySuccessReward={StaySuccessReward}\n" +
+                    $"StayingReward={StayingReward}\n" +
+                    $"StaySuccessThreshold={StaySuccessThreshold}\n" +
+                    $"DistancePenaltyMultiplier={DistancePenaltyMultiplier}\n" +
+                    $"JitterPenaltyMultiplier={JitterPenaltyMultiplier}\n" +
+                    $"EnergyPenaltyMultiplier={EnergyPenaltyMultiplier}\n" +
+                    $"UprightRewardMultiplier={UprightRewardMultiplier}\n" +
+                    $"DirectionRewardMultiplier={DirectionRewardMultiplier}\n" +
+                    $"ActionMultiplier={ActionMultiplier}");
             }
         }
 
@@ -66,9 +80,17 @@ namespace Train {
                 CRatio = Mathf.Max(envParams.GetWithDefault("phase__c_ratio", CRatio), DRatio, ERatio);
                 BRatio = Mathf.Max(envParams.GetWithDefault("phase__b_ratio", BRatio), CRatio, DRatio, ERatio);
                 ARatio = Mathf.Max(envParams.GetWithDefault("phase__a_ratio", ARatio), BRatio, CRatio, DRatio, ERatio);
+
+                Debug.Log(
+                    "Phase Reset\n" +
+                    $"ARatio={ARatio}\n" +
+                    $"BRatio={BRatio}\n" +
+                    $"CRatio={CRatio}\n" +
+                    $"DRatio={DRatio}\n" +
+                    $"ERatio={ERatio}");
             }
 
-            public static float ARatio; // Agent try to stand up and stabilize (proprioception)
+            public static float ARatio = 1.0f; // Agent try to stand up and stabilize (proprioception)
             public static float BRatio; // Agent try to move towards the target (navigation)
             public static float CRatio; // Phase B with Passion
             public static float DRatio; // Agent try to overcome the terrain (terrain)
@@ -85,9 +107,16 @@ namespace Train {
                     envParams.GetWithDefault("normalization__expected_max_distance", ExpectedMaxDistance);
                 ExpectedMaxThickness =
                     envParams.GetWithDefault("normalization__expected_max_thickness", ExpectedMaxThickness);
+
+                Debug.Log(
+                    "Normalization Reset\n" +
+                    $"ExpectedMaxSpeed={ExpectedMaxSpeed}\n" +
+                    $"ExpectedMaxHeight={ExpectedMaxHeight}\n" +
+                    $"ExpectedMaxDistance={ExpectedMaxDistance}\n" +
+                    $"ExpectedMaxThickness={ExpectedMaxThickness}");
             }
 
-            public static float ExpectedMaxSpeed = 20f;
+            public static float ExpectedMaxSpeed = 10f;
             public static float ExpectedMaxDistance = 10f;
             public static float ExpectedMaxThickness = 2.5f;
             public static float ExpectedMaxHeight = 2.5f;
