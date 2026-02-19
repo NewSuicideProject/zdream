@@ -46,8 +46,8 @@ namespace Train.Sensor {
         private void Start() {
             _totalDoF = _hierarchy.TrainNodes.Sum(node => node.DoF);
             contacts = new float[4];
-            jointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count];
-            normalizedJointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count];
+            jointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count - 1];
+            normalizedJointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count - 1];
 
             FixedUpdate();
             initialGravity = gravity;
@@ -64,7 +64,7 @@ namespace Train.Sensor {
             float totalJoinedMass = 0f;
             int baseIndex = 0;
 
-            foreach (AgentJointNode node in _hierarchy.TrainNodes) {
+            foreach (AgentJointNode node in _hierarchy.TrainNodes.Skip(1)) {
                 jointBlocks[baseIndex] = node.IsSevered ? 1.0f : 0.0f;
                 normalizedJointBlocks[baseIndex++] = node.IsSevered ? 1.0f : 0.0f;
 

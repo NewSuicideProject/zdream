@@ -18,9 +18,8 @@ namespace Train.Sensor {
                     2 + // projected forward
                     3 + // relative target position
                     1 + // integrity
-                    _proprioception.Contacts.Length +
-                    _proprioception.NormalizedJointBlocks.Length;
-
+                    4 + // contacts
+                    ((((3 + 1 + 3) * 4) + 3) * 2) + 13;
             _observationSpec = ObservationSpec.Vector(_size);
         }
 

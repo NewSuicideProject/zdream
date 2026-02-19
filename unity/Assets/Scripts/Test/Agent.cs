@@ -102,5 +102,7 @@ namespace Test {
                 EndEpisode();
             }
         }
+
+        public override void Heuristic(in ActionBuffers actionsOut) { }
     }
 }
