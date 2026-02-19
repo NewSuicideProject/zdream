@@ -4,9 +4,6 @@ import numpy as np
 from gymnasium import Env, spaces
 from mlagents_envs.base_env import ActionTuple
 from mlagents_envs.environment import UnityEnvironment
-from mlagents_envs.side_channel.engine_configuration_channel import (
-    EngineConfigurationChannel,
-)
 from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
@@ -17,11 +14,10 @@ logger = logging.getLogger(__name__)
 
 class UnityEnv(Env):
     def __init__(
-        self, unity_path: str, base_port: int = None, unity_kwargs: dict = None
+        self, unity_path: str = None, base_port: int = 5004, unity_kwargs: dict = None
     ):
         super().__init__()
 
-        self.engine_channel = EngineConfigurationChannel()
         self.env_params_channel = EnvironmentParametersChannel()
 
         if unity_kwargs:
@@ -29,18 +25,18 @@ class UnityEnv(Env):
                 self.env_params_channel.set_float_parameter(key, float(value))
 
         logger.info("waiting unity")
-        self.env = UnityEnvironment(
+        self._env = UnityEnvironment(
             file_name=unity_path,
             base_port=base_port,
-            no_graphics=True,
-            side_channels=[self.engine_channel, self.env_params_channel],
+            side_channels=[self.env_params_channel],
         )
         logger.info("unity connected")
 
-        self.env.reset()
+        self._env.reset()
 
-        self.behavior = list(self.env.behavior_specs.keys())[0]
-        spec = self.env.behavior_specs[self.behavior]
+        self._behavior_name = list(self._env.behavior_specs.keys())[0]
+
+        spec = self._env.behavior_specs[self._behavior_name]
 
         self._obs_names = list(spec.observation_specs.keys())
 
@@ -63,24 +59,27 @@ class UnityEnv(Env):
             dtype=np.float32,
         )
 
+        logger.info(f"observation space: {self.observation_space}")
+        logger.info(f"action space: {self.action_space}")
+
     def _get_obs(self, steps):
         return {name: steps.obs[name][0] for name in self._obs_names}
 
     def reset(self, **kwargs):
-        self.env.reset()
-        decision_steps, _ = self.env.get_steps(self.behavior)
+        self._env.reset()
+        decision_steps, _ = self._env.get_steps(self._behavior_name)
         obs = self._get_obs(decision_steps)
         return obs, {}
 
     def step(self, action):
         action = np.array([action], dtype=np.float32)
-        self.env.set_actions(
-            self.behavior,
+        self._env.set_actions(
+            self._behavior_name,
             ActionTuple(continuous=action),
         )
 
-        self.env.step()
-        decision_steps, terminal_steps = self.env.get_steps(self.behavior)
+        self._env.step()
+        decision_steps, terminal_steps = self._env.get_steps(self._behavior_name)
 
         if len(terminal_steps) > 0:
             obs = self._get_obs(terminal_steps)
@@ -94,4 +93,4 @@ class UnityEnv(Env):
         return obs, reward, terminated, False, {}
 
     def close(self):
-        self.env.close()
+        self._env.close()
