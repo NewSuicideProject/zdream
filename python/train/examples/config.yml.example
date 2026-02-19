@@ -19,7 +19,7 @@ policy_kwargs:
         qf: [256, 256]
 
 unity_kwargs:
-    navigation_sensor__max_token: 100
+    navigation_sensor__max_token: 3
 
     terrain__resolution: 10
 

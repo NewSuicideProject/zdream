@@ -73,7 +73,7 @@ class FeatureExtractor(BaseFeaturesExtractor):
         proprioception = (
             self.proprioception(obs["proprioception"]) * self.proprioception_ratio
         )
-        passion = obs["agent"] * self.passion_ratio
+        passion = obs["passion"] * self.passion_ratio
 
         return torch.cat(
             [passion, proprioception, navigation, terrain],

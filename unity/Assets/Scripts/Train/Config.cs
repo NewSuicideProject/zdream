@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Train {
     public static class Config {
         public static class NavigationSensor {
-            public static int MaxToken = 100;
+            public static int MaxToken = 3;
 
             public static void Reset() {
                 EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;

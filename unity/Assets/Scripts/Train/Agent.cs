@@ -3,21 +3,20 @@ using Environment;
 using Train.Joint;
 using Train.Sensor;
 using Unity.MLAgents.Actuators;
-using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 namespace Train {
     [RequireComponent(typeof(Proprioception))]
     [RequireComponent(typeof(AgentJointHierarchy))]
+    [RequireComponent(typeof(Passion))]
     public class Agent : Unity.MLAgents.Agent {
-        private float _passion = 0.5f;
-
         private AgentJointHierarchy _jointHierarchy;
         private float[] _prevActions;
 
         private EnvironmentBase _environment;
         private Proprioception _proprioception;
         private Navigation _navigation;
+        private Passion _passion;
         private float _stayTime;
         private Transform _targetTransform;
 
@@ -28,6 +27,7 @@ namespace Train {
 
             _jointHierarchy = GetComponent<AgentJointHierarchy>();
             _proprioception = GetComponent<Proprioception>();
+            _passion = GetComponent<Passion>();
 
             _navigation = GetComponentInChildren<Navigation>();
 
@@ -68,14 +68,11 @@ namespace Train {
             Config.Reward.Reset();
             Config.Phase.Reset();
 
-            _passion = 0.5f + (Random.Range(-0.5f, 0.5f) * Mathf.Max(Config.Phase.CRatio, Config.Phase.ERatio));
-
             _environment.Reset();
             _jointHierarchy.Reset();
             _navigation.Reset();
+            _passion.Reset();
         }
-
-        public override void CollectObservations(VectorSensor sensor) => sensor.AddObservation(_passion);
 
         public override void OnActionReceived(ActionBuffers actionBuffers) {
             ActionSegment<float> continuousActions = actionBuffers.ContinuousActions;
@@ -104,7 +101,7 @@ namespace Train {
                 Vector3.Dot(
                     _proprioception.RelativeLinearVelocity.normalized,
                     _proprioception.RelativeTargetPosition.normalized);
-            float targetDirectionMatchReward = targetDirectionMatch * _passion *
+            float targetDirectionMatchReward = targetDirectionMatch * _passion.Value *
                                                Config.Reward.DirectionRewardMultiplier *
                                                Config.Phase.BRatio;
 
@@ -114,21 +111,21 @@ namespace Train {
                     Vector3.Dot(
                         _navigation.Corners.First().RelativePosition.normalized,
                         _proprioception.RelativeLinearVelocity.normalized);
-                navigationDirectionMatchReward = navigationDirectionMatch * _passion *
+                navigationDirectionMatchReward = navigationDirectionMatch * _passion.Value *
                                                  Config.Reward.DirectionRewardMultiplier * 2 *
                                                  Config.Phase.CRatio;
             }
 
             float energySum = continuousActions.Select(a => a * a).Sum();
-            float energyPenalty = energySum * (1f - _passion) * Config.Reward.EnergyPenaltyMultiplier *
+            float energyPenalty = energySum * (1f - _passion.Value) * Config.Reward.EnergyPenaltyMultiplier *
                                   Config.Phase.BRatio;
 
             float uprightMatch = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
-            float uprightReward = uprightMatch * (1f - _passion) * Config.Reward.UprightRewardMultiplier *
+            float uprightReward = uprightMatch * (1f - _passion.Value) * Config.Reward.UprightRewardMultiplier *
                                   Config.Phase.ARatio;
 
             float distance = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
-            float distancePenalty = Normalization.NormalizeDistance(distance) * _passion *
+            float distancePenalty = Normalization.NormalizeDistance(distance) * _passion.Value *
                                     Config.Reward.DistancePenaltyMultiplier * Config.Phase.BRatio;
 
             float fullReward = targetDirectionMatchReward + navigationDirectionMatchReward - jitterPenalty -

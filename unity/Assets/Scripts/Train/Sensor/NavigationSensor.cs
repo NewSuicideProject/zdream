@@ -16,7 +16,7 @@ namespace Train.Sensor {
             _navigation = navigation;
             _maxToken = Config.NavigationSensor.MaxToken;
             _size = _maxToken * _tokenSize;
-            _observationSpec = ObservationSpec.VariableLength(_maxToken, _tokenSize);
+            _observationSpec = ObservationSpec.Vector(_maxToken * _tokenSize);
         }
 
         public string GetName() => "navigation";
