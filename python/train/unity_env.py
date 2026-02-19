@@ -38,17 +38,17 @@ class UnityEnv(Env):
 
         spec = self._env.behavior_specs[self._behavior_name]
 
-        self._obs_names = list(spec.observation_specs.keys())
+        obs_specs = spec.observation_specs
 
         self.observation_space = spaces.Dict(
             {
-                name: spaces.Box(
+                obs_spec.name: spaces.Box(
                     low=-1.0,
                     high=1.0,
-                    shape=spec.observation_specs[name].shape,
+                    shape=obs_spec.shape,
                     dtype=np.float32,
                 )
-                for name in self._obs_names
+                for obs_spec in obs_specs
             }
         )
 
@@ -63,7 +63,11 @@ class UnityEnv(Env):
         logger.info(f"action space: {self.action_space}")
 
     def _get_obs(self, steps):
-        return {name: steps.obs[name][0] for name in self._obs_names}
+        spec = self._env.behavior_specs[self._behavior_name]
+        obs_dict = {}
+        for i, obs_spec in enumerate(spec.observation_specs):
+            obs_dict[obs_spec.name] = steps.obs[i][0]
+        return obs_dict
 
     def reset(self, **kwargs):
         self._env.reset()
