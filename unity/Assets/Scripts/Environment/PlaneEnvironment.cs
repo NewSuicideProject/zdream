@@ -2,7 +2,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Environment {
-    public class PlaneEnvironmentBase : EnvironmentBase {
+    public class PlaneEnvironment : EnvironmentBase {
         [SerializeField] private float spawnRange = 20f;
         [SerializeField] private float minSpawnDistance = 5f;
         [SerializeField] private Vector3 agentSpawnOffest = Vector3.zero;

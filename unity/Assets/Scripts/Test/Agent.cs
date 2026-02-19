@@ -1,3 +1,4 @@
+using Environment;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace Test {
         private float _distanceNormalizationFactor;
         private float _speedNormalizationFactor;
 
-        private Environment _environment;
+        private EnvironmentBase _environment;
         private Rigidbody _rigidbody;
 
         private Transform _targetTransform;
@@ -29,7 +30,7 @@ namespace Test {
             base.Awake();
 
             _rigidbody = GetComponent<Rigidbody>();
-            _environment = GetComponentInParent<Environment>();
+            _environment = GetComponentInParent<EnvironmentBase>();
 
             _distanceNormalizationFactor = 1f / expectedMaxDistance;
             _speedNormalizationFactor = 1f / expectedMaxSpeed;

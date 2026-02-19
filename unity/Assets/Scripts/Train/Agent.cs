@@ -1,4 +1,5 @@
 using System.Linq;
+using Environment;
 using Train.Joint;
 using Train.Sensor;
 using Unity.MLAgents.Actuators;
@@ -14,7 +15,7 @@ namespace Train {
         private AgentJointHierarchy _jointHierarchy;
         private float[] _prevActions;
 
-        private Environment _environment;
+        private EnvironmentBase _environment;
         private Proprioception _proprioception;
         private Navigation _navigation;
         private float _stayTime;
@@ -23,7 +24,7 @@ namespace Train {
         protected override void Awake() {
             base.Awake();
 
-            _environment = GetComponentInParent<Environment>();
+            _environment = GetComponentInParent<EnvironmentBase>();
 
             _jointHierarchy = GetComponent<AgentJointHierarchy>();
             _proprioception = GetComponent<Proprioception>();

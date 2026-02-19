@@ -1,21 +1,23 @@
 ﻿using UnityEngine;
 
-public class EnvironmentBase : MonoBehaviour {
-    [SerializeField] protected GameObject agentPrefab;
-    [SerializeField] protected GameObject targetPrefab;
+namespace Environment {
+    public class EnvironmentBase : MonoBehaviour {
+        [SerializeField] protected GameObject agentPrefab;
+        [SerializeField] protected GameObject targetPrefab;
 
-    [SerializeField] private float timeScale = 2f;
+        [SerializeField] private float timeScale = 2f;
 
-    protected Transform AgentTransform;
-    public Transform TargetTransform { get; private set; }
+        protected Transform AgentTransform;
+        public Transform TargetTransform { get; private set; }
 
-    protected virtual void Awake() {
-        Time.timeScale = timeScale;
+        protected virtual void Awake() {
+            Time.timeScale = timeScale;
 
-        TargetTransform = Instantiate(targetPrefab, transform).transform;
-        AgentTransform = Instantiate(agentPrefab, transform).transform;
-    }
+            TargetTransform = Instantiate(targetPrefab, transform).transform;
+            AgentTransform = Instantiate(agentPrefab, transform).transform;
+        }
 
-    public virtual void Reset() {
+        public virtual void Reset() {
+        }
     }
 }
