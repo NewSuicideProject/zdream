@@ -80,10 +80,10 @@ namespace Train {
 
             foreach (AgentJointNode node in _jointHierarchy.TrainNodes) {
                 for (int i = 0; i < node.DoF; i++) {
-                    float targetValue = continuousActions[index++];
-
                     ArticulationDrive drive = node.GetDrive(i);
-                    drive.target = targetValue * Config.Reward.ActionMultiplier;
+                    float normalizedAction = continuousActions[index++];
+                    float adjusted = (normalizedAction + 1f) * 0.5f;
+                    drive.target = Mathf.Lerp(drive.lowerLimit, drive.upperLimit, adjusted);
                     node.SetDrive(i, drive);
                 }
             }
