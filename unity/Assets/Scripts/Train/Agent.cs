@@ -95,7 +95,7 @@ namespace Train {
                 _prevActions[i] = continuousActions[i];
             }
 
-            float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier;
+            float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier * Config.Phase.BRatio;
 
             float targetDirectionMatch =
                 Vector3.Dot(
@@ -116,6 +116,13 @@ namespace Train {
                                                  Config.Phase.CRatio;
             }
 
+            const float targetHeight = 1f;
+            const float variance = 0.1f;
+            float height = transform.localPosition.y;
+            float heightMatch = Mathf.Exp(-Mathf.Pow(height - targetHeight, 2) / variance);
+            float heightReward = heightMatch * (1f - _passion.Value) * Config.Reward.HeightMatchRewardMultiplier *
+                                 Config.Phase.ARatio;
+
             float energySum = continuousActions.Select(a => a * a).Sum();
             float energyPenalty = energySum * (1f - _passion.Value) * Config.Reward.EnergyPenaltyMultiplier *
                                   Config.Phase.BRatio;
@@ -124,13 +131,12 @@ namespace Train {
             float uprightReward = uprightMatch * (1f - _passion.Value) * Config.Reward.UprightRewardMultiplier *
                                   Config.Phase.ARatio;
 
-            float distance = Vector3.Distance(transform.localPosition, _targetTransform.localPosition);
+            float distance = _proprioception.RelativeTargetPosition.magnitude;
             float distancePenalty = Normalization.NormalizeDistance(distance) * _passion.Value *
                                     Config.Reward.DistancePenaltyMultiplier * Config.Phase.BRatio;
 
             float fullReward = targetDirectionMatchReward + navigationDirectionMatchReward - jitterPenalty -
-                               energyPenalty + uprightReward -
-                               distancePenalty;
+                energyPenalty + uprightReward - distancePenalty + heightReward;
 
             AddReward(fullReward * Time.fixedDeltaTime);
 

@@ -14,6 +14,7 @@ namespace Train {
                 if (!Mathf.Approximately(current, updated)) {
                     Debug.Log($"{key}={updated}");
                 }
+
                 value = newValue;
                 return;
             }
@@ -25,6 +26,7 @@ namespace Train {
                 if (current != updated) {
                     Debug.Log($"{key}={updated}");
                 }
+
                 value = newValue;
                 return;
             }
@@ -36,6 +38,7 @@ namespace Train {
                 if (current != updated) {
                     Debug.Log($"{key}={updated}");
                 }
+
                 value = newValue;
                 return;
             }
@@ -61,11 +64,11 @@ namespace Train {
             public static float StaySuccessThreshold = 5f;
 
             public static float DistancePenaltyMultiplier = 0.25f;
-
             public static float JitterPenaltyMultiplier = 0.1f;
             public static float EnergyPenaltyMultiplier = 0.01f;
-            public static float UprightRewardMultiplier = 10.0f;
-            public static float DirectionRewardMultiplier = 1.0f;
+            public static float UprightRewardMultiplier = 10f;
+            public static float HeightMatchRewardMultiplier = 10f;
+            public static float DirectionRewardMultiplier = 1f;
 
             public static void Reset() {
                 GetConfig("reward__stay_success_reward", ref StaySuccessReward);
@@ -76,6 +79,7 @@ namespace Train {
                 GetConfig("reward__jitter_penalty_multiplier", ref JitterPenaltyMultiplier);
                 GetConfig("reward__energy_penalty_multiplier", ref EnergyPenaltyMultiplier);
                 GetConfig("reward__upright_reward_multiplier", ref UprightRewardMultiplier);
+                GetConfig("reward__height_match_reward_multiplier", ref HeightMatchRewardMultiplier);
                 GetConfig("reward__direction_reward_multiplier", ref DirectionRewardMultiplier);
             }
         }

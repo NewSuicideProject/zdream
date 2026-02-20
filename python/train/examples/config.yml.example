@@ -31,9 +31,8 @@ unity_kwargs:
     reward__jitter_penalty_multiplier: 0.1
     reward__energy_penalty_multiplier: 0.01
     reward__upright_reward_multiplier: 10.0
+    reward__height_match_reward_multiplier: 10.0
     reward__direction_reward_multiplier: 1.0
-
-    reward__action_multiplier: 10.0
 
     phase__a_ratio: 1.0 # Agent try to stand up and stabilize (proprioception)
     phase__b_ratio: 0.0 # Agent try to move towards the target (navigation)
