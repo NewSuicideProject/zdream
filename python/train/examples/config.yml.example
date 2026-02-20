@@ -2,21 +2,21 @@ policy_kwargs:
     features_extractor_class: FeatureExtractor
     features_extractor_kwargs:
         navigation_kwargs:
-            d_model: 16
-            num_layers: 1
+            d_model: 64
+            num_layers: 2
             max_token: 3
             nhead: 4
         proprioception_kwargs:
-            hidden_dims: [256, 128, 64]
+            hidden_dims: [512, 512, 256]
         terrain_kwargs:
-            hidden_dims: [128, 64, 32]
+            hidden_dims: [256, 128, 64]
 
         navigation_ratio: 0.0
         terrain_ratio: 0.0
         proprioception_ratio: 1.0
     net_arch:
-        pi: [256, 256]
-        qf: [256, 256]
+        pi: [512, 512, 256]
+        qf: [1024, 512, 256]
 
 unity_kwargs:
     navigation_sensor__max_token: 3
