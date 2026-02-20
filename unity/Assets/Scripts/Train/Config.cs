@@ -3,24 +3,56 @@ using UnityEngine;
 
 namespace Train {
     public static class Config {
+        private static void GetConfig<T>(string key, ref T value) {
+            EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
+            T newValue;
+
+            if (typeof(T) == typeof(float)) {
+                float current = (float)(object)value;
+                float updated = envParams.GetWithDefault(key, current);
+                newValue = (T)(object)updated;
+                if (!Mathf.Approximately(current, updated)) {
+                    Debug.Log($"{key}={updated}");
+                }
+                value = newValue;
+                return;
+            }
+
+            if (typeof(T) == typeof(int)) {
+                int current = (int)(object)value;
+                int updated = Mathf.RoundToInt(envParams.GetWithDefault(key, current));
+                newValue = (T)(object)updated;
+                if (current != updated) {
+                    Debug.Log($"{key}={updated}");
+                }
+                value = newValue;
+                return;
+            }
+
+            if (typeof(T) == typeof(bool)) {
+                bool current = (bool)(object)value;
+                bool updated = envParams.GetWithDefault(key, current ? 1f : 0f) >= 0.5f;
+                newValue = (T)(object)updated;
+                if (current != updated) {
+                    Debug.Log($"{key}={updated}");
+                }
+                value = newValue;
+                return;
+            }
+
+            throw new System.NotSupportedException($"Unsupported config type: {typeof(T).Name}");
+        }
+
         public static class NavigationSensor {
             public static int MaxToken = 3;
 
-            public static void Reset() {
-                EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
-                MaxToken = (int)envParams.GetWithDefault("navigation_sensor__max_token", MaxToken);
-                Debug.Log($"NavigationSensor Reset\nMaxToken={MaxToken}");
-            }
+            public static void Reset() => GetConfig("navigation_sensor__max_token", ref MaxToken);
         }
 
         public static class Terrain {
             public static int Resolution = 10;
 
-            public static void Reset() {
-                EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
-                Resolution = (int)envParams.GetWithDefault("terrain__resolution", Resolution);
-                Debug.Log($"Terrain Reset\nResolution={Resolution}");
-            }
+            public static void Reset() => GetConfig("terrain__resolution", ref Resolution);
         }
 
         public static class Reward {
@@ -35,59 +67,31 @@ namespace Train {
             public static float UprightRewardMultiplier = 10.0f;
             public static float DirectionRewardMultiplier = 1.0f;
 
-            public static float ActionMultiplier = 10f;
-
             public static void Reset() {
-                EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
+                GetConfig("reward__stay_success_reward", ref StaySuccessReward);
+                GetConfig("reward__staying_reward", ref StayingReward);
+                GetConfig("reward__stay_success_threshold", ref StaySuccessThreshold);
 
-                StaySuccessReward = envParams.GetWithDefault("reward__stay_success_reward", StaySuccessReward);
-                StayingReward = envParams.GetWithDefault("reward__staying_reward", StayingReward);
-                StaySuccessThreshold = envParams.GetWithDefault("reward__stay_success_threshold", StaySuccessThreshold);
-
-                DistancePenaltyMultiplier =
-                    envParams.GetWithDefault("reward__distance_penalty_multiplier", DistancePenaltyMultiplier);
-                JitterPenaltyMultiplier =
-                    envParams.GetWithDefault("reward__jitter_penalty_multiplier", JitterPenaltyMultiplier);
-                EnergyPenaltyMultiplier =
-                    envParams.GetWithDefault("reward__energy_penalty_multiplier", EnergyPenaltyMultiplier);
-                UprightRewardMultiplier =
-                    envParams.GetWithDefault("reward__upright_reward_multiplier", UprightRewardMultiplier);
-                DirectionRewardMultiplier =
-                    envParams.GetWithDefault("reward__direction_reward_multiplier", DirectionRewardMultiplier);
-
-                ActionMultiplier = envParams.GetWithDefault("reward__action_multiplier", ActionMultiplier);
-
-                Debug.Log(
-                    "Reward Reset\n" +
-                    $"StaySuccessReward={StaySuccessReward}\n" +
-                    $"StayingReward={StayingReward}\n" +
-                    $"StaySuccessThreshold={StaySuccessThreshold}\n" +
-                    $"DistancePenaltyMultiplier={DistancePenaltyMultiplier}\n" +
-                    $"JitterPenaltyMultiplier={JitterPenaltyMultiplier}\n" +
-                    $"EnergyPenaltyMultiplier={EnergyPenaltyMultiplier}\n" +
-                    $"UprightRewardMultiplier={UprightRewardMultiplier}\n" +
-                    $"DirectionRewardMultiplier={DirectionRewardMultiplier}\n" +
-                    $"ActionMultiplier={ActionMultiplier}");
+                GetConfig("reward__distance_penalty_multiplier", ref DistancePenaltyMultiplier);
+                GetConfig("reward__jitter_penalty_multiplier", ref JitterPenaltyMultiplier);
+                GetConfig("reward__energy_penalty_multiplier", ref EnergyPenaltyMultiplier);
+                GetConfig("reward__upright_reward_multiplier", ref UprightRewardMultiplier);
+                GetConfig("reward__direction_reward_multiplier", ref DirectionRewardMultiplier);
             }
         }
 
         public static class Phase {
             public static void Reset() {
-                EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
+                GetConfig("phase__e_ratio", ref ERatio);
+                GetConfig("phase__d_ratio", ref DRatio);
+                GetConfig("phase__c_ratio", ref CRatio);
+                GetConfig("phase__b_ratio", ref BRatio);
+                GetConfig("phase__a_ratio", ref ARatio);
 
-                ERatio = envParams.GetWithDefault("phase__e_ratio", ERatio);
-                DRatio = Mathf.Max(envParams.GetWithDefault("phase__d_ratio", DRatio), ERatio);
-                CRatio = Mathf.Max(envParams.GetWithDefault("phase__c_ratio", CRatio), DRatio, ERatio);
-                BRatio = Mathf.Max(envParams.GetWithDefault("phase__b_ratio", BRatio), CRatio, DRatio, ERatio);
-                ARatio = Mathf.Max(envParams.GetWithDefault("phase__a_ratio", ARatio), BRatio, CRatio, DRatio, ERatio);
-
-                Debug.Log(
-                    "Phase Reset\n" +
-                    $"ARatio={ARatio}\n" +
-                    $"BRatio={BRatio}\n" +
-                    $"CRatio={CRatio}\n" +
-                    $"DRatio={DRatio}\n" +
-                    $"ERatio={ERatio}");
+                DRatio = Mathf.Max(DRatio, ERatio);
+                CRatio = Mathf.Max(CRatio, DRatio, ERatio);
+                BRatio = Mathf.Max(BRatio, CRatio, DRatio, ERatio);
+                ARatio = Mathf.Max(ARatio, BRatio, CRatio, DRatio, ERatio);
             }
 
             public static float ARatio = 1.0f; // Agent try to stand up and stabilize (proprioception)
@@ -99,21 +103,10 @@ namespace Train {
 
         public static class Normalization {
             public static void Reset() {
-                EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
-
-                ExpectedMaxSpeed = envParams.GetWithDefault("normalization__expected_max_speed", ExpectedMaxSpeed);
-                ExpectedMaxHeight = envParams.GetWithDefault("normalization__expected_max_height", ExpectedMaxHeight);
-                ExpectedMaxDistance =
-                    envParams.GetWithDefault("normalization__expected_max_distance", ExpectedMaxDistance);
-                ExpectedMaxThickness =
-                    envParams.GetWithDefault("normalization__expected_max_thickness", ExpectedMaxThickness);
-
-                Debug.Log(
-                    "Normalization Reset\n" +
-                    $"ExpectedMaxSpeed={ExpectedMaxSpeed}\n" +
-                    $"ExpectedMaxHeight={ExpectedMaxHeight}\n" +
-                    $"ExpectedMaxDistance={ExpectedMaxDistance}\n" +
-                    $"ExpectedMaxThickness={ExpectedMaxThickness}");
+                GetConfig("normalization__expected_max_speed", ref ExpectedMaxSpeed);
+                GetConfig("normalization__expected_max_height", ref ExpectedMaxHeight);
+                GetConfig("normalization__expected_max_distance", ref ExpectedMaxDistance);
+                GetConfig("normalization__expected_max_thickness", ref ExpectedMaxThickness);
             }
 
             public static float ExpectedMaxSpeed = 10f;

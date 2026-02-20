@@ -77,7 +77,7 @@
         "zdream",
         "--no-capture-output",
         "tensorboard",
-        "--logdir=${workspaceFolder}/test/tests",
+        "--logdir=${workspaceFolder}",
         "--bind_all"
       ],
       "isBackground": true,
