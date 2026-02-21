@@ -78,7 +78,7 @@ namespace Train {
                     ArticulationDrive drive = node.GetDrive(i);
                     float target = Normalize.JointPosition(drive.target, drive.lowerLimit, drive.upperLimit);
                     jitterSum += (newTargets[index] - target) * (newTargets[index] - target);
-                    drive.target = Denormalize.LinearMinMax(newTargets[index], drive.lowerLimit, drive.upperLimit);
+                    drive.target = Denormalize.JointPosition(newTargets[index], drive.lowerLimit, drive.upperLimit);
                     node.SetDrive(i, drive);
                     index++;
                 }

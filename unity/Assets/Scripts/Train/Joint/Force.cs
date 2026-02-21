@@ -4,9 +4,13 @@ namespace Train.Joint {
     public class Force : MonoBehaviour {
         [SerializeField] [ReadOnly] private Vector3 value = Vector3.zero;
 
+        private Collider _collider;
+
         private Vector3 _buffer = Vector3.zero;
 
         public Vector3 Value => value;
+
+        private void Awake() => _collider = GetComponentInChildren<Collider>();
 
         private void FixedUpdate() {
             value = _buffer;
@@ -17,6 +21,10 @@ namespace Train.Joint {
             Vector3 impulseSum = Vector3.zero;
 
             foreach (ContactPoint contact in collision.contacts) {
+                if (contact.thisCollider != _collider) {
+                    continue;
+                }
+
                 float normalImpulse = Vector3.Dot(contact.impulse, contact.normal);
                 normalImpulse = Mathf.Max(normalImpulse, 0f);
                 impulseSum += contact.normal * normalImpulse;

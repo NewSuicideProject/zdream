@@ -18,4 +18,9 @@
         public static float Force(float force) =>
             global::Normalize.Tanh(force, Config.Normalization.ExpectedMaxForce);
     }
+
+    public static class Denormalize {
+        public static float JointPosition(float position, float min, float max) =>
+            global::Denormalize.LinearMinMax(position, min, max);
+    }
 }
