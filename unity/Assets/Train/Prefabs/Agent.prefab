@@ -576,7 +576,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &1265241365638467981
 GameObject:
   m_ObjectHideFlags: 0
@@ -1104,7 +1104,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &2314232170044489437
 GameObject:
   m_ObjectHideFlags: 0
@@ -1694,7 +1694,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &4770313653541792948
 GameObject:
   m_ObjectHideFlags: 0
@@ -1817,7 +1817,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &4939804231546618473
 GameObject:
   m_ObjectHideFlags: 0
@@ -2257,7 +2257,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &6841068582129852342
 GameObject:
   m_ObjectHideFlags: 0
@@ -2412,7 +2412,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &7152620750443786450
 GameObject:
   m_ObjectHideFlags: 0
@@ -2535,7 +2535,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &7158918072412470886
 GameObject:
   m_ObjectHideFlags: 0
@@ -2658,7 +2658,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &7378955468865588019
 GameObject:
   m_ObjectHideFlags: 0
@@ -2853,7 +2853,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &7999848332112151411
 GameObject:
   m_ObjectHideFlags: 0
@@ -2952,7 +2952,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &8055954256144572147
 GameObject:
   m_ObjectHideFlags: 0
@@ -3077,7 +3077,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &8079182187004983998
 GameObject:
   m_ObjectHideFlags: 0
@@ -3202,7 +3202,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!114 &436559899095837235
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3356,7 +3356,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &8693077362291929965
 GameObject:
   m_ObjectHideFlags: 0
@@ -3670,7 +3670,7 @@ ArticulationBody:
   m_ImplicitTensor: 1
   m_Immovable: 0
   m_UseGravity: 1
-  m_CollisionDetectionMode: 0
+  m_CollisionDetectionMode: 1
 --- !u!1 &9139463641497014936
 GameObject:
   m_ObjectHideFlags: 0

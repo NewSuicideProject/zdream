@@ -70,6 +70,9 @@ def run():
         model = SAC(
             policy=MultiInputPolicy,
             learning_starts=config.learning_starts,
+            gradient_steps=config.gradient_steps,
+            train_freq=config.train_freq,
+            batch_size=config.batch_size,
             env=env,
             policy_kwargs=config.policy_kwargs,
             tensorboard_log=str(log_dir),
