@@ -23,8 +23,8 @@ namespace Train.Sensor {
                     2 + // projected forward
                     3 + // relative target position
                     1 + // integrity
-                    nodeCount + (totalDoF * 2) + (3 * nodeCount) + // severed, (positions, velocities), forces
-                    totalDoF; // targets
+                    3 + // root force
+                    nodeCount + (totalDoF * 3) + (3 * nodeCount); // severed, (positions, targets, velocities), forces
             _observationSpec = ObservationSpec.Vector(_size);
         }
 
@@ -64,10 +64,15 @@ namespace Train.Sensor {
 
             writer[idx++] = _proprioception.Integrity;
 
+            Vector3 rootForce = _proprioception.TrainNodes[0].Force.Value;
+            writer[idx++] = Normalize.Force(rootForce.x);
+            writer[idx++] = Normalize.Force(rootForce.y);
+            writer[idx++] = Normalize.Force(rootForce.z);
+
             foreach (AgentJointNode node in _proprioception.TrainNodes.Skip(1)) {
                 if (node.IsSevered) {
                     writer[idx++] = 1f; // severed
-                    for (int i = 0; i < (node.DoF * 2) + 3; i++) {
+                    for (int i = 0; i < (node.DoF * 3) + 3; i++) {
                         writer[idx++] = 0f;
                     }
 
@@ -82,21 +87,15 @@ namespace Train.Sensor {
 
                 for (int i = 0; i < node.DoF; i++) {
                     ArticulationDrive drive = node.GetDrive(i);
-                    writer[idx++] = Normalize.JointPosition(positions[i],
-                        drive.lowerLimit * Mathf.Deg2Rad, drive.upperLimit * Mathf.Deg2Rad);
-                }
-
-                for (int i = 0; i < node.DoF; i++) {
+                    float position = positions[i] * Mathf.Rad2Deg;
+                    writer[idx++] = Normalize.JointPosition(position, drive.lowerLimit, drive.upperLimit);
+                    writer[idx++] = Normalize.JointPosition(drive.target, drive.lowerLimit, drive.upperLimit);
                     writer[idx++] = Normalize.Speed(velocities[i]);
                 }
 
                 writer[idx++] = Normalize.Force(force.x);
                 writer[idx++] = Normalize.Force(force.y);
                 writer[idx++] = Normalize.Force(force.z);
-            }
-
-            foreach (float target in _proprioception.Targets) {
-                writer[idx++] = target;
             }
 
             return _size;

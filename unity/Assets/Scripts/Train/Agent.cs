@@ -69,21 +69,17 @@ namespace Train {
         }
 
         public override void OnActionReceived(ActionBuffers actionBuffers) {
-            ActionSegment<float> targets = actionBuffers.ContinuousActions;
-
-            float jitterSum = 0f;
-            for (int i = 0; i < targets.Length; i++) {
-                float diff = targets[i] - _proprioception.Targets[i];
-                jitterSum += diff * diff;
-            }
+            ActionSegment<float> newTargets = actionBuffers.ContinuousActions;
 
             int index = 0;
+            float jitterSum = 0f;
             foreach (AgentJointNode node in _jointHierarchy.TrainNodes) {
                 for (int i = 0; i < node.DoF; i++) {
                     ArticulationDrive drive = node.GetDrive(i);
-                    drive.target = Denormalize.LinearMinMax(targets[index], drive.lowerLimit, drive.upperLimit);
+                    float target = Normalize.JointPosition(drive.target, drive.lowerLimit, drive.upperLimit);
+                    jitterSum += (newTargets[index] - target) * (newTargets[index] - target);
+                    drive.target = Denormalize.LinearMinMax(newTargets[index], drive.lowerLimit, drive.upperLimit);
                     node.SetDrive(i, drive);
-                    _proprioception.Targets[index] = targets[index];
                     index++;
                 }
             }
@@ -116,7 +112,7 @@ namespace Train {
             float heightReward = heightMatch * (1f - _passion.Value) * Config.Reward.HeightMatchRewardMultiplier *
                                  Config.Phase.ARatio;
 
-            float energySum = targets.Select(a => a * a).Sum();
+            float energySum = newTargets.Select(a => a * a).Sum();
             float energyPenalty = energySum * (1f - _passion.Value) * Config.Reward.EnergyPenaltyMultiplier *
                                   Config.Phase.BRatio;
 

@@ -22,7 +22,7 @@ namespace Train.Joint {
                 impulseSum += contact.normal * normalImpulse;
             }
 
-            _buffer += impulseSum / Time.fixedDeltaTime;
+            _buffer += transform.InverseTransformDirection(impulseSum / Time.fixedDeltaTime);
         }
 
         private void OnDrawGizmos() {
@@ -31,7 +31,12 @@ namespace Train.Joint {
             }
 
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, transform.position + value);
+            Vector3 normalizedValue = Vector3.zero;
+            for (int i = 0; i < 3; i++) {
+                normalizedValue[i] = Normalize.Force(value[i]);
+            }
+
+            Gizmos.DrawLine(transform.position, transform.position + transform.TransformDirection(normalizedValue));
         }
     }
 }

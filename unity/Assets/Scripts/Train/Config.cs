@@ -111,12 +111,14 @@ namespace Train {
                 GetConfig("normalization__expected_max_height", ref ExpectedMaxHeight);
                 GetConfig("normalization__expected_max_distance", ref ExpectedMaxDistance);
                 GetConfig("normalization__expected_max_thickness", ref ExpectedMaxThickness);
+                GetConfig("normalization__expected_max_force", ref ExpectedMaxForce);
             }
 
             public static float ExpectedMaxSpeed = 10f;
             public static float ExpectedMaxDistance = 10f;
             public static float ExpectedMaxThickness = 2f;
             public static float ExpectedMaxHeight = 2f;
+            public static float ExpectedMaxForce = 300f;
         }
     }
 }

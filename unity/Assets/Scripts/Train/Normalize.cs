@@ -16,6 +16,6 @@
             global::Normalize.LinearMinMax(position, min, max);
 
         public static float Force(float force) =>
-            global::Normalize.Tanh(force);
+            global::Normalize.Tanh(force, Config.Normalization.ExpectedMaxForce);
     }
 }

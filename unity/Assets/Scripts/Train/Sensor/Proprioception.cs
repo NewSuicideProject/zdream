@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Train.Joint;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
@@ -15,7 +14,6 @@ namespace Train.Sensor {
         [SerializeField] [ReadOnly] private float integrity;
         [SerializeField] [ReadOnly] private Vector3 projectedForward;
         [SerializeField] [ReadOnly] private Vector3 relativeTargetPosition;
-        [SerializeField] [ReadOnly] private float[] targets;
 
         private ProprioceptionSensor _proprioceptionSensor;
 
@@ -33,7 +31,6 @@ namespace Train.Sensor {
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
         public List<AgentJointNode> TrainNodes => _hierarchy.TrainNodes;
-        public float[] Targets => targets;
 
         private AgentJointHierarchy _hierarchy;
         public Transform targetTransform;
@@ -41,7 +38,6 @@ namespace Train.Sensor {
         private void Awake() => _hierarchy = GetComponent<AgentJointHierarchy>();
 
         private void Start() {
-            targets = new float[_hierarchy.TrainNodes.Sum(node => node.DoF)];
             FixedUpdate();
             initialGravity = gravity;
         }

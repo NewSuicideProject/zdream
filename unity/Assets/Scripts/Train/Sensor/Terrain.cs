@@ -20,7 +20,7 @@ namespace Train.Sensor {
             HeightMap = new float[Config.Terrain.Resolution, Config.Terrain.Resolution];
         }
 
-        private void Update() {
+        private void FixedUpdate() {
             Vector3 position = transform.position;
 
             float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
