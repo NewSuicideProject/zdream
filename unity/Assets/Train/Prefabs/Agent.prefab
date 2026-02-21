@@ -900,7 +900,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a5c9d521e5ef4759a8246a07d52221e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.DecisionRequester
-  DecisionPeriod: 5
+  DecisionPeriod: 2
   DecisionStep: 0
   TakeActionsBetweenDecisions: 1
 --- !u!114 &8780102705714806888
@@ -936,7 +936,6 @@ MonoBehaviour:
   projectedForward: {x: 0, y: 0, z: 0}
   relativeTargetPosition: {x: 0, y: 0, z: 0}
   contacts: []
-  jointBlocks: []
   normalizedJointBlocks: []
   targetTransform: {fileID: 0}
 --- !u!114 &9003720822477912840

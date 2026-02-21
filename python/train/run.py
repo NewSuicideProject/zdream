@@ -69,6 +69,7 @@ def run():
         logger.info("no valid checkpoint")
         model = SAC(
             policy=MultiInputPolicy,
+            learning_starts=config.learning_starts,
             env=env,
             policy_kwargs=config.policy_kwargs,
             tensorboard_log=str(log_dir),

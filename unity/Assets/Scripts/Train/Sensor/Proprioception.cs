@@ -15,7 +15,6 @@ namespace Train.Sensor {
         [SerializeField] [ReadOnly] private Vector3 projectedForward;
         [SerializeField] [ReadOnly] private Vector3 relativeTargetPosition;
         [SerializeField] [ReadOnly] private float[] contacts;
-        [SerializeField] [ReadOnly] private float[] jointBlocks;
         [SerializeField] [ReadOnly] private float[] normalizedJointBlocks;
 
         private ProprioceptionSensor _proprioceptionSensor;
@@ -34,7 +33,6 @@ namespace Train.Sensor {
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
         public float[] Contacts => contacts;
-        public float[] JointBlocks => jointBlocks;
         public float[] NormalizedJointBlocks => normalizedJointBlocks;
 
         private AgentJointHierarchy _hierarchy;
@@ -46,7 +44,6 @@ namespace Train.Sensor {
         private void Start() {
             _totalDoF = _hierarchy.TrainNodes.Sum(node => node.DoF);
             contacts = new float[4];
-            jointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count - 1];
             normalizedJointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count - 1];
 
             FixedUpdate();
@@ -65,14 +62,11 @@ namespace Train.Sensor {
             int baseIndex = 0;
 
             foreach (AgentJointNode node in _hierarchy.TrainNodes.Skip(1)) {
-                jointBlocks[baseIndex] = node.IsSevered ? 1.0f : 0.0f;
                 normalizedJointBlocks[baseIndex++] = node.IsSevered ? 1.0f : 0.0f;
 
-                node.GetJointPositions(jointBlocks, baseIndex);
                 node.GetJointPositions(normalizedJointBlocks, baseIndex, true);
                 baseIndex += node.DoF;
 
-                node.GetJointVelocities(jointBlocks, baseIndex);
                 node.GetJointVelocities(normalizedJointBlocks, baseIndex, true);
                 baseIndex += node.DoF;
 

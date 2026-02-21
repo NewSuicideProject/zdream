@@ -44,6 +44,7 @@ class Config:
             os.getenv("UNITY_SERVER_PATH", None)
         )
         self.step_count = int(os.getenv("STEP_COUNT", "1_000_000"))
+        self.learning_starts = int(os.getenv("LEARNING_STARTS", "10_000"))
         self.env_count = int(os.getenv("ENV_COUNT", "1"))
         self.checkpoint_interval = int(os.getenv("CHECKPOINT_INTERVAL", "1_000"))
         self.log_interval = int(os.getenv("LOG_INTERVAL", "10"))
