@@ -40,7 +40,7 @@ unity_kwargs:
     phase__d_ratio: 0.0 # Agent try to overcome the terrain (terrain)
     phase__e_ratio: 0.0 # Phase D with Passion
 
-    normalization__expected_max_speed: 10.0
+    normalization__expected_max_speed: 5.0
     normalization__expected_max_distance: 10.0
     normalization__expected_max_thickness: 2.0
     normalization__expected_max_height: 2.0

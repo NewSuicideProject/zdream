@@ -114,7 +114,7 @@ namespace Train {
 
             float energySum = newTargets.Select(a => a * a).Sum();
             float energyPenalty = energySum * (1f - _passion.Value) * Config.Reward.EnergyPenaltyMultiplier *
-                                  Config.Phase.BRatio;
+                                  Config.Phase.ARatio;
 
             float uprightMatch = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
             float uprightReward = uprightMatch * (1f - _passion.Value) * Config.Reward.UprightRewardMultiplier *
