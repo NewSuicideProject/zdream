@@ -84,7 +84,7 @@ namespace Train {
                 }
             }
 
-            float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier * Config.Phase.BRatio;
+            float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier * Config.Phase.ARatio;
 
             float targetDirectionMatch =
                 Vector3.Dot(

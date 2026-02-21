@@ -114,7 +114,7 @@ namespace Train {
                 GetConfig("normalization__expected_max_force", ref ExpectedMaxForce);
             }
 
-            public static float ExpectedMaxSpeed = 10f;
+            public static float ExpectedMaxSpeed = 5f;
             public static float ExpectedMaxDistance = 10f;
             public static float ExpectedMaxThickness = 2f;
             public static float ExpectedMaxHeight = 2f;
