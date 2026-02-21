@@ -69,24 +69,23 @@ namespace Train {
         }
 
         public override void OnActionReceived(ActionBuffers actionBuffers) {
-            ActionSegment<float> continuousActions = actionBuffers.ContinuousActions;
-            int index = 0;
+            ActionSegment<float> targets = actionBuffers.ContinuousActions;
 
+            float jitterSum = 0f;
+            for (int i = 0; i < targets.Length; i++) {
+                float diff = targets[i] - _proprioception.Targets[i];
+                jitterSum += diff * diff;
+            }
+
+            int index = 0;
             foreach (AgentJointNode node in _jointHierarchy.TrainNodes) {
                 for (int i = 0; i < node.DoF; i++) {
                     ArticulationDrive drive = node.GetDrive(i);
-                    float normalizedAction = continuousActions[index++];
-                    float adjusted = (normalizedAction + 1f) * 0.5f;
-                    drive.target = Mathf.Lerp(drive.lowerLimit, drive.upperLimit, adjusted);
+                    drive.target = Denormalize.LinearMinMax(targets[index], drive.lowerLimit, drive.upperLimit);
                     node.SetDrive(i, drive);
+                    _proprioception.Targets[index] = targets[index];
+                    index++;
                 }
-            }
-
-            float jitterSum = 0f;
-            for (int i = 0; i < continuousActions.Length; i++) {
-                float diff = continuousActions[i] - _proprioception.Targets[i];
-                jitterSum += diff * diff;
-                _proprioception.Targets[i] = continuousActions[i];
             }
 
             float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier * Config.Phase.BRatio;
@@ -117,7 +116,7 @@ namespace Train {
             float heightReward = heightMatch * (1f - _passion.Value) * Config.Reward.HeightMatchRewardMultiplier *
                                  Config.Phase.ARatio;
 
-            float energySum = continuousActions.Select(a => a * a).Sum();
+            float energySum = targets.Select(a => a * a).Sum();
             float energyPenalty = energySum * (1f - _passion.Value) * Config.Reward.EnergyPenaltyMultiplier *
                                   Config.Phase.BRatio;
 
@@ -126,7 +125,7 @@ namespace Train {
                                   Config.Phase.ARatio;
 
             float distance = _proprioception.RelativeTargetPosition.magnitude;
-            float distancePenalty = Normalization.NormalizeDistance(distance) * _passion.Value *
+            float distancePenalty = Normalize.Distance(distance) * _passion.Value *
                                     Config.Reward.DistancePenaltyMultiplier * Config.Phase.BRatio;
 
             float fullReward = targetDirectionMatchReward + navigationDirectionMatchReward - jitterPenalty -

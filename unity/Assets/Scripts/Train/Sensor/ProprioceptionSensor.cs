@@ -39,28 +39,28 @@ namespace Train.Sensor {
             writer[idx++] = gravity.z;
 
             Vector3 com = _proprioception.Com;
-            writer[idx++] = Normalization.NormalizeThickness(com.x);
-            writer[idx++] = Normalization.NormalizeThickness(com.y);
-            writer[idx++] = Normalization.NormalizeThickness(com.z);
+            writer[idx++] = Normalize.Thickness(com.x);
+            writer[idx++] = Normalize.Thickness(com.y);
+            writer[idx++] = Normalize.Thickness(com.z);
 
             Vector3 angularVelocity = _proprioception.AngularVelocity;
-            writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.x);
-            writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.y);
-            writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.z);
+            writer[idx++] = Normalize.Speed(angularVelocity.x);
+            writer[idx++] = Normalize.Speed(angularVelocity.y);
+            writer[idx++] = Normalize.Speed(angularVelocity.z);
 
             Vector3 projectedLinearVelocity = _proprioception.ProjectedLinearVelocity;
-            writer[idx++] = Normalization.NormalizeSpeed(projectedLinearVelocity.x);
-            writer[idx++] = Normalization.NormalizeSpeed(projectedLinearVelocity.y);
-            writer[idx++] = Normalization.NormalizeSpeed(projectedLinearVelocity.z);
+            writer[idx++] = Normalize.Speed(projectedLinearVelocity.x);
+            writer[idx++] = Normalize.Speed(projectedLinearVelocity.y);
+            writer[idx++] = Normalize.Speed(projectedLinearVelocity.z);
 
             Vector3 projectedForward = _proprioception.ProjectedForward;
             writer[idx++] = projectedForward.x;
             writer[idx++] = projectedForward.z;
 
             Vector3 relativeTargetPosition = _proprioception.RelativeTargetPosition;
-            writer[idx++] = Normalization.NormalizeDistance(relativeTargetPosition.x);
-            writer[idx++] = Normalization.NormalizeDistance(relativeTargetPosition.y);
-            writer[idx++] = Normalization.NormalizeDistance(relativeTargetPosition.z);
+            writer[idx++] = Normalize.Distance(relativeTargetPosition.x);
+            writer[idx++] = Normalize.Distance(relativeTargetPosition.y);
+            writer[idx++] = Normalize.Distance(relativeTargetPosition.z);
 
             writer[idx++] = _proprioception.Integrity;
 
@@ -82,17 +82,17 @@ namespace Train.Sensor {
 
                 for (int i = 0; i < node.DoF; i++) {
                     ArticulationDrive drive = node.GetDrive(i);
-                    writer[idx++] = Normalization.NormalizeJointPosition(positions[i],
+                    writer[idx++] = Normalize.JointPosition(positions[i],
                         drive.lowerLimit * Mathf.Deg2Rad, drive.upperLimit * Mathf.Deg2Rad);
                 }
 
                 for (int i = 0; i < node.DoF; i++) {
-                    writer[idx++] = Normalization.NormalizeSpeed(velocities[i]);
+                    writer[idx++] = Normalize.Speed(velocities[i]);
                 }
 
-                writer[idx++] = Normalization.NormalizeForce(force.x);
-                writer[idx++] = Normalization.NormalizeForce(force.y);
-                writer[idx++] = Normalization.NormalizeForce(force.z);
+                writer[idx++] = Normalize.Force(force.x);
+                writer[idx++] = Normalize.Force(force.y);
+                writer[idx++] = Normalize.Force(force.z);
             }
 
             foreach (float target in _proprioception.Targets) {

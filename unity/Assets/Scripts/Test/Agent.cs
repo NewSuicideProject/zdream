@@ -55,8 +55,8 @@ namespace Test {
             _stayTime += Time.fixedDeltaTime;
         }
 
-        private float NormalizeDistance(float distance) => Normalization.Tanh(distance, _distanceNormalizationFactor);
-        private float NormalizeSpeed(float speed) => Normalization.Tanh(speed, _speedNormalizationFactor);
+        private float NormalizeDistance(float distance) => Normalize.Tanh(distance, _distanceNormalizationFactor);
+        private float NormalizeSpeed(float speed) => Normalize.Tanh(speed, _speedNormalizationFactor);
 
         private Vector3 NormalizeCoordinate(Vector3 coordinate) =>
             new(

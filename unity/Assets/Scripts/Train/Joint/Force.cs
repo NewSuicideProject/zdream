@@ -4,12 +4,13 @@ namespace Train.Joint {
     public class Force : MonoBehaviour {
         [SerializeField] [ReadOnly] private Vector3 value = Vector3.zero;
 
-        public Vector3 Value {
-            get {
-                Vector3 temp = value;
-                value = Vector3.zero;
-                return temp;
-            }
+        private Vector3 _buffer = Vector3.zero;
+
+        public Vector3 Value => value;
+
+        private void FixedUpdate() {
+            value = _buffer;
+            _buffer = Vector3.zero;
         }
 
         private void OnCollisionStay(Collision collision) {
@@ -21,7 +22,7 @@ namespace Train.Joint {
                 impulseSum += contact.normal * normalImpulse;
             }
 
-            value += impulseSum / Time.fixedDeltaTime;
+            _buffer += impulseSum / Time.fixedDeltaTime;
         }
 
         private void OnDrawGizmos() {

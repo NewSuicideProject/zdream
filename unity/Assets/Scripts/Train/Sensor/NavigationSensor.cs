@@ -25,9 +25,9 @@ namespace Train.Sensor {
             int idx = 0;
 
             foreach (Corner corner in _navigation.Corners) {
-                writer[idx++] = Normalization.NormalizeDistance(corner.RelativePosition.z);
-                writer[idx++] = Normalization.NormalizeDistance(corner.RelativePosition.x);
-                writer[idx++] = Normalization.NormalizeDistance(corner.RelativePosition.y);
+                writer[idx++] = Normalize.Distance(corner.RelativePosition.z);
+                writer[idx++] = Normalize.Distance(corner.RelativePosition.x);
+                writer[idx++] = Normalize.Distance(corner.RelativePosition.y);
                 writer[idx++] = corner.Direction.x;
                 writer[idx++] = corner.Direction.z;
                 writer[idx++] = 1f;
