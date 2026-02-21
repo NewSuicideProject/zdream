@@ -14,7 +14,11 @@ logger = logging.getLogger(__name__)
 
 class UnityEnv(Env):
     def __init__(
-        self, unity_path: str = None, base_port: int = 5004, unity_kwargs: dict = None
+        self,
+        unity_path: str = None,
+        base_port: int = 5004,
+        worker_id: int = 0,
+        unity_kwargs: dict = None,
     ):
         super().__init__()
 
@@ -28,6 +32,7 @@ class UnityEnv(Env):
         self._env = UnityEnvironment(
             file_name=unity_path,
             base_port=base_port,
+            worker_id=worker_id,
             side_channels=[self.env_params_channel],
         )
         logger.info("unity connected")

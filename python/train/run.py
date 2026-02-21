@@ -16,9 +16,8 @@ from .unity_env import UnityEnv
 logger = logging.getLogger(__name__)
 
 
-def make_unity_env(file_name, base_port, worker_id, env_params):
-    port = base_port + worker_id
-    return UnityEnv(unity_path=file_name, base_port=port, unity_kwargs=env_params)
+def make_unity_env(file_name: str, worker_id: int, env_params: dict):
+    return UnityEnv(unity_path=file_name, worker_id=worker_id, unity_kwargs=env_params)
 
 
 def run():
@@ -30,27 +29,20 @@ def run():
     model_path = base_dir / "result.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
-    if config.env_count > 1:
-        envs = [
-            partial(
-                make_unity_env, str(config.unity_path), 5004, 0, config.unity_kwargs
-            )
-        ]
+    unity_server_path = config.unity_server_path
+    unity_path = config.unity_path if config.unity_path else unity_server_path
+
+    if config.env_count > 1 and unity_server_path:
+        envs = [partial(make_unity_env, str(unity_path), 0, config.unity_kwargs)]
         for i in range(1, config.env_count):
             envs.append(
-                partial(
-                    make_unity_env,
-                    str(config.unity_server_path),
-                    5004,
-                    i,
-                    config.unity_kwargs,
-                )
+                partial(make_unity_env, str(unity_server_path), i, config.unity_kwargs)
             )
         env = SubprocVecEnv(envs)
         env = VecMonitor(env)
     else:
         env = UnityEnv(
-            unity_path=str(config.unity_path) if config.unity_path else None,
+            unity_path=str(unity_path) if unity_path else None,
             unity_kwargs=config.unity_kwargs,
         )
         env = Monitor(env)
@@ -61,17 +53,24 @@ def run():
         save_path=str(checkpoint_dir),
     )
 
-    checkpoint_path = config.checkpoint_path
-    if checkpoint_path and Path(checkpoint_path).exists():
-        logger.info(f"valid checkpoint: {checkpoint_path}")
-        model = SAC.load(path=checkpoint_path, env=env, tensorboard_log=str(log_dir))
+    if config.checkpoint_path:
+        model = SAC.load(
+            path=config.checkpoint_path,
+            env=env,
+            tensorboard_log=str(log_dir),
+            custom_objects={
+                "learning_starts": config.prepare_count,
+                "gradient_steps": config.gradient_count,
+                "train_freq": config.train_interval,
+                "batch_size": config.batch_size,
+            },
+        )
     else:
-        logger.info("no valid checkpoint")
         model = SAC(
             policy=MultiInputPolicy,
-            learning_starts=config.learning_starts,
-            gradient_steps=config.gradient_steps,
-            train_freq=config.train_freq,
+            learning_starts=config.prepare_count,
+            gradient_steps=config.gradient_count,
+            train_freq=config.train_interval,
             batch_size=config.batch_size,
             env=env,
             policy_kwargs=config.policy_kwargs,
