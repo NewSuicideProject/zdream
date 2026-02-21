@@ -13,14 +13,18 @@ namespace Train.Sensor {
         public ProprioceptionSensor(Proprioception proprioception) {
             _proprioception = proprioception;
 
+            const int totalDoF = ((3 + 1 + 3) * 4) + 3;
+            const int nodeCount = 13;
+
             _size = 3 + // gravity
                     3 + // CoM
                     3 + // angular velocity
-                    3 + // relative linear velocity
+                    3 + // projected linear velocity
                     2 + // projected forward
                     3 + // relative target position
                     1 + // integrity
-                    ((((3 + 1 + 3) * 4) + 3) * 2) + 13;
+                    nodeCount + (totalDoF * 2) + (3 * nodeCount) + // severed, (positions, velocities), forces
+                    totalDoF; // targets
             _observationSpec = ObservationSpec.Vector(_size);
         }
 
@@ -44,10 +48,10 @@ namespace Train.Sensor {
             writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.y);
             writer[idx++] = Normalization.NormalizeSpeed(angularVelocity.z);
 
-            Vector3 relativeLinearVelocity = _proprioception.RelativeLinearVelocity;
-            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.x);
-            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.y);
-            writer[idx++] = Normalization.NormalizeSpeed(relativeLinearVelocity.z);
+            Vector3 projectedLinearVelocity = _proprioception.ProjectedLinearVelocity;
+            writer[idx++] = Normalization.NormalizeSpeed(projectedLinearVelocity.x);
+            writer[idx++] = Normalization.NormalizeSpeed(projectedLinearVelocity.y);
+            writer[idx++] = Normalization.NormalizeSpeed(projectedLinearVelocity.z);
 
             Vector3 projectedForward = _proprioception.ProjectedForward;
             writer[idx++] = projectedForward.x;
@@ -62,7 +66,8 @@ namespace Train.Sensor {
 
             foreach (AgentJointNode node in _proprioception.TrainNodes.Skip(1)) {
                 if (node.IsSevered) {
-                    for (int i = 0; i < (node.DoF * 2) + 1 + 3; i++) {
+                    writer[idx++] = 1f; // severed
+                    for (int i = 0; i < (node.DoF * 2) + 3; i++) {
                         writer[idx++] = 0f;
                     }
 
@@ -70,22 +75,28 @@ namespace Train.Sensor {
                 }
 
                 writer[idx++] = 0f; // not severed
-                ArticulationReducedSpace jointPosition = node.Body.jointPosition;
-                ArticulationReducedSpace jointVelocity = node.Body.jointVelocity;
+
+                ArticulationReducedSpace positions = node.Body.jointPosition;
+                ArticulationReducedSpace velocities = node.Body.jointVelocity;
                 Vector3 force = node.Force.Value;
+
                 for (int i = 0; i < node.DoF; i++) {
                     ArticulationDrive drive = node.GetDrive(i);
-                    writer[idx++] = Normalization.NormalizeJointPosition(jointPosition[i],
+                    writer[idx++] = Normalization.NormalizeJointPosition(positions[i],
                         drive.lowerLimit * Mathf.Deg2Rad, drive.upperLimit * Mathf.Deg2Rad);
                 }
 
                 for (int i = 0; i < node.DoF; i++) {
-                    writer[idx++] = Normalization.NormalizeSpeed(jointVelocity[i]);
+                    writer[idx++] = Normalization.NormalizeSpeed(velocities[i]);
                 }
 
                 writer[idx++] = Normalization.NormalizeForce(force.x);
                 writer[idx++] = Normalization.NormalizeForce(force.y);
                 writer[idx++] = Normalization.NormalizeForce(force.z);
+            }
+
+            foreach (float target in _proprioception.Targets) {
+                writer[idx++] = target;
             }
 
             return _size;

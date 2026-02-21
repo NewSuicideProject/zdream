@@ -1,22 +1,28 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Train.Joint {
     public class Force : MonoBehaviour {
         [SerializeField] [ReadOnly] private Vector3 value = Vector3.zero;
-        public Vector3 Value => value;
 
-        private void OnCollisionStay(Collision collision) {
-            Vector3 accumulated = Vector3.zero;
-
-            foreach (ContactPoint contact in collision.contacts) {
-                accumulated += contact.normal * contact.impulse.magnitude;
+        public Vector3 Value {
+            get {
+                Vector3 temp = value;
+                value = Vector3.zero;
+                return temp;
             }
-
-            value += accumulated;
         }
 
-        private void FixedUpdate() => value = Vector3.zero;
+        private void OnCollisionStay(Collision collision) {
+            Vector3 impulseSum = Vector3.zero;
+
+            foreach (ContactPoint contact in collision.contacts) {
+                float normalImpulse = Vector3.Dot(contact.impulse, contact.normal);
+                normalImpulse = Mathf.Max(normalImpulse, 0f);
+                impulseSum += contact.normal * normalImpulse;
+            }
+
+            value += impulseSum / Time.fixedDeltaTime;
+        }
 
         private void OnDrawGizmos() {
             if (!(value.sqrMagnitude > 0.001f)) {

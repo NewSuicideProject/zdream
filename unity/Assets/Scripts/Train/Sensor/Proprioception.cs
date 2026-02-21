@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using Train.Joint;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
@@ -11,10 +11,11 @@ namespace Train.Sensor {
         [SerializeField] [ReadOnly] private Vector3 com;
         [SerializeField] [ReadOnly] private Vector3 gravity;
         [SerializeField] [ReadOnly] private Vector3 angularVelocity;
-        [SerializeField] [ReadOnly] private Vector3 relativeLinearVelocity;
+        [SerializeField] [ReadOnly] private Vector3 projectedLinearVelocity;
         [SerializeField] [ReadOnly] private float integrity;
         [SerializeField] [ReadOnly] private Vector3 projectedForward;
         [SerializeField] [ReadOnly] private Vector3 relativeTargetPosition;
+        [SerializeField] [ReadOnly] private float[] targets;
 
         private ProprioceptionSensor _proprioceptionSensor;
 
@@ -27,11 +28,12 @@ namespace Train.Sensor {
         public Vector3 Com => com;
         public Vector3 Gravity => gravity;
         public Vector3 AngularVelocity => angularVelocity;
-        public Vector3 RelativeLinearVelocity => relativeLinearVelocity;
+        public Vector3 ProjectedLinearVelocity => projectedLinearVelocity;
         public float Integrity => integrity;
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
         public List<AgentJointNode> TrainNodes => _hierarchy.TrainNodes;
+        public float[] Targets => targets;
 
         private AgentJointHierarchy _hierarchy;
         public Transform targetTransform;
@@ -39,6 +41,7 @@ namespace Train.Sensor {
         private void Awake() => _hierarchy = GetComponent<AgentJointHierarchy>();
 
         private void Start() {
+            targets = new float[_hierarchy.TrainNodes.Sum(node => node.DoF)];
             FixedUpdate();
             initialGravity = gravity;
         }
@@ -80,7 +83,7 @@ namespace Train.Sensor {
 
             angularVelocity = rootTransform.InverseTransformDirection(rootBody.angularVelocity);
 
-            relativeLinearVelocity = inverseYaw * rootBody.linearVelocity;
+            projectedLinearVelocity = inverseYaw * rootBody.linearVelocity;
             relativeTargetPosition =
                 targetTransform ? inverseYaw * (targetTransform.position - rootTransform.position) : Vector3.zero;
 

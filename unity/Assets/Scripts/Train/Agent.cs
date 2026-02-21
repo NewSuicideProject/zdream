@@ -11,7 +11,6 @@ namespace Train {
     [RequireComponent(typeof(Passion))]
     public class Agent : Unity.MLAgents.Agent {
         private AgentJointHierarchy _jointHierarchy;
-        private float[] _prevActions;
 
         private EnvironmentBase _environment;
         private Proprioception _proprioception;
@@ -35,12 +34,7 @@ namespace Train {
             _navigation.targetTransform = _environment.TargetTransform;
         }
 
-        private void Start() {
-            _targetTransform = _environment.TargetTransform;
-
-            int totalDoF = _jointHierarchy.TrainNodes.Sum(n => n.DoF);
-            _prevActions = new float[totalDoF];
-        }
+        private void Start() => _targetTransform = _environment.TargetTransform;
 
         private void OnTriggerExit(Collider other) {
             if (other.transform != _targetTransform) {
@@ -90,16 +84,16 @@ namespace Train {
 
             float jitterSum = 0f;
             for (int i = 0; i < continuousActions.Length; i++) {
-                float diff = continuousActions[i] - _prevActions[i];
+                float diff = continuousActions[i] - _proprioception.Targets[i];
                 jitterSum += diff * diff;
-                _prevActions[i] = continuousActions[i];
+                _proprioception.Targets[i] = continuousActions[i];
             }
 
             float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier * Config.Phase.BRatio;
 
             float targetDirectionMatch =
                 Vector3.Dot(
-                    _proprioception.RelativeLinearVelocity.normalized,
+                    _proprioception.ProjectedLinearVelocity.normalized,
                     _proprioception.RelativeTargetPosition.normalized);
             float targetDirectionMatchReward = targetDirectionMatch * _passion.Value *
                                                Config.Reward.DirectionRewardMultiplier *
@@ -110,7 +104,7 @@ namespace Train {
                 float navigationDirectionMatch =
                     Vector3.Dot(
                         _navigation.Corners.First().RelativePosition.normalized,
-                        _proprioception.RelativeLinearVelocity.normalized);
+                        _proprioception.ProjectedLinearVelocity.normalized);
                 navigationDirectionMatchReward = navigationDirectionMatch * _passion.Value *
                                                  Config.Reward.DirectionRewardMultiplier * 2 *
                                                  Config.Phase.CRatio;
