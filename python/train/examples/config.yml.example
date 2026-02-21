@@ -21,18 +21,18 @@ policy_kwargs:
 unity_kwargs:
     navigation_sensor__max_token: 3
 
-    terrain__resolution: 10
+    terrain__resolution: 8
 
     reward__stay_success_reward: 1.0
-    reward__staying_reward: 0.5
+    reward__staying_reward: 0.75
     reward__stay_success_threshold: 5.0
 
     reward__distance_penalty_multiplier: 0.05
-    reward__jitter_penalty_multiplier: 0.02
+    reward__jitter_penalty_multiplier: 0.01
     reward__energy_penalty_multiplier: 0.005
     reward__upright_reward_multiplier: 0.5
-    reward__height_match_reward_multiplier: 0.5
-    reward__direction_reward_multiplier: 0.2
+    reward__height_match_reward_multiplier: 0.25
+    reward__direction_reward_multiplier: 0.5
 
     phase__a_ratio: 1.0 # Agent try to stand up and stabilize (proprioception)
     phase__b_ratio: 0.0 # Agent try to move towards the target (navigation)
@@ -42,5 +42,5 @@ unity_kwargs:
 
     normalization__expected_max_speed: 10.0
     normalization__expected_max_distance: 10.0
-    normalization__expected_max_thickness: 2.5
-    normalization__expected_max_height: 2.5
+    normalization__expected_max_thickness: 2.0
+    normalization__expected_max_height: 2.0

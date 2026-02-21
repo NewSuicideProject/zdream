@@ -53,22 +53,22 @@ namespace Train {
         }
 
         public static class Terrain {
-            public static int Resolution = 10;
+            public static int Resolution = 8;
 
             public static void Reset() => GetConfig("terrain__resolution", ref Resolution);
         }
 
         public static class Reward {
-            public static float StaySuccessReward = 20f;
-            public static float StayingReward = 10f;
+            public static float StaySuccessReward = 1f;
+            public static float StayingReward = 0.75f;
             public static float StaySuccessThreshold = 5f;
 
-            public static float DistancePenaltyMultiplier = 0.25f;
-            public static float JitterPenaltyMultiplier = 0.1f;
-            public static float EnergyPenaltyMultiplier = 0.01f;
-            public static float UprightRewardMultiplier = 10f;
-            public static float HeightMatchRewardMultiplier = 10f;
-            public static float DirectionRewardMultiplier = 1f;
+            public static float DistancePenaltyMultiplier = 0.05f;
+            public static float JitterPenaltyMultiplier = 0.01f;
+            public static float EnergyPenaltyMultiplier = 0.005f;
+            public static float UprightRewardMultiplier = 0.5f;
+            public static float HeightMatchRewardMultiplier = 0.25f;
+            public static float DirectionRewardMultiplier = 0.5f;
 
             public static void Reset() {
                 GetConfig("reward__stay_success_reward", ref StaySuccessReward);
@@ -115,8 +115,8 @@ namespace Train {
 
             public static float ExpectedMaxSpeed = 10f;
             public static float ExpectedMaxDistance = 10f;
-            public static float ExpectedMaxThickness = 2.5f;
-            public static float ExpectedMaxHeight = 2.5f;
+            public static float ExpectedMaxThickness = 2f;
+            public static float ExpectedMaxHeight = 2f;
         }
     }
 }
