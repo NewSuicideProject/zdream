@@ -1,4 +1,5 @@
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using Train.Joint;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
@@ -14,8 +15,6 @@ namespace Train.Sensor {
         [SerializeField] [ReadOnly] private float integrity;
         [SerializeField] [ReadOnly] private Vector3 projectedForward;
         [SerializeField] [ReadOnly] private Vector3 relativeTargetPosition;
-        [SerializeField] [ReadOnly] private float[] contacts;
-        [SerializeField] [ReadOnly] private float[] normalizedJointBlocks;
 
         private ProprioceptionSensor _proprioceptionSensor;
 
@@ -32,20 +31,14 @@ namespace Train.Sensor {
         public float Integrity => integrity;
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
-        public float[] Contacts => contacts;
-        public float[] NormalizedJointBlocks => normalizedJointBlocks;
+        public List<AgentJointNode> TrainNodes => _hierarchy.TrainNodes;
 
         private AgentJointHierarchy _hierarchy;
         public Transform targetTransform;
-        private int _totalDoF;
 
         private void Awake() => _hierarchy = GetComponent<AgentJointHierarchy>();
 
         private void Start() {
-            _totalDoF = _hierarchy.TrainNodes.Sum(node => node.DoF);
-            contacts = new float[4];
-            normalizedJointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count - 1];
-
             FixedUpdate();
             initialGravity = gravity;
         }
@@ -59,17 +52,8 @@ namespace Train.Sensor {
             Vector3 totalWeightedPos = Vector3.zero;
             float totalMass = 0f;
             float totalJoinedMass = 0f;
-            int baseIndex = 0;
 
-            foreach (AgentJointNode node in _hierarchy.TrainNodes.Skip(1)) {
-                normalizedJointBlocks[baseIndex++] = node.IsSevered ? 1.0f : 0.0f;
-
-                node.GetJointPositions(normalizedJointBlocks, baseIndex, true);
-                baseIndex += node.DoF;
-
-                node.GetJointVelocities(normalizedJointBlocks, baseIndex, true);
-                baseIndex += node.DoF;
-
+            foreach (AgentJointNode node in _hierarchy.TrainNodes) {
                 float mass = node.Body.mass;
                 totalMass += mass;
 

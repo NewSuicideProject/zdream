@@ -1,3 +1,5 @@
+using System.Linq;
+using Train.Joint;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
@@ -18,7 +20,6 @@ namespace Train.Sensor {
                     2 + // projected forward
                     3 + // relative target position
                     1 + // integrity
-                    4 + // contacts
                     ((((3 + 1 + 3) * 4) + 3) * 2) + 13;
             _observationSpec = ObservationSpec.Vector(_size);
         }
@@ -59,12 +60,32 @@ namespace Train.Sensor {
 
             writer[idx++] = _proprioception.Integrity;
 
-            foreach (float contact in _proprioception.Contacts) {
-                writer[idx++] = contact;
-            }
+            foreach (AgentJointNode node in _proprioception.TrainNodes.Skip(1)) {
+                if (node.IsSevered) {
+                    for (int i = 0; i < (node.DoF * 2) + 1 + 3; i++) {
+                        writer[idx++] = 0f;
+                    }
 
-            foreach (float jointBlock in _proprioception.NormalizedJointBlocks) {
-                writer[idx++] = jointBlock;
+                    continue;
+                }
+
+                writer[idx++] = 0f; // not severed
+                ArticulationReducedSpace jointPosition = node.Body.jointPosition;
+                ArticulationReducedSpace jointVelocity = node.Body.jointVelocity;
+                Vector3 force = node.Force.Value;
+                for (int i = 0; i < node.DoF; i++) {
+                    ArticulationDrive drive = node.GetDrive(i);
+                    writer[idx++] = Normalization.NormalizeJointPosition(jointPosition[i],
+                        drive.lowerLimit * Mathf.Deg2Rad, drive.upperLimit * Mathf.Deg2Rad);
+                }
+
+                for (int i = 0; i < node.DoF; i++) {
+                    writer[idx++] = Normalization.NormalizeSpeed(jointVelocity[i]);
+                }
+
+                writer[idx++] = Normalization.NormalizeForce(force.x);
+                writer[idx++] = Normalization.NormalizeForce(force.y);
+                writer[idx++] = Normalization.NormalizeForce(force.z);
             }
 
             return _size;

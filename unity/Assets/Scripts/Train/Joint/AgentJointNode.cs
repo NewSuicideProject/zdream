@@ -3,22 +3,18 @@ using Joint;
 using UnityEngine;
 
 namespace Train.Joint {
-    public struct JointLimitCache {
-        public float LowerLimit;
-        public float UpperLimit;
-    }
-
     public class AgentJointNode : JointNodeBase {
         private readonly Collider _collider;
-        private readonly JointLimitCache[] _jointLimitCache;
 
         private readonly ArticulationReducedSpace _zeroSpace;
         public readonly ArticulationBody Body;
+        public readonly Force Force;
         public readonly int DoF;
 
         public AgentJointNode(GameObject gameObject, AgentJointNode parent) : base(gameObject, parent) {
             Body = gameObject.GetComponent<ArticulationBody>();
             _collider = gameObject.GetComponentInChildren<Collider>();
+            Force = gameObject.AddComponent<Force>();
 
             DoF = Body.dofCount;
             _zeroSpace = DoF switch {
@@ -28,18 +24,6 @@ namespace Train.Joint {
                 3 => new ArticulationReducedSpace(0f, 0f, 0f),
                 _ => throw new ArgumentOutOfRangeException(nameof(DoF), $"Unsupported DoF count {DoF}")
             };
-
-            if (DoF <= 0) {
-                return;
-            }
-
-            _jointLimitCache = new JointLimitCache[DoF];
-            for (int i = 0; i < DoF; i++) {
-                ArticulationDrive drive = GetDrive(i);
-                _jointLimitCache[i] = new JointLimitCache {
-                    LowerLimit = drive.lowerLimit * Mathf.Deg2Rad, UpperLimit = drive.upperLimit * Mathf.Deg2Rad
-                };
-            }
         }
 
         public override void Sever() {
@@ -106,56 +90,6 @@ namespace Train.Joint {
                 case 2: Body.zDrive = drive; break;
                 default: throw new ArgumentOutOfRangeException(nameof(axisIndex), $"Invalid axis index {axisIndex}");
             }
-        }
-
-        public void GetJointPositions(float[] buffer, int baseIndex = 0, bool normalize = false) {
-            if (IsSevered) {
-                Array.Clear(buffer, baseIndex, DoF);
-                return;
-            }
-
-            ArticulationReducedSpace positions = Body.jointPosition;
-            for (int i = 0; i < DoF; i++) {
-                float value = positions[i];
-                if (normalize) {
-                    value = global::Normalization.LinearMinMax(
-                        value,
-                        _jointLimitCache[i].LowerLimit,
-                        _jointLimitCache[i].UpperLimit
-                    );
-                }
-
-                buffer[baseIndex + i] = value;
-            }
-        }
-
-        public float[] GetJointPositions(bool normalize = false) {
-            float[] buffer = new float[DoF];
-            GetJointPositions(buffer, 0, normalize);
-            return buffer;
-        }
-
-        public void GetJointVelocities(float[] buffer, int baseIndex = 0, bool normalize = false) {
-            if (IsSevered) {
-                Array.Clear(buffer, baseIndex, DoF);
-                return;
-            }
-
-            ArticulationReducedSpace velocities = Body.jointVelocity;
-            for (int i = 0; i < DoF; i++) {
-                float value = velocities[i];
-                if (normalize) {
-                    value = Normalization.NormalizeSpeed(value);
-                }
-
-                buffer[baseIndex + i] = value;
-            }
-        }
-
-        public float[] GetJointVelocities(bool normalize = false) {
-            float[] buffer = new float[DoF];
-            GetJointVelocities(buffer, 0, normalize);
-            return buffer;
         }
     }
 }

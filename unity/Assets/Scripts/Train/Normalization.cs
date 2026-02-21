@@ -11,5 +11,11 @@
 
         public static float NormalizeHeight(float height) =>
             global::Normalization.Tanh(height, Config.Normalization.ExpectedMaxHeight);
+
+        public static float NormalizeJointPosition(float position, float min, float max) =>
+            global::Normalization.LinearMinMax(position, min, max);
+
+        public static float NormalizeForce(float force) =>
+            global::Normalization.Tanh(force);
     }
 }
