@@ -30,12 +30,11 @@ namespace Train.Sensor {
         public float Integrity => integrity;
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
-        public List<AgentJointNode> TrainNodes => _hierarchy.TrainNodes;
+        public AgentJointHierarchy Hierarchy { get; private set; }
 
-        private AgentJointHierarchy _hierarchy;
         public Transform targetTransform;
 
-        private void Awake() => _hierarchy = GetComponent<AgentJointHierarchy>();
+        private void Awake() => Hierarchy = GetComponent<AgentJointHierarchy>();
 
         private void Start() {
             FixedUpdate();
@@ -43,8 +42,8 @@ namespace Train.Sensor {
         }
 
         private void FixedUpdate() {
-            Transform rootTransform = _hierarchy.RootAgentNode.GameObject.transform;
-            ArticulationBody rootBody = _hierarchy.RootAgentNode.Body;
+            Transform rootTransform = Hierarchy.RootAgentNode.GameObject.transform;
+            ArticulationBody rootBody = Hierarchy.RootAgentNode.Body;
 
             gravity = rootTransform.InverseTransformDirection(Physics.gravity).normalized;
 
@@ -52,7 +51,7 @@ namespace Train.Sensor {
             float totalMass = 0f;
             float totalJoinedMass = 0f;
 
-            foreach (AgentJointNode node in _hierarchy.TrainNodes) {
+            foreach (AgentJointNode node in Hierarchy.AgentNodes) {
                 float mass = node.Body.mass;
                 totalMass += mass;
 
@@ -87,12 +86,12 @@ namespace Train.Sensor {
         }
 
         private void OnDrawGizmos() {
-            if (!_hierarchy) {
+            if (!Hierarchy) {
                 return;
             }
 
-            Vector3 pelvisPosition = _hierarchy.RootAgentNode.Body.transform.position;
-            Transform pelvisTransform = _hierarchy.RootAgentNode.Body.transform;
+            Vector3 pelvisPosition = Hierarchy.RootAgentNode.Body.transform.position;
+            Transform pelvisTransform = Hierarchy.RootAgentNode.Body.transform;
 
             Gizmos.color = Color.lightGreen;
             Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(gravity) * 0.5f);

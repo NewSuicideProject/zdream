@@ -10,7 +10,7 @@ namespace Train {
     [RequireComponent(typeof(AgentJointHierarchy))]
     [RequireComponent(typeof(Passion))]
     public class Agent : Unity.MLAgents.Agent {
-        private AgentJointHierarchy _jointHierarchy;
+        private AgentJointHierarchy _hierarchy;
 
         private EnvironmentBase _environment;
         private Proprioception _proprioception;
@@ -24,7 +24,7 @@ namespace Train {
 
             _environment = GetComponentInParent<EnvironmentBase>();
 
-            _jointHierarchy = GetComponent<AgentJointHierarchy>();
+            _hierarchy = GetComponent<AgentJointHierarchy>();
             _proprioception = GetComponent<Proprioception>();
             _passion = GetComponent<Passion>();
 
@@ -63,7 +63,7 @@ namespace Train {
             Config.Phase.Reset();
 
             _environment.Reset();
-            _jointHierarchy.Reset();
+            _hierarchy.Reset();
             _navigation.Reset();
             _passion.Reset();
         }
@@ -73,7 +73,7 @@ namespace Train {
 
             int index = 0;
             float jitterSum = 0f;
-            foreach (AgentJointNode node in _jointHierarchy.TrainNodes) {
+            foreach (AgentJointNode node in _hierarchy.AgentNodes) {
                 for (int i = 0; i < node.DoF; i++) {
                     ArticulationDrive drive = node.GetDrive(i);
                     float target = Normalize.JointPosition(drive.target, drive.lowerLimit, drive.upperLimit);

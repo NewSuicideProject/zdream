@@ -64,12 +64,12 @@ namespace Train.Sensor {
 
             writer[idx++] = _proprioception.Integrity;
 
-            Vector3 rootForce = _proprioception.TrainNodes[0].Force.Value;
+            Vector3 rootForce = _proprioception.Hierarchy.RootAgentNode.Force.Value;
             writer[idx++] = Normalize.Force(rootForce.x);
             writer[idx++] = Normalize.Force(rootForce.y);
             writer[idx++] = Normalize.Force(rootForce.z);
 
-            foreach (AgentJointNode node in _proprioception.TrainNodes.Skip(1)) {
+            foreach (AgentJointNode node in _proprioception.Hierarchy.AgentNodes.Skip(1)) {
                 if (node.IsSevered) {
                     writer[idx++] = 1f; // severed
                     for (int i = 0; i < (node.DoF * 3) + 3; i++) {
