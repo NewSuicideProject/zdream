@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Train.Joint;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
