@@ -10,6 +10,8 @@ namespace Train.Joint {
         public readonly ArticulationBody Body;
         public readonly Force Force;
         public readonly int DoF;
+        private ArticulationReducedSpace _rawTarget; // normalized
+        public ArticulationReducedSpace RawTarget => _rawTarget;
 
         public AgentJointNode(GameObject gameObject, AgentJointNode parent) : base(gameObject, parent) {
             Body = gameObject.GetComponent<ArticulationBody>();
@@ -24,6 +26,7 @@ namespace Train.Joint {
                 3 => new ArticulationReducedSpace(0f, 0f, 0f),
                 _ => throw new ArgumentOutOfRangeException(nameof(DoF), $"Unsupported DoF count {DoF}")
             };
+            _rawTarget = _zeroSpace;
         }
 
         public override void Sever() {
@@ -48,6 +51,7 @@ namespace Train.Joint {
             Body.jointVelocity = _zeroSpace;
             Body.angularVelocity = Vector3.zero;
             Body.linearVelocity = Vector3.zero;
+            _rawTarget = _zeroSpace;
         }
 
         public override void Reset() {
@@ -83,13 +87,22 @@ namespace Train.Joint {
                     $"Invalid axis index {axisIndex}")
             };
 
-        public void SetDrive(int axisIndex, ArticulationDrive drive) {
+        private void SetDrive(int axisIndex, ArticulationDrive drive) {
             switch (axisIndex) {
                 case 0: Body.xDrive = drive; break;
                 case 1: Body.yDrive = drive; break;
                 case 2: Body.zDrive = drive; break;
                 default: throw new ArgumentOutOfRangeException(nameof(axisIndex), $"Invalid axis index {axisIndex}");
             }
+        }
+
+        public void SetTarget(int axisIndex, float rawTarget) {
+            ArticulationDrive drive = GetDrive(axisIndex);
+            float denormalizedTarget =
+                Denormalize.JointPosition(rawTarget, drive.lowerLimit, drive.upperLimit);
+            drive.target = Mathf.Lerp(drive.target, denormalizedTarget, Config.Agent.ActionSmoothing);
+            _rawTarget[axisIndex] = rawTarget;
+            SetDrive(axisIndex, drive);
         }
     }
 }

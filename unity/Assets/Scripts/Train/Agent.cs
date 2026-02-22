@@ -58,6 +58,7 @@ namespace Train {
 
             Config.NavigationSensor.Reset();
             Config.Normalization.Reset();
+            Config.Agent.Reset();
             Config.Terrain.Reset();
             Config.Reward.Reset();
             Config.Phase.Reset();
@@ -75,11 +76,8 @@ namespace Train {
             float jitterSum = 0f;
             foreach (AgentJointNode node in _hierarchy.AgentNodes) {
                 for (int i = 0; i < node.DoF; i++) {
-                    ArticulationDrive drive = node.GetDrive(i);
-                    float target = Normalize.JointPosition(drive.target, drive.lowerLimit, drive.upperLimit);
-                    jitterSum += (newTargets[index] - target) * (newTargets[index] - target);
-                    drive.target = Denormalize.JointPosition(newTargets[index], drive.lowerLimit, drive.upperLimit);
-                    node.SetDrive(i, drive);
+                    jitterSum += (newTargets[index] - node.RawTarget[i]) * (newTargets[index] - node.RawTarget[i]);
+                    node.SetTarget(i, newTargets[index]);
                     index++;
                 }
             }

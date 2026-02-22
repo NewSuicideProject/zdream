@@ -88,7 +88,7 @@ namespace Train.Sensor {
                 for (int i = 0; i < node.DoF; i++) {
                     ArticulationDrive drive = node.GetDrive(i);
                     float position = positions[i] * Mathf.Rad2Deg;
-                    writer[idx++] = Normalize.JointPosition(drive.target, drive.lowerLimit, drive.upperLimit);
+                    writer[idx++] = node.RawTarget[i];
                     writer[idx++] = Normalize.JointPosition(position, drive.lowerLimit, drive.upperLimit);
                     writer[idx++] = Normalize.Speed(velocities[i]);
                 }
