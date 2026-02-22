@@ -41,7 +41,7 @@ class Config:
         self.env_count = int(os.getenv("ENV_COUNT", "1"))
         self.step_count = int(os.getenv("STEP_COUNT", "10_000_000"))
         self.prepare_count = int(os.getenv("PREPARE_COUNT", "10_000"))
-        self.batch_size = int(os.getenv("BATCH_SIZE", "512"))
+        self.batch_size = int(os.getenv("BATCH_SIZE", "256"))
         self.train_interval = int(os.getenv("TRAIN_INTERVAL", "128"))
         self.gradient_count = int(os.getenv("GRADIENT_COUNT", "16"))
 
