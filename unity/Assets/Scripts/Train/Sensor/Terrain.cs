@@ -21,11 +21,9 @@ namespace Train.Sensor {
         }
 
         private void FixedUpdate() {
-            Vector3 position = transform.position;
-
             float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
-            Vector3 gridTopLeft = new(position.x - gridHalfSize,
-                position.y, position.z + gridHalfSize);
+            Vector3 gridTopLeft = transform.position +
+                                  new Vector3(-gridHalfSize, Config.Normalization.ExpectedMaxHeight, gridHalfSize);
 
             for (int z = 0; z < Config.Terrain.Resolution; z++) {
                 for (int x = 0; x < Config.Terrain.Resolution; x++) {
@@ -33,7 +31,7 @@ namespace Train.Sensor {
 
                     if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit,
                             Mathf.Infinity, targetLayer)) {
-                        HeightMap[x, z] = hit.point.y;
+                        HeightMap[x, z] = hit.point.y - transform.position.y;
                     } else {
                         HeightMap[x, z] = Mathf.Infinity;
                     }
@@ -46,16 +44,14 @@ namespace Train.Sensor {
                 return;
             }
 
-            Vector3 position = transform.position;
-
             float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
-            Vector3 gridTopLeft = new(position.x - gridHalfSize,
-                position.y, position.z + gridHalfSize);
+            Vector3 gridTopLeft = transform.position +
+                                  new Vector3(-gridHalfSize, Config.Normalization.ExpectedMaxHeight, gridHalfSize);
 
             for (int z = 0; z < Config.Terrain.Resolution; z++) {
                 for (int x = 0; x < Config.Terrain.Resolution; x++) {
                     Vector3 rayOrigin = gridTopLeft + new Vector3(x * _spacing, 0, -z * _spacing);
-                    Vector3 hitPoint = new(rayOrigin.x, HeightMap[x, z], rayOrigin.z);
+                    Vector3 hitPoint = new(rayOrigin.x, transform.position.y + HeightMap[x, z], rayOrigin.z);
 
                     Gizmos.color = Color.red;
                     Gizmos.DrawSphere(hitPoint, 0.01f);
