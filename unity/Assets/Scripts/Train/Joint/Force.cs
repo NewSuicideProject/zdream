@@ -30,7 +30,7 @@ namespace Train.Joint {
                 impulseSum += contact.normal * normalImpulse;
             }
 
-            _buffer += transform.InverseTransformDirection(impulseSum / Time.fixedDeltaTime);
+            _buffer += _collider.transform.InverseTransformDirection(impulseSum / Time.fixedDeltaTime);
         }
 
         private void OnDrawGizmos() {
@@ -44,7 +44,9 @@ namespace Train.Joint {
                 normalizedValue[i] = Normalize.Force(value[i]);
             }
 
-            Gizmos.DrawLine(transform.position, transform.position + transform.TransformDirection(normalizedValue));
+            Gizmos.DrawLine(
+                _collider.transform.position,
+                _collider.transform.position + _collider.transform.TransformDirection(normalizedValue));
         }
     }
 }

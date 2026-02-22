@@ -16,7 +16,7 @@ namespace Train.Sensor {
         }
 
         private void Awake() {
-            _spacing = Config.Normalization.ExpectedMaxThickness / (Config.Terrain.Resolution - 1);
+            _spacing = Config.Normalization.ExpectedMaxThickness * 2 / (Config.Terrain.Resolution - 1);
             HeightMap = new float[Config.Terrain.Resolution, Config.Terrain.Resolution];
         }
 

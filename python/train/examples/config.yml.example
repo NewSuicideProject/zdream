@@ -23,7 +23,7 @@ unity_kwargs:
 
     terrain__resolution: 8
 
-    reward__stay_success_reward: 1.0
+    reward__stay_success_reward: 5.0
     reward__staying_reward: 0.75
     reward__stay_success_threshold: 5.0
 
@@ -42,6 +42,6 @@ unity_kwargs:
 
     normalization__expected_max_speed: 5.0
     normalization__expected_max_distance: 10.0
-    normalization__expected_max_thickness: 2.0
+    normalization__expected_max_thickness: 1.0
     normalization__expected_max_height: 2.0
     normalization__expected_max_force: 300.0

@@ -39,14 +39,14 @@ class Config:
                 )
 
         self.env_count = int(os.getenv("ENV_COUNT", "1"))
-        self.step_count = int(os.getenv("STEP_COUNT", "1_000_000"))
+        self.step_count = int(os.getenv("STEP_COUNT", "10_000_000"))
         self.prepare_count = int(os.getenv("PREPARE_COUNT", "10_000"))
         self.batch_size = int(os.getenv("BATCH_SIZE", "512"))
         self.train_interval = int(os.getenv("TRAIN_INTERVAL", "128"))
         self.gradient_count = int(os.getenv("GRADIENT_COUNT", "16"))
 
         self.checkpoint_path = self._validate_path(os.getenv("CHECKPOINT_PATH", None))
-        self.checkpoint_interval = int(os.getenv("CHECKPOINT_INTERVAL", "1_000"))
+        self.checkpoint_interval = int(os.getenv("CHECKPOINT_INTERVAL", "10_000"))
 
         self.unity_path = self._validate_path(os.getenv("UNITY_PATH", None))
         self.unity_server_path = self._validate_path(

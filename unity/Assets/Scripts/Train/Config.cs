@@ -59,7 +59,7 @@ namespace Train {
         }
 
         public static class Reward {
-            public static float StaySuccessReward = 1f;
+            public static float StaySuccessReward = 5f;
             public static float StayingReward = 0.75f;
             public static float StaySuccessThreshold = 5f;
 
@@ -116,7 +116,7 @@ namespace Train {
 
             public static float ExpectedMaxSpeed = 5f;
             public static float ExpectedMaxDistance = 10f;
-            public static float ExpectedMaxThickness = 2f;
+            public static float ExpectedMaxThickness = 1f;
             public static float ExpectedMaxHeight = 2f;
             public static float ExpectedMaxForce = 300f;
         }
