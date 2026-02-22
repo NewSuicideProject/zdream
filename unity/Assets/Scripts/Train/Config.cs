@@ -58,10 +58,10 @@ namespace Train {
             public static void Reset() => GetConfig("terrain__resolution", ref Resolution);
         }
 
-        public static class Agent {
-            public static float ActionSmoothing = 0.5f;
+        public static class Joint {
+            public static float TargetSmoothing = 0.2f;
 
-            public static void Reset() => GetConfig("agent__action_smoothing", ref ActionSmoothing);
+            public static void Reset() => GetConfig("joint__target_smoothing", ref TargetSmoothing);
         }
 
         public static class Reward {

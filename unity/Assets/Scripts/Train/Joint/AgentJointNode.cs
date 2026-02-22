@@ -100,7 +100,7 @@ namespace Train.Joint {
             ArticulationDrive drive = GetDrive(axisIndex);
             float denormalizedTarget =
                 Denormalize.JointPosition(rawTarget, drive.lowerLimit, drive.upperLimit);
-            drive.target = Mathf.Lerp(drive.target, denormalizedTarget, Config.Agent.ActionSmoothing);
+            drive.target = Mathf.Lerp(drive.target, denormalizedTarget, Config.Joint.TargetSmoothing);
             _rawTarget[axisIndex] = rawTarget;
             SetDrive(axisIndex, drive);
         }

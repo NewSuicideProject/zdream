@@ -58,7 +58,7 @@ namespace Train {
 
             Config.NavigationSensor.Reset();
             Config.Normalization.Reset();
-            Config.Agent.Reset();
+            Config.Joint.Reset();
             Config.Terrain.Reset();
             Config.Reward.Reset();
             Config.Phase.Reset();
