@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Train.Joint {
     public class AgentJointHierarchy : JointHierarchyBase {
         public AgentJointNode RootAgentNode;
-        public List<AgentJointNode> TrainNodes;
+        public List<AgentJointNode> AgentNodes;
 
         private Vector3 _initialRootRelativePosition;
         private Quaternion _initialRootRelativeRotation;
@@ -18,7 +18,7 @@ namespace Train.Joint {
             _initialRootRelativePosition = RootAgentNode.GameObject.transform.localPosition;
             _initialRootRelativeRotation = RootAgentNode.GameObject.transform.localRotation;
 
-            TrainNodes = Nodes.Cast<AgentJointNode>().ToList();
+            AgentNodes = Nodes.Cast<AgentJointNode>().ToList();
         }
 
         protected override bool IsJoint(GameObject candidate) => candidate.GetComponent<ArticulationBody>() != null;

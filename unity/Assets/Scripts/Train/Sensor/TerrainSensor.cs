@@ -18,12 +18,10 @@ namespace Train.Sensor {
 
         public int Write(ObservationWriter writer) {
             int idx = 0;
-            float agentHeight = _terrain.transform.position.y;
 
             for (int z = 0; z < _resolution; z++) {
                 for (int x = 0; x < _resolution; x++) {
-                    float relativeHeight = _terrain.HeightMap[x, z] - agentHeight;
-                    writer[idx++] = Normalization.NormalizeHeight(relativeHeight);
+                    writer[idx++] = Normalize.Height(_terrain.HeightMap[x, z]);
                 }
             }
 

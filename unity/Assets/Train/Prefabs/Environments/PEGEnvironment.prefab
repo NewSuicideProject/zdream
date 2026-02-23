@@ -44,15 +44,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c934cc9481cc4c146b1e7cb8d0d43582, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoomMstMainGen
+  agentPrefab: {fileID: 1849166048388668536, guid: 779e951164005fa42b6a14e5de4df8c4, type: 3}
+  targetPrefab: {fileID: 4023071220588982890, guid: 47d6586d162f6334eb22b12a37e7f0db, type: 3}
+  timeScale: 1
   wallPrefab: {fileID: 4469763471920512403, guid: 837c65a5d387b4844abbf6661c07d6f9, type: 3}
   floorPrefab: {fileID: 1951435799632560061, guid: 13afc761558539c4387fec4f2e879332, type: 3}
   wallCenterY: 1
-  agentPrefab: {fileID: 1849166048388668536, guid: 779e951164005fa42b6a14e5de4df8c4, type: 3}
-  targetPrefab: {fileID: 4023071220588982890, guid: 47d6586d162f6334eb22b12a37e7f0db, type: 3}
   gridWidth: 64
   gridHeight: 64
   cellSize: 2
-  initialSeed: 0
+  seed: 0
   roomCount: 8
   maxRoomRerolls: 64
   circleRoomChance: 0.35

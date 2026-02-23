@@ -10,12 +10,11 @@ namespace Train.Sensor {
         [SerializeField] [ReadOnly] private Vector3 com;
         [SerializeField] [ReadOnly] private Vector3 gravity;
         [SerializeField] [ReadOnly] private Vector3 angularVelocity;
-        [SerializeField] [ReadOnly] private Vector3 relativeLinearVelocity;
+        [SerializeField] [ReadOnly] private Vector3 projectedLinearVelocity;
         [SerializeField] [ReadOnly] private float integrity;
         [SerializeField] [ReadOnly] private Vector3 projectedForward;
         [SerializeField] [ReadOnly] private Vector3 relativeTargetPosition;
-        [SerializeField] [ReadOnly] private float[] contacts;
-        [SerializeField] [ReadOnly] private float[] normalizedJointBlocks;
+        [SerializeField] [ReadOnly] private int totalDoF;
 
         private ProprioceptionSensor _proprioceptionSensor;
 
@@ -28,48 +27,34 @@ namespace Train.Sensor {
         public Vector3 Com => com;
         public Vector3 Gravity => gravity;
         public Vector3 AngularVelocity => angularVelocity;
-        public Vector3 RelativeLinearVelocity => relativeLinearVelocity;
+        public Vector3 ProjectedLinearVelocity => projectedLinearVelocity;
         public float Integrity => integrity;
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
-        public float[] Contacts => contacts;
-        public float[] NormalizedJointBlocks => normalizedJointBlocks;
+        public AgentJointHierarchy Hierarchy { get; private set; }
+        public int TotalDoF => totalDoF;
 
-        private AgentJointHierarchy _hierarchy;
         public Transform targetTransform;
-        private int _totalDoF;
 
-        private void Awake() => _hierarchy = GetComponent<AgentJointHierarchy>();
+        private void Awake() => Hierarchy = GetComponent<AgentJointHierarchy>();
 
         private void Start() {
-            _totalDoF = _hierarchy.TrainNodes.Sum(node => node.DoF);
-            contacts = new float[4];
-            normalizedJointBlocks = new float[(_totalDoF * 2) + _hierarchy.TrainNodes.Count - 1];
-
+            totalDoF = Hierarchy.AgentNodes.Sum(node => node.DoF);
             FixedUpdate();
             initialGravity = gravity;
         }
 
         private void FixedUpdate() {
-            Transform rootTransform = _hierarchy.RootAgentNode.GameObject.transform;
-            ArticulationBody rootBody = _hierarchy.RootAgentNode.Body;
+            Transform rootTransform = Hierarchy.RootAgentNode.GameObject.transform;
+            ArticulationBody rootBody = Hierarchy.RootAgentNode.Body;
 
             gravity = rootTransform.InverseTransformDirection(Physics.gravity).normalized;
 
             Vector3 totalWeightedPos = Vector3.zero;
             float totalMass = 0f;
             float totalJoinedMass = 0f;
-            int baseIndex = 0;
 
-            foreach (AgentJointNode node in _hierarchy.TrainNodes.Skip(1)) {
-                normalizedJointBlocks[baseIndex++] = node.IsSevered ? 1.0f : 0.0f;
-
-                node.GetJointPositions(normalizedJointBlocks, baseIndex, true);
-                baseIndex += node.DoF;
-
-                node.GetJointVelocities(normalizedJointBlocks, baseIndex, true);
-                baseIndex += node.DoF;
-
+            foreach (AgentJointNode node in Hierarchy.AgentNodes) {
                 float mass = node.Body.mass;
                 totalMass += mass;
 
@@ -96,7 +81,7 @@ namespace Train.Sensor {
 
             angularVelocity = rootTransform.InverseTransformDirection(rootBody.angularVelocity);
 
-            relativeLinearVelocity = inverseYaw * rootBody.linearVelocity;
+            projectedLinearVelocity = inverseYaw * rootBody.linearVelocity;
             relativeTargetPosition =
                 targetTransform ? inverseYaw * (targetTransform.position - rootTransform.position) : Vector3.zero;
 
@@ -104,12 +89,12 @@ namespace Train.Sensor {
         }
 
         private void OnDrawGizmos() {
-            if (!_hierarchy) {
+            if (!Hierarchy) {
                 return;
             }
 
-            Vector3 pelvisPosition = _hierarchy.RootAgentNode.Body.transform.position;
-            Transform pelvisTransform = _hierarchy.RootAgentNode.Body.transform;
+            Vector3 pelvisPosition = Hierarchy.RootAgentNode.Body.transform.position;
+            Transform pelvisTransform = Hierarchy.RootAgentNode.Body.transform;
 
             Gizmos.color = Color.lightGreen;
             Gizmos.DrawRay(pelvisPosition, pelvisTransform.TransformDirection(gravity) * 0.5f);

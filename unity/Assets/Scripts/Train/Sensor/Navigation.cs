@@ -37,7 +37,7 @@ namespace Train.Sensor {
 
         public void Reset() => _navMeshSurface.BuildNavMesh();
 
-        private void Update() {
+        private void FixedUpdate() {
             if (!targetTransform) {
                 return;
             }

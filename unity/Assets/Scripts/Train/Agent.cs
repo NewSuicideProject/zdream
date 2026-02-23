@@ -10,8 +10,7 @@ namespace Train {
     [RequireComponent(typeof(AgentJointHierarchy))]
     [RequireComponent(typeof(Passion))]
     public class Agent : Unity.MLAgents.Agent {
-        private AgentJointHierarchy _jointHierarchy;
-        private float[] _prevActions;
+        private AgentJointHierarchy _hierarchy;
 
         private EnvironmentBase _environment;
         private Proprioception _proprioception;
@@ -25,7 +24,7 @@ namespace Train {
 
             _environment = GetComponentInParent<EnvironmentBase>();
 
-            _jointHierarchy = GetComponent<AgentJointHierarchy>();
+            _hierarchy = GetComponent<AgentJointHierarchy>();
             _proprioception = GetComponent<Proprioception>();
             _passion = GetComponent<Passion>();
 
@@ -35,12 +34,7 @@ namespace Train {
             _navigation.targetTransform = _environment.TargetTransform;
         }
 
-        private void Start() {
-            _targetTransform = _environment.TargetTransform;
-
-            int totalDoF = _jointHierarchy.TrainNodes.Sum(n => n.DoF);
-            _prevActions = new float[totalDoF];
-        }
+        private void Start() => _targetTransform = _environment.TargetTransform;
 
         private void OnTriggerExit(Collider other) {
             if (other.transform != _targetTransform) {
@@ -64,42 +58,36 @@ namespace Train {
 
             Config.NavigationSensor.Reset();
             Config.Normalization.Reset();
+            Config.Joint.Reset();
             Config.Terrain.Reset();
             Config.Reward.Reset();
             Config.Phase.Reset();
 
             _environment.Reset();
-            _jointHierarchy.Reset();
+            _hierarchy.Reset();
             _navigation.Reset();
             _passion.Reset();
         }
 
         public override void OnActionReceived(ActionBuffers actionBuffers) {
-            ActionSegment<float> continuousActions = actionBuffers.ContinuousActions;
-            int index = 0;
+            ActionSegment<float> newTargets = actionBuffers.ContinuousActions;
 
-            foreach (AgentJointNode node in _jointHierarchy.TrainNodes) {
+            int index = 0;
+            float jitterSum = 0f;
+            foreach (AgentJointNode node in _hierarchy.AgentNodes) {
                 for (int i = 0; i < node.DoF; i++) {
-                    ArticulationDrive drive = node.GetDrive(i);
-                    float normalizedAction = continuousActions[index++];
-                    float adjusted = (normalizedAction + 1f) * 0.5f;
-                    drive.target = Mathf.Lerp(drive.lowerLimit, drive.upperLimit, adjusted);
-                    node.SetDrive(i, drive);
+                    jitterSum += (newTargets[index] - node.RawTarget[i]) * (newTargets[index] - node.RawTarget[i]);
+                    node.SetTarget(i, newTargets[index]);
+                    index++;
                 }
             }
 
-            float jitterSum = 0f;
-            for (int i = 0; i < continuousActions.Length; i++) {
-                float diff = continuousActions[i] - _prevActions[i];
-                jitterSum += diff * diff;
-                _prevActions[i] = continuousActions[i];
-            }
-
-            float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier * Config.Phase.BRatio;
+            float jitterPenalty = jitterSum / _proprioception.TotalDoF * Config.Reward.JitterPenaltyMultiplier *
+                                  Config.Phase.ARatio;
 
             float targetDirectionMatch =
                 Vector3.Dot(
-                    _proprioception.RelativeLinearVelocity.normalized,
+                    _proprioception.ProjectedLinearVelocity.normalized,
                     _proprioception.RelativeTargetPosition.normalized);
             float targetDirectionMatchReward = targetDirectionMatch * _passion.Value *
                                                Config.Reward.DirectionRewardMultiplier *
@@ -110,7 +98,7 @@ namespace Train {
                 float navigationDirectionMatch =
                     Vector3.Dot(
                         _navigation.Corners.First().RelativePosition.normalized,
-                        _proprioception.RelativeLinearVelocity.normalized);
+                        _proprioception.ProjectedLinearVelocity.normalized);
                 navigationDirectionMatchReward = navigationDirectionMatch * _passion.Value *
                                                  Config.Reward.DirectionRewardMultiplier * 2 *
                                                  Config.Phase.CRatio;
@@ -123,27 +111,36 @@ namespace Train {
             float heightReward = heightMatch * (1f - _passion.Value) * Config.Reward.HeightMatchRewardMultiplier *
                                  Config.Phase.ARatio;
 
-            float energySum = continuousActions.Select(a => a * a).Sum();
+            float energySum = 0f;
+            foreach (AgentJointNode node in _hierarchy.AgentNodes) {
+                for (int i = 0; i < node.DoF; i++) {
+                    float normalizedForce = Normalize.Force(node.Body.jointForce[i]);
+                    energySum += normalizedForce * normalizedForce;
+                }
+            }
+
             float energyPenalty = energySum * (1f - _passion.Value) * Config.Reward.EnergyPenaltyMultiplier *
-                                  Config.Phase.BRatio;
+                                  Config.Phase.ARatio;
 
             float uprightMatch = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
             float uprightReward = uprightMatch * (1f - _passion.Value) * Config.Reward.UprightRewardMultiplier *
                                   Config.Phase.ARatio;
 
             float distance = _proprioception.RelativeTargetPosition.magnitude;
-            float distancePenalty = Normalization.NormalizeDistance(distance) * _passion.Value *
+            float distancePenalty = Normalize.Distance(distance) * _passion.Value *
                                     Config.Reward.DistancePenaltyMultiplier * Config.Phase.BRatio;
 
+            float survivalReward = Config.Reward.SurvivalReward;
+
             float fullReward = targetDirectionMatchReward + navigationDirectionMatchReward - jitterPenalty -
-                energyPenalty + uprightReward - distancePenalty + heightReward;
+                energyPenalty + uprightReward - distancePenalty + heightReward + survivalReward;
 
             AddReward(fullReward * Time.fixedDeltaTime);
 
             if (_stayTime > Config.Reward.StaySuccessThreshold) {
                 AddReward(Config.Reward.StaySuccessReward);
                 EndEpisode();
-            } else if (transform.localPosition.y < 0f) {
+            } else if (_hierarchy.RootAgentNode.GameObject.transform.position.y < 0.5f) {
                 EndEpisode();
             }
         }
