@@ -65,18 +65,22 @@ namespace Train {
         }
 
         public static class Reward {
+            public static float SurvivalReward = 1.6f;
+
             public static float StaySuccessReward = 5f;
-            public static float StayingReward = 0.75f;
+            public static float StayingReward = 1f;
             public static float StaySuccessThreshold = 5f;
 
-            public static float DistancePenaltyMultiplier = 0.05f;
-            public static float JitterPenaltyMultiplier = 0.01f;
+            public static float DistancePenaltyMultiplier = 0.1f;
+            public static float JitterPenaltyMultiplier = 0.2f;
             public static float EnergyPenaltyMultiplier = 0.005f;
             public static float UprightRewardMultiplier = 0.5f;
             public static float HeightMatchRewardMultiplier = 0.25f;
             public static float DirectionRewardMultiplier = 0.5f;
 
             public static void Reset() {
+                GetConfig("reward__survival_reward", ref SurvivalReward);
+
                 GetConfig("reward__stay_success_reward", ref StaySuccessReward);
                 GetConfig("reward__staying_reward", ref StayingReward);
                 GetConfig("reward__stay_success_threshold", ref StaySuccessThreshold);

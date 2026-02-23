@@ -82,7 +82,8 @@ namespace Train {
                 }
             }
 
-            float jitterPenalty = jitterSum * Config.Reward.JitterPenaltyMultiplier * Config.Phase.ARatio;
+            float jitterPenalty = jitterSum / _proprioception.TotalDoF * Config.Reward.JitterPenaltyMultiplier *
+                                  Config.Phase.ARatio;
 
             float targetDirectionMatch =
                 Vector3.Dot(
@@ -110,7 +111,14 @@ namespace Train {
             float heightReward = heightMatch * (1f - _passion.Value) * Config.Reward.HeightMatchRewardMultiplier *
                                  Config.Phase.ARatio;
 
-            float energySum = newTargets.Select(a => a * a).Sum();
+            float energySum = 0f;
+            foreach (AgentJointNode node in _hierarchy.AgentNodes) {
+                for (int i = 0; i < node.DoF; i++) {
+                    float normalizedForce = Normalize.Force(node.Body.jointForce[i]);
+                    energySum += normalizedForce * normalizedForce;
+                }
+            }
+
             float energyPenalty = energySum * (1f - _passion.Value) * Config.Reward.EnergyPenaltyMultiplier *
                                   Config.Phase.ARatio;
 
@@ -122,15 +130,17 @@ namespace Train {
             float distancePenalty = Normalize.Distance(distance) * _passion.Value *
                                     Config.Reward.DistancePenaltyMultiplier * Config.Phase.BRatio;
 
+            float survivalReward = Config.Reward.SurvivalReward;
+
             float fullReward = targetDirectionMatchReward + navigationDirectionMatchReward - jitterPenalty -
-                energyPenalty + uprightReward - distancePenalty + heightReward;
+                energyPenalty + uprightReward - distancePenalty + heightReward + survivalReward;
 
             AddReward(fullReward * Time.fixedDeltaTime);
 
             if (_stayTime > Config.Reward.StaySuccessThreshold) {
                 AddReward(Config.Reward.StaySuccessReward);
                 EndEpisode();
-            } else if (transform.localPosition.y < 0f) {
+            } else if (_hierarchy.RootAgentNode.GameObject.transform.position.y < 0.5f) {
                 EndEpisode();
             }
         }
