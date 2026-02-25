@@ -47,14 +47,14 @@ namespace Train {
         }
 
         public static class NavigationSensor {
-            public const int MaxTokenCount = 10;
+            public const int MaxMaxToken = 10;
 
-            private static int _tokenCount;
-            public static int TokenCount => _tokenCount;
+            private static int _maxToken;
+            public static int MaxToken => _maxToken;
 
             public static void OnEpisodeBegin() {
-                GetConfig("navigation_sensor__token_count", ref _tokenCount);
-                _tokenCount = Mathf.Clamp(_tokenCount, 0, MaxTokenCount);
+                GetConfig("navigation_sensor__max_token", ref _maxToken);
+                _maxToken = Mathf.Clamp(_maxToken, 0, MaxMaxToken);
             }
         }
 
