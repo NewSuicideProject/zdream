@@ -7,12 +7,13 @@ import hydra
 from dotenv import load_dotenv
 from hydra.utils import get_class, get_original_cwd
 from omegaconf import DictConfig, OmegaConf
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 from stable_baselines3.sac import SAC
 from stable_baselines3.sac.policies import MultiInputPolicy
 
+from .callbacks.checkpoint_callback import CheckpointCallback
 from .unity_env import UnityEnv
 
 
@@ -97,9 +98,8 @@ def run(config: DictConfig):
         env = Monitor(env)
 
     checkpoint_callback = CheckpointCallback(
-        save_freq=train_cfg.checkpoint_interval,
-        name_prefix="checkpoint",
-        save_path=str(checkpoint_dir),
+        interval=train_cfg.checkpoint_interval,
+        directory=str(checkpoint_dir),
     )
 
     if checkpoint_path:
@@ -126,11 +126,11 @@ def run(config: DictConfig):
             tensorboard_log=str(log_dir),
         )
 
+    model.set_logger(configure(str(base_dir), ["tensorboard"]))
+
     model.learn(
         total_timesteps=train_cfg.step_count,
         callback=checkpoint_callback,
-        log_interval=train_cfg.log_interval,
-        tb_log_name="train",
     )
 
     model.save(str(model_path))
