@@ -18,14 +18,14 @@ class UnityEnv(Env):
         unity_path: str = None,
         base_port: int = 5004,
         worker_id: int = 0,
-        unity_kwargs: dict = None,
+        kwargs: dict = None,
     ):
         super().__init__()
 
         self.env_params_channel = EnvironmentParametersChannel()
 
-        if unity_kwargs:
-            for key, value in unity_kwargs.items():
+        if kwargs:
+            for key, value in kwargs.items():
                 self.env_params_channel.set_float_parameter(key, float(value))
 
         logger.info("waiting unity")
@@ -40,27 +40,27 @@ class UnityEnv(Env):
         self._env.reset()
 
         self._behavior_name = list(self._env.behavior_specs.keys())[0]
-
-        spec = self._env.behavior_specs[self._behavior_name]
-
-        obs_specs = spec.observation_specs
+        self._behavior_spec = self._env.behavior_specs[self._behavior_name]
 
         self.observation_space = spaces.Dict(
             {
-                obs_spec.name: spaces.Box(
+                observation_spec.name: spaces.Box(
                     low=-1.0,
                     high=1.0,
-                    shape=obs_spec.shape,
+                    shape=observation_spec.shape,
                     dtype=np.float32,
                 )
-                for obs_spec in obs_specs
+                for observation_spec in self._behavior_spec.observation_specs
             }
         )
+
+        self.observation_space["navigation"].shape = (kwargs["navigation__max_token"],)
+        self.observation_space["terrain"].shape = (kwargs["terrain__resolution"],)
 
         self.action_space = spaces.Box(
             low=-1.0,
             high=1.0,
-            shape=(spec.action_spec.continuous_size,),
+            shape=(self._behavior_spec.action_spec.continuous_size,),
             dtype=np.float32,
         )
 
@@ -68,10 +68,17 @@ class UnityEnv(Env):
         logger.info(f"action space: {self.action_space}")
 
     def _get_obs(self, steps):
-        spec = self._env.behavior_specs[self._behavior_name]
         obs_dict = {}
-        for i, obs_spec in enumerate(spec.observation_specs):
+        for i, obs_spec in enumerate(self._behavior_spec.observation_specs):
             obs_dict[obs_spec.name] = steps.obs[i][0]
+
+        obs_dict["navigation"] = obs_dict["navigation"][
+            : self.observation_space["navigation"].shape[0]
+        ]
+        obs_dict["terrain"] = obs_dict["terrain"][
+            : self.observation_space["terrain"].shape[0]
+        ]
+
         return obs_dict
 
     def reset(self, **kwargs):

@@ -59,7 +59,7 @@ namespace Train {
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
 
-            Config.NavigationSensor.OnEpisodeBegin();
+            Config.Navigation.OnEpisodeBegin();
             Config.Terrain.OnEpisodeBegin();
             Config.Passion.OnEpisodeBegin();
             Config.Joint.OnEpisodeBegin();

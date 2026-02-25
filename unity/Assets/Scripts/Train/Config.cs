@@ -46,14 +46,14 @@ namespace Train {
             throw new System.NotSupportedException($"Unsupported config type: {typeof(T).Name}");
         }
 
-        public static class NavigationSensor {
+        public static class Navigation {
             public const int MaxMaxToken = 10;
 
             private static int _maxToken;
             public static int MaxToken => _maxToken;
 
             public static void OnEpisodeBegin() {
-                GetConfig("navigation_sensor__max_token", ref _maxToken);
+                GetConfig("navigation__max_token", ref _maxToken);
                 _maxToken = Mathf.Clamp(_maxToken, 0, MaxMaxToken);
             }
         }

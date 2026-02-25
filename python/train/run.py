@@ -25,7 +25,7 @@ load_dotenv(Path(__file__).parent / ".env")
 
 
 def make_unity_env(file_name: str, worker_id: int, env_params: dict):
-    return UnityEnv(unity_path=file_name, worker_id=worker_id, unity_kwargs=env_params)
+    return UnityEnv(unity_path=file_name, worker_id=worker_id, kwargs=env_params)
 
 
 def get_path(path_str):
@@ -85,7 +85,7 @@ def run(config: DictConfig):
     else:
         env = UnityEnv(
             unity_path=str(unity_path) if unity_path else None,
-            unity_kwargs=unity_kwargs,
+            kwargs=unity_kwargs,
         )
         env = Monitor(env)
 
