@@ -7,6 +7,7 @@ from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
+from python.train.extractors.encoders.navigation_encoder import NavigationEncoder
 
 
 logger = logging.getLogger(__name__)
@@ -42,20 +43,36 @@ class UnityEnv(Env):
         self._behavior_name = list(self._env.behavior_specs.keys())[0]
         self._behavior_spec = self._env.behavior_specs[self._behavior_name]
 
+        shapes = {
+            observation_spec.name: observation_spec.shape
+            for observation_spec in self._behavior_spec.observation_specs
+        }
+
+        resolution = int(kwargs["terrain__resolution"])
+        max_token = int(kwargs["navigation__max_token"])
+
         self.observation_space = spaces.Dict(
             {
-                observation_spec.name: spaces.Box(
+                "passion": spaces.Box(
+                    low=-1.0, high=1.0, shape=shapes["passion"], dtype=np.float32
+                ),
+                "proprioception": spaces.Box(
+                    low=-1.0, high=1.0, shape=shapes["proprioception"], dtype=np.float32
+                ),
+                "terrain": spaces.Box(
                     low=-1.0,
                     high=1.0,
-                    shape=observation_spec.shape,
+                    shape=(resolution * resolution,),
                     dtype=np.float32,
-                )
-                for observation_spec in self._behavior_spec.observation_specs
+                ),
+                "navigation": spaces.Box(
+                    low=-1.0,
+                    high=1.0,
+                    shape=(max_token * NavigationEncoder.token_size,),
+                    dtype=np.float32,
+                ),
             }
         )
-
-        self.observation_space["navigation"].shape = (kwargs["navigation__max_token"],)
-        self.observation_space["terrain"].shape = (kwargs["terrain__resolution"],)
 
         self.action_space = spaces.Box(
             low=-1.0,
@@ -68,18 +85,19 @@ class UnityEnv(Env):
         logger.info(f"action space: {self.action_space}")
 
     def _get_obs(self, steps):
-        obs_dict = {}
-        for i, obs_spec in enumerate(self._behavior_spec.observation_specs):
-            obs_dict[obs_spec.name] = steps.obs[i][0]
+        raw = {
+            observation_spec.name: steps.obs[i][0]
+            for i, observation_spec in enumerate(self._behavior_spec.observation_specs)
+        }
 
-        obs_dict["navigation"] = obs_dict["navigation"][
-            : self.observation_space["navigation"].shape[0]
-        ]
-        obs_dict["terrain"] = obs_dict["terrain"][
-            : self.observation_space["terrain"].shape[0]
-        ]
-
-        return obs_dict
+        return {
+            "passion": raw["passion"],
+            "proprioception": raw["proprioception"],
+            "terrain": raw["terrain"][: self.observation_space["terrain"].shape[0]],
+            "navigation": raw["navigation"][
+                : self.observation_space["navigation"].shape[0]
+            ],
+        }
 
     def reset(self, **kwargs):
         self._env.reset()

@@ -5,6 +5,8 @@ import torch.nn as nn
 
 
 class NavigationEncoder(nn.Module):
+    token_size = 6
+
     def __init__(
         self,
         d_model=128,
@@ -19,7 +21,6 @@ class NavigationEncoder(nn.Module):
         self.num_layers = num_layers
         self.max_token = max_token
         self.nhead = nhead
-        self.token_size = 6
 
         if isinstance(activation_fn, str):
             from stable_baselines3.common.torch_layers import get_activation_fn
@@ -29,7 +30,7 @@ class NavigationEncoder(nn.Module):
         if activation_fn is None:
             activation_fn = nn.ReLU()
 
-        self.input_projection = nn.Linear(self.token_size, self.d_model)
+        self.input_projection = nn.Linear(NavigationEncoder.token_size, self.d_model)
 
         pe = th.zeros(max_token, d_model)
         position = th.arange(0, max_token, dtype=th.float).unsqueeze(1)
@@ -56,7 +57,7 @@ class NavigationEncoder(nn.Module):
 
     def forward(self, x):
         batch_size = x.shape[0]
-        x = x.view(batch_size, self.max_token, self.token_size)
+        x = x.view(batch_size, self.max_token, NavigationEncoder.token_size)
 
         valid_flags = x[:, :, -1]
         valid_mask = valid_flags.unsqueeze(-1)
