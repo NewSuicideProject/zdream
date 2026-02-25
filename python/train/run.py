@@ -50,7 +50,7 @@ def get_metadata(path):
     return None
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config")
+@hydra.main(version_base=None, config_path="./configs", config_name="config")
 def run(config: DictConfig):
     logger.info(f"config: \n{OmegaConf.to_yaml(config)}")
 
