@@ -11,5 +11,7 @@
   "ruff.importStrategy": "fromEnvironment",
 
   "editor.formatOnSave": true,
-  "trailing-spaces.trimOnSave": true
+  "trailing-spaces.trimOnSave": true,
+  "python-envs.defaultEnvManager": "ms-python.python:conda",
+  "python-envs.defaultPackageManager": "ms-python.python:conda"
 }

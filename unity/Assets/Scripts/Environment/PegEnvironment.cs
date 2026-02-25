@@ -73,9 +73,9 @@ namespace Environment {
             _roadGenerator = new RoadGenerator();
         }
 
-        private void Start() => Reset();
+        private void Start() => OnEpisodeBegin();
 
-        public override void Reset() {
+        public override void OnEpisodeBegin() {
             _organicShaper = new OrganicShaper(
                 organicIterations,
                 organicCarveRatio,

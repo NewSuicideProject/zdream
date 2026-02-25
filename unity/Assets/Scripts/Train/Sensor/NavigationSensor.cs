@@ -6,7 +6,6 @@ namespace Train.Sensor {
         private const int _tokenSize = 6;
         // relative position (3), relative direction (2), valid flag (1)
 
-        private readonly int _maxToken;
         private readonly Navigation _navigation;
         private readonly ObservationSpec _observationSpec;
 
@@ -14,9 +13,8 @@ namespace Train.Sensor {
 
         public NavigationSensor(Navigation navigation) {
             _navigation = navigation;
-            _maxToken = Config.NavigationSensor.MaxToken;
-            _size = _maxToken * _tokenSize;
-            _observationSpec = ObservationSpec.Vector(_maxToken * _tokenSize);
+            _size = Config.NavigationSensor.MaxTokenCount * _tokenSize;
+            _observationSpec = ObservationSpec.Vector(_size);
         }
 
         public string GetName() => "navigation";
@@ -24,7 +22,8 @@ namespace Train.Sensor {
         public int Write(ObservationWriter writer) {
             int idx = 0;
 
-            foreach (Corner corner in _navigation.Corners) {
+            for (int i = 0; i < Mathf.Min(_navigation.Corners.Count, Config.NavigationSensor.TokenCount); i++) {
+                Corner corner = _navigation.Corners[i];
                 writer[idx++] = Normalize.Distance(corner.RelativePosition.z);
                 writer[idx++] = Normalize.Distance(corner.RelativePosition.x);
                 writer[idx++] = Normalize.Distance(corner.RelativePosition.y);
@@ -33,10 +32,8 @@ namespace Train.Sensor {
                 writer[idx++] = 1f;
             }
 
-            for (int i = Mathf.Min(_navigation.Corners.Count, _maxToken); i < _maxToken; i++) {
-                for (int j = 0; j < _tokenSize; j++) {
-                    writer[idx++] = 0f;
-                }
+            while (idx < _size) {
+                writer[idx++] = 0f;
             }
 
             return _size;

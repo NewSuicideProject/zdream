@@ -16,14 +16,17 @@ namespace Train.Sensor {
         }
 
         private void Awake() {
-            _spacing = Config.Normalization.ExpectedMaxThickness * 2 / (Config.Terrain.Resolution - 1);
-            HeightMap = new float[Config.Terrain.Resolution, Config.Terrain.Resolution];
+            HeightMap = new float[Config.Terrain.MaxResolution, Config.Terrain.MaxResolution];
+            OnEpisodeBegin();
         }
+
+        public void OnEpisodeBegin() =>
+            _spacing = Config.Normalize.ExpectedMaxThickness * 2 / (Config.Terrain.Resolution - 1);
 
         private void FixedUpdate() {
             float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
             Vector3 gridTopLeft = transform.position +
-                                  new Vector3(-gridHalfSize, Config.Normalization.ExpectedMaxHeight, gridHalfSize);
+                                  new Vector3(-gridHalfSize, Config.Normalize.ExpectedMaxHeight, gridHalfSize);
 
             for (int z = 0; z < Config.Terrain.Resolution; z++) {
                 for (int x = 0; x < Config.Terrain.Resolution; x++) {
@@ -46,7 +49,7 @@ namespace Train.Sensor {
 
             float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
             Vector3 gridTopLeft = transform.position +
-                                  new Vector3(-gridHalfSize, Config.Normalization.ExpectedMaxHeight, gridHalfSize);
+                                  new Vector3(-gridHalfSize, Config.Normalize.ExpectedMaxHeight, gridHalfSize);
 
             for (int z = 0; z < Config.Terrain.Resolution; z++) {
                 for (int x = 0; x < Config.Terrain.Resolution; x++) {
