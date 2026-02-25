@@ -66,23 +66,26 @@ def run(config: DictConfig):
 
     checkpoint_path = get_path(os.getenv("CHECKPOINT_PATH", None))
 
-    if "features_extractor_class" in config.policy_kwargs:
-        config.policy_kwargs["features_extractor_class"] = get_class(
-            config.policy_kwargs["features_extractor_class"]
+    policy_kwargs = OmegaConf.to_container(config.model.policy_kwargs, resolve=True)
+    unity_kwargs = OmegaConf.to_container(config.model.unity_kwargs, resolve=True)
+
+    if "features_extractor_class" in policy_kwargs:
+        policy_kwargs["features_extractor_class"] = get_class(
+            policy_kwargs["features_extractor_class"]
         )
 
     if config.train.env_count > 1 and unity_server_path:
-        envs = [partial(make_unity_env, str(unity_path), 0, config.unity_kwargs)]
+        envs = [partial(make_unity_env, str(unity_path), 0, unity_kwargs)]
         for i in range(1, config.train.env_count):
             envs.append(
-                partial(make_unity_env, str(unity_server_path), i, config.unity_kwargs)
+                partial(make_unity_env, str(unity_server_path), i, unity_kwargs)
             )
         env = SubprocVecEnv(envs)
         env = VecMonitor(env)
     else:
         env = UnityEnv(
             unity_path=str(unity_path) if unity_path else None,
-            unity_kwargs=config.unity_kwargs,
+            unity_kwargs=unity_kwargs,
         )
         env = Monitor(env)
 
@@ -113,7 +116,7 @@ def run(config: DictConfig):
             train_freq=config.train.train_interval,
             batch_size=config.train.batch_size,
             env=env,
-            policy_kwargs=config.policy_kwargs,
+            policy_kwargs=policy_kwargs,
             tensorboard_log=str(log_dir),
         )
 
@@ -129,10 +132,5 @@ def run(config: DictConfig):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        format="[%(levelname)s] %(message)s",
-        force=True,
-    )
     logging.getLogger("mlagents_envs").setLevel(logging.WARNING)
     run()

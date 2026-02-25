@@ -1,14 +1,18 @@
 policy_kwargs:
   features_extractor_class: train.extractors.feature_extractor.FeatureExtractor
   features_extractor_kwargs:
-    navigation_kwargs:
-      d_model: 16
-      num_layers: 1
-      max_token: 3
-      nhead: 2
     proprioception_kwargs:
       hidden_dims: [256, 256, 128]
+
+    navigation_kwargs:
+      max_token: 3
+
+      d_model: 16
+      num_layers: 1
+      nhead: 2
+
     terrain_kwargs:
+      resolution: 8
       hidden_dims: [128, 64, 32]
 
     navigation_ratio: 0.0

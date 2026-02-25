@@ -4,7 +4,7 @@ import torch.nn as nn
 class TerrainEncoder(nn.Module):
     def __init__(
         self,
-        input_dim,
+        resolution,
         hidden_dims=None,
         activation_fn=None,
     ):
@@ -22,7 +22,7 @@ class TerrainEncoder(nn.Module):
             activation_fn = nn.ReLU
 
         layers = []
-        last_dim = input_dim
+        last_dim = resolution
 
         for hidden_dim in hidden_dims:
             layers.append(nn.Linear(last_dim, hidden_dim))

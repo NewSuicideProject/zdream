@@ -32,7 +32,6 @@ class FeatureExtractor(BaseFeaturesExtractor):
         )
 
         self.terrain = TerrainEncoder(
-            input_dim=observation_space["terrain"].shape[0],
             **terrain_kwargs,
         )
 
