@@ -1,11 +1,5 @@
 defaults:
   - train: default
   - model: default
-  - normalization: default
   - curriculum: default
   - _self_
-
-hydra:
-  run:
-    dir: .
-  output_subdir: null

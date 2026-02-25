@@ -1,6 +1,0 @@
-unity_kwargs:
-  normalization__expected_max_speed: 5.0
-  normalization__expected_max_distance: 10.0
-  normalization__expected_max_thickness: 1.0
-  normalization__expected_max_height: 2.0
-  normalization__expected_max_force: 300.0

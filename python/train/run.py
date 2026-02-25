@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import zipfile
 from functools import partial
 from pathlib import Path
 
@@ -14,6 +16,7 @@ from stable_baselines3.sac import SAC
 from stable_baselines3.sac.policies import MultiInputPolicy
 
 from .callbacks.checkpoint_callback import CheckpointCallback
+from .callbacks.curriculum_callback import CurriculumCallback
 from .unity_env import UnityEnv
 
 
@@ -37,9 +40,14 @@ def get_path(path_str):
     return path
 
 
-def get_dict_config(cfg: DictConfig, path: str) -> DictConfig:
-    node = OmegaConf.select(cfg, path)
-    return node if node is not None else OmegaConf.create({})
+def get_metadata(path):
+    if not path or not Path(path).exists():
+        return None
+    with zipfile.ZipFile(path, "r") as zip_ref:
+        if "metadata.json" in zip_ref.namelist():
+            with zip_ref.open("metadata.json") as f:
+                return json.load(f)
+    return None
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
@@ -58,49 +66,32 @@ def run(config: DictConfig):
 
     checkpoint_path = get_path(os.getenv("CHECKPOINT_PATH", None))
 
-    policy_kwargs: dict = OmegaConf.to_container(
-        OmegaConf.merge(
-            get_dict_config(config, "model.policy_kwargs"),
-            get_dict_config(config, "curriculum.policy_kwargs"),
-        ),
-        resolve=True,
-    )
-
-    unity_kwargs: dict = OmegaConf.to_container(
-        OmegaConf.merge(
-            get_dict_config(config, "model.unity_kwargs"),
-            get_dict_config(config, "normalization.unity_kwargs"),
-            get_dict_config(config, "curriculum.unity_kwargs"),
-        ),
-        resolve=True,
-    )
-
-    if "features_extractor_class" in policy_kwargs:
-        policy_kwargs["features_extractor_class"] = get_class(
-            policy_kwargs["features_extractor_class"]
+    if "features_extractor_class" in config.policy_kwargs:
+        config.policy_kwargs["features_extractor_class"] = get_class(
+            config.policy_kwargs["features_extractor_class"]
         )
 
-    train_cfg = config.train
-
-    if train_cfg.env_count > 1 and unity_server_path:
-        envs = [partial(make_unity_env, str(unity_path), 0, unity_kwargs)]
-        for i in range(1, train_cfg.env_count):
+    if config.train.env_count > 1 and unity_server_path:
+        envs = [partial(make_unity_env, str(unity_path), 0, config.unity_kwargs)]
+        for i in range(1, config.train.env_count):
             envs.append(
-                partial(make_unity_env, str(unity_server_path), i, unity_kwargs)
+                partial(make_unity_env, str(unity_server_path), i, config.unity_kwargs)
             )
         env = SubprocVecEnv(envs)
         env = VecMonitor(env)
     else:
         env = UnityEnv(
             unity_path=str(unity_path) if unity_path else None,
-            unity_kwargs=unity_kwargs,
+            unity_kwargs=config.unity_kwargs,
         )
         env = Monitor(env)
 
     checkpoint_callback = CheckpointCallback(
-        interval=train_cfg.checkpoint_interval,
+        interval=config.train.checkpoint_interval,
         directory=str(checkpoint_dir),
     )
+
+    curriculum_callback = CurriculumCallback()
 
     if checkpoint_path:
         model = SAC.load(
@@ -108,29 +99,29 @@ def run(config: DictConfig):
             env=env,
             tensorboard_log=str(log_dir),
             custom_objects={
-                "learning_starts": train_cfg.prepare_count,
-                "gradient_steps": train_cfg.gradient_count,
-                "train_freq": train_cfg.train_interval,
-                "batch_size": train_cfg.batch_size,
+                "learning_starts": config.train.prepare_count,
+                "gradient_steps": config.train.gradient_count,
+                "train_freq": config.train.train_interval,
+                "batch_size": config.train.batch_size,
             },
         )
     else:
         model = SAC(
             policy=MultiInputPolicy,
-            learning_starts=train_cfg.prepare_count,
-            gradient_steps=train_cfg.gradient_count,
-            train_freq=train_cfg.train_interval,
-            batch_size=train_cfg.batch_size,
+            learning_starts=config.train.prepare_count,
+            gradient_steps=config.train.gradient_count,
+            train_freq=config.train.train_interval,
+            batch_size=config.train.batch_size,
             env=env,
-            policy_kwargs=policy_kwargs,
+            policy_kwargs=config.policy_kwargs,
             tensorboard_log=str(log_dir),
         )
 
     model.set_logger(configure(str(base_dir), ["tensorboard"]))
 
     model.learn(
-        total_timesteps=train_cfg.step_count,
-        callback=checkpoint_callback,
+        total_timesteps=config.train.step_count,
+        callback=[checkpoint_callback, curriculum_callback],
     )
 
     model.save(str(model_path))
