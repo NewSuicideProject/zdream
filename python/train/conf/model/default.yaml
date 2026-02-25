@@ -1,5 +1,5 @@
 policy_kwargs:
-  features_extractor_class: FeatureExtractor
+  features_extractor_class: train.extractors.feature_extractor.FeatureExtractor
   features_extractor_kwargs:
     navigation_kwargs:
       d_model: 16
