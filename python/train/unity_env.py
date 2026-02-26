@@ -25,6 +25,8 @@ class UnityEnv(Env):
 
         self.env_params_channel = EnvironmentParametersChannel()
 
+        self.parameters: dict
+
         self.set_parameters(parameters)
 
         logger.info("waiting unity")
@@ -83,6 +85,7 @@ class UnityEnv(Env):
         logger.info(f"action space: {self.action_space}")
 
     def set_parameters(self, parameters: dict):
+        self.parameters = parameters
         for group, group_value in parameters.items():
             for key, value in group_value.items():
                 self.env_params_channel.set_float_parameter(

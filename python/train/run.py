@@ -45,6 +45,16 @@ def get_unity_params(config: DictConfig) -> DictConfig:
     )
 
 
+def get_checkpoint_unity_params(path):
+    if not path or not Path(path).exists():
+        return None
+    with zipfile.ZipFile(path, "r") as zip_ref:
+        if "unity_params.json" in zip_ref.namelist():
+            with zip_ref.open("unity_params.json") as f:
+                return json.load(f)
+    return None
+
+
 def get_path(path_str):
     if not path_str:
         return None
@@ -55,16 +65,6 @@ def get_path(path_str):
         logger.info(f"path invalid: {path}")
         return None
     return path
-
-
-def get_metadata(path):
-    if not path or not Path(path).exists():
-        return None
-    with zipfile.ZipFile(path, "r") as zip_ref:
-        if "metadata.json" in zip_ref.namelist():
-            with zip_ref.open("metadata.json") as f:
-                return json.load(f)
-    return None
 
 
 @hydra.main(version_base=None, config_path="./configs", config_name="config")
@@ -83,13 +83,10 @@ def run(config: DictConfig):
 
     checkpoint_path = get_path(os.getenv("CHECKPOINT_PATH", None))
 
-    policy_kwargs = OmegaConf.to_container(config.model.policy_kwargs, resolve=True)
     unity_params = get_unity_params(config)
 
-    if "features_extractor_class" in policy_kwargs:
-        policy_kwargs["features_extractor_class"] = get_class(
-            policy_kwargs["features_extractor_class"]
-        )
+    if checkpoint_path:
+        unity_params.update(get_checkpoint_unity_params(checkpoint_path))
 
     if config.train.env_count > 1 and unity_server_path:
         envs = [partial(make_unity_env, str(unity_path), 0, unity_params)]
@@ -97,26 +94,19 @@ def run(config: DictConfig):
             envs.append(
                 partial(make_unity_env, str(unity_server_path), i, unity_params)
             )
-        env = SubprocVecEnv(envs)
-        env = VecMonitor(env)
+        unity_env = SubprocVecEnv(envs)
+        unity_env = VecMonitor(unity_env)
     else:
-        env = UnityEnv(
+        unity_env = UnityEnv(
             unity_path=str(unity_path) if unity_path else None,
             parameters=unity_params,
         )
-        env = Monitor(env)
-
-    checkpoint_callback = CheckpointCallback(
-        interval=config.train.checkpoint_interval,
-        directory=str(checkpoint_dir),
-    )
-
-    curriculum_callback = CurriculumCallback()
+        unity_env = Monitor(unity_env)
 
     if checkpoint_path:
         model = SAC.load(
             path=checkpoint_path,
-            env=env,
+            env=unity_env,
             tensorboard_log=str(log_dir),
             custom_objects={
                 "learning_starts": config.train.prepare_count,
@@ -126,26 +116,42 @@ def run(config: DictConfig):
             },
         )
     else:
+        policy_kwargs = OmegaConf.to_container(config.model.policy_kwargs, resolve=True)
+
+        gate = OmegaConf.to_container(config.curriculum.gate, resolve=True)
+        policy_kwargs["features_extractor_kwargs"].update(gate)
+
+        if "features_extractor_class" in policy_kwargs:
+            policy_kwargs["features_extractor_class"] = get_class(
+                policy_kwargs["features_extractor_class"]
+            )
+
         model = SAC(
             policy=MultiInputPolicy,
             learning_starts=config.train.prepare_count,
             gradient_steps=config.train.gradient_count,
             train_freq=config.train.train_interval,
             batch_size=config.train.batch_size,
-            env=env,
+            env=unity_env,
             policy_kwargs=policy_kwargs,
             tensorboard_log=str(log_dir),
         )
 
     model.set_logger(configure(str(base_dir), ["tensorboard"]))
-
     model.learn(
         total_timesteps=config.train.step_count,
-        callback=[checkpoint_callback, curriculum_callback],
+        callback=[
+            CheckpointCallback(
+                interval=config.train.checkpoint_interval,
+                directory=str(checkpoint_dir),
+                unity_env=unity_env,
+            ),
+            CurriculumCallback(),
+        ],
     )
 
     model.save(str(model_path))
-    env.close()
+    unity_env.close()
 
 
 if __name__ == "__main__":
