@@ -6,7 +6,7 @@ from .encoders.proprioception_encoder import ProprioceptionEncoder
 from .encoders.terrain_encoder import TerrainEncoder
 
 
-class FeatureExtractor(BaseFeaturesExtractor):
+class FeaturesExtractor(BaseFeaturesExtractor):
     def __init__(
         self,
         observation_space,

@@ -7,6 +7,7 @@ from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
+from omegaconf import OmegaConf
 from python.train.extractors.encoders.navigation_encoder import NavigationEncoder
 
 
@@ -91,6 +92,13 @@ class UnityEnv(Env):
                 self.env_params_channel.set_float_parameter(
                     f"{group}__{key}", float(value)
                 )
+
+    def set_parameter(self, group: str, key: str, value: float):
+        self.parameters[group][key] = value
+        self.env_params_channel.set_float_parameter(f"{group}__{key}", float(value))
+
+    def get_parameters(self) -> dict:
+        return OmegaConf.to_container(self.parameters, resolve=True)
 
     def _get_obs(self, steps):
         raw = {

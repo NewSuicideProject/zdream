@@ -4,6 +4,7 @@ from pathlib import Path
 
 from python.train.unity_env import UnityEnv
 from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.vec_env import VecEnv
 
 
 class CheckpointCallback(BaseCallback):
@@ -28,7 +29,10 @@ class CheckpointCallback(BaseCallback):
             self.model.save(checkpoint_path)
 
             with zipfile.ZipFile(checkpoint_path, mode="a") as archive:
-                unity_params = json.dumps(self.unity_env.parameters, indent=4)
-                archive.writestr("unity_params.json", unity_params)
+                if isinstance(self.unity_env, VecEnv):
+                    params = self.unity_env.env_method("get_parameters", indices=[0])[0]
+                else:
+                    params = self.unity_env.get_parameters()
+                archive.writestr("unity_params.json", json.dumps(params))
 
         return True

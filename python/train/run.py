@@ -28,21 +28,19 @@ def make_unity_env(file_name: str, worker_id: int, parameters: dict):
     return UnityEnv(unity_path=file_name, worker_id=worker_id, parameters=parameters)
 
 
-def get_unity_params(config: DictConfig) -> DictConfig:
+def get_unity_params(config: DictConfig):
     nav_kwargs = config.model.policy_kwargs.features_extractor_kwargs.navigation_kwargs
     terrain_kwargs = config.model.policy_kwargs.features_extractor_kwargs.terrain_kwargs
 
-    return OmegaConf.create(
-        {
-            "normalization": OmegaConf.to_container(
-                config.model.normalization, resolve=True
-            ),
-            "joint": OmegaConf.to_container(config.curriculum.joint, resolve=True),
-            "reward": OmegaConf.to_container(config.curriculum.reward, resolve=True),
-            "navigation": {"max_token": nav_kwargs.max_token},
-            "terrain": {"resolution": terrain_kwargs.resolution},
-        }
-    )
+    return {
+        "normalization": OmegaConf.to_container(
+            config.model.normalization, resolve=True
+        ),
+        "joint": OmegaConf.to_container(config.curriculum.joint, resolve=True),
+        "reward": OmegaConf.to_container(config.curriculum.reward, resolve=True),
+        "navigation": {"max_token": nav_kwargs.max_token},
+        "terrain": {"resolution": terrain_kwargs.resolution},
+    }
 
 
 def get_checkpoint_unity_params(path):
@@ -89,19 +87,19 @@ def run(config: DictConfig):
         unity_params.update(get_checkpoint_unity_params(checkpoint_path))
 
     if config.train.env_count > 1 and unity_server_path:
-        envs = [partial(make_unity_env, str(unity_path), 0, unity_params)]
+        unity_envs = [partial(make_unity_env, str(unity_path), 0, unity_params)]
         for i in range(1, config.train.env_count):
-            envs.append(
+            unity_envs.append(
                 partial(make_unity_env, str(unity_server_path), i, unity_params)
             )
-        unity_env = SubprocVecEnv(envs)
-        unity_env = VecMonitor(unity_env)
+        unity_env = VecMonitor(SubprocVecEnv(unity_envs))
     else:
-        unity_env = UnityEnv(
-            unity_path=str(unity_path) if unity_path else None,
-            parameters=unity_params,
+        unity_env = Monitor(
+            UnityEnv(
+                unity_path=str(unity_path) if unity_path else None,
+                parameters=unity_params,
+            )
         )
-        unity_env = Monitor(unity_env)
 
     if checkpoint_path:
         model = SAC.load(
@@ -146,7 +144,11 @@ def run(config: DictConfig):
                 directory=str(checkpoint_dir),
                 unity_env=unity_env,
             ),
-            CurriculumCallback(),
+            CurriculumCallback(
+                unity_env=unity_env,
+                config=config,
+                steps_count=config.train.step_count,
+            ),
         ],
     )
 

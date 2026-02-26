@@ -1,5 +1,5 @@
 policy_kwargs:
-  features_extractor_class: train.extractors.feature_extractor.FeatureExtractor
+  features_extractor_class: train.extractors.features_extractor.FeaturesExtractor
   features_extractor_kwargs:
     proprioception_kwargs:
       hidden_dims: [256, 256, 128]
