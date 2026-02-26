@@ -32,7 +32,7 @@ def get_path(path_str):
     if not path.is_absolute():
         path = Path(get_original_cwd()) / path
     if not path.exists():
-        logger.info(f"path invalid: {path}")
+        logger.error(f"path invalid: {path}")
         return None
     return path
 
@@ -111,20 +111,26 @@ def run(config: DictConfig):
         )
 
     model.set_logger(configure(str(log_dir), ["tensorboard"]))
-    model.learn(
-        total_timesteps=config.train.step_count,
-        callback=[
-            CheckpointCallback(
-                interval=config.train.checkpoint_interval,
-                directory=str(checkpoint_dir),
-                unity_env=unity_env,
-            ),
+
+    callbacks = [
+        CheckpointCallback(
+            interval=config.train.checkpoint_interval,
+            directory=str(checkpoint_dir),
+            unity_env=unity_env,
+        ),
+    ]
+    if config.curriculum:
+        callbacks.append(
             CurriculumCallback(
                 unity_env=unity_env,
-                config=config,
+                config=config.curriculum,
                 steps_count=config.train.step_count,
-            ),
-        ],
+            )
+        )
+
+    model.learn(
+        total_timesteps=config.train.step_count,
+        callback=callbacks,
     )
 
     model.save(str(model_path))

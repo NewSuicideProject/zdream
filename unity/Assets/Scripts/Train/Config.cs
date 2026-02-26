@@ -47,14 +47,14 @@ namespace Train {
         }
 
         public static class Navigation {
-            public const int MaxMaxToken = 10;
+            public const int MaxMaxTokens = 10;
 
-            private static int _maxToken;
-            public static int MaxToken => _maxToken;
+            private static int _maxTokens;
+            public static int MaxTokens => _maxTokens;
 
             public static void OnEpisodeBegin() {
-                GetConfig("navigation__max_token", ref _maxToken);
-                _maxToken = Mathf.Clamp(_maxToken, 0, MaxMaxToken);
+                GetConfig("navigation__max_token", ref _maxTokens);
+                _maxTokens = Mathf.Clamp(_maxTokens, 0, MaxMaxTokens);
             }
         }
 

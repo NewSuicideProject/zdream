@@ -13,7 +13,7 @@ namespace Train.Sensor {
 
         public NavigationSensor(Navigation navigation) {
             _navigation = navigation;
-            _size = Config.Navigation.MaxMaxToken * _tokenSize;
+            _size = Config.Navigation.MaxMaxTokens * _tokenSize;
             _observationSpec = ObservationSpec.Vector(_size);
         }
 
@@ -22,7 +22,7 @@ namespace Train.Sensor {
         public int Write(ObservationWriter writer) {
             int idx = 0;
 
-            for (int i = 0; i < Mathf.Min(_navigation.Corners.Count, Config.Navigation.MaxToken); i++) {
+            for (int i = 0; i < Mathf.Min(_navigation.Corners.Count, Config.Navigation.MaxTokens); i++) {
                 Corner corner = _navigation.Corners[i];
                 writer[idx++] = Normalize.Distance(corner.RelativePosition.z);
                 writer[idx++] = Normalize.Distance(corner.RelativePosition.x);

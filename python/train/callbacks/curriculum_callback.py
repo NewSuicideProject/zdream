@@ -25,38 +25,43 @@ class CurriculumCallback(BaseCallback):
         self.steps_count = steps_count
         self.interval = interval
 
-        self.target_gate: dict[str, float] = OmegaConf.to_container(
-            config.curriculum.gate_ratios, resolve=True
+        self.gate_ratio_targets: dict[str, float] = (
+            OmegaConf.to_container(config.gate_ratios, resolve=True)
+            if "gate_ratios" in config
+            else {}
         )
-        self.target_env: dict[str, dict[str, float]] = {
-            group: OmegaConf.to_container(params, resolve=True)
-            for group, params in config.curriculum.unity_params.items()
-        }
+        self.unity_param_targets: dict[str, dict[str, float]] = (
+            OmegaConf.to_container(config.unity_params, resolve=True)
+            if "unity_params" in config
+            else {}
+        )
 
-        self._start_gate: dict[str, float] = {}
-        self._start_env: dict[str, dict[str, float]] = {}
+        self.gate_ratio_starts: dict[str, float] = {}
+        self.unity_param_starts: dict[str, dict[str, float]] = {}
 
     def _on_training_start(self) -> None:
-        extractor = self.model.policy.features_extractor
-        self._start_gate = {
-            key: getattr(extractor, key).item()
-            for key in self.target_gate
-            if hasattr(extractor, key)
+        features_extractor = self.model.policy.features_extractor
+        self.gate_ratio_starts = {
+            gate_ratio_target: getattr(features_extractor, gate_ratio_target).item()
+            for gate_ratio_target in self.gate_ratio_targets
+            if hasattr(features_extractor, gate_ratio_target)
         }
 
         if isinstance(self.unity_env, VecEnv):
-            params = self.unity_env.env_method("get_parameters", indices=[0])[0]
+            unity_params = self.unity_env.env_method("get_parameters", indices=[0])[0]
         else:
-            params = self.unity_env.get_parameters()
+            unity_params = self.unity_env.get_parameters()
 
-        self._start_env = {
-            group: params[group] for group in self.target_env if group in params
+        self.unity_param_starts = {
+            group: unity_params[group]
+            for group in self.unity_param_targets
+            if group in unity_params
         }
 
-        logger.info("start gate  : %s", self._start_gate)
-        logger.info("target gate : %s", self.target_gate)
-        logger.info("start env   : %s", self._start_env)
-        logger.info("target env  : %s", self.target_env)
+        logger.info("start gate  : %s", self.gate_ratio_starts)
+        logger.info("target gate : %s", self.gate_ratio_targets)
+        logger.info("start env   : %s", self.unity_param_starts)
+        logger.info("target env  : %s", self.unity_param_targets)
 
     def _on_step(self) -> bool:
         if self.n_calls % self.interval != 0:
@@ -74,22 +79,27 @@ class CurriculumCallback(BaseCallback):
         return start + (end - start) * t
 
     def _update_gate(self, t: float) -> None:
-        extractor = self.model.policy.features_extractor
-        for key in self.target_gate:
-            if key not in self._start_gate:
+        features_extractor = self.model.policy.features_extractor
+        for key in self.gate_ratio_targets:
+            if key not in self.gate_ratio_starts:
                 continue
-            value = self._lerp(self._start_gate[key], self.target_gate[key], t)
-            buffer: torch.Tensor = getattr(extractor, key)
+            value = self._lerp(
+                self.gate_ratio_starts[key], self.gate_ratio_targets[key], t
+            )
+            buffer: torch.Tensor = getattr(features_extractor, key)
             buffer.fill_(value)
             if self.verbose >= 2:
                 logger.debug("gate.%s = %.4f (t=%.4f)", key, value, t)
 
     def _update_env(self, t: float) -> None:
-        for group in self.target_env:
-            if group not in self.target_env or group not in self._start_env:
+        for group in self.unity_param_targets:
+            if (
+                group not in self.unity_param_targets
+                or group not in self.unity_param_starts
+            ):
                 continue
-            for key, target_val in self.target_env[group].items():
-                start_val = self._start_env[group].get(key, target_val)
+            for key, target_val in self.unity_param_targets[group].items():
+                start_val = self.unity_param_starts[group].get(key, target_val)
                 value = self._lerp(start_val, target_val, t)
 
                 if isinstance(self.unity_env, VecEnv):

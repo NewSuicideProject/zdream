@@ -37,15 +37,15 @@ unity_params:
 
   reward:
     survival_reward: 1.6
-    stay_success_reward: 5.0
-    staying_reward: 1.0
-    stay_success_threshold: 5.0
-    distance_penalty_multiplier: 0.1
+    stay_success_reward: 0.0
+    staying_reward: 0.0
+    stay_success_threshold: 0.0
+    distance_penalty_multiplier: 0.0
     jitter_penalty_multiplier: 0.2
     energy_penalty_multiplier: 0.005
     upright_reward_multiplier: 0.5
     height_match_reward_multiplier: 0.25
-    direction_reward_multiplier: 0.5
+    direction_reward_multiplier: 0.0
 
   normalization:
     expected_max_speed: 5.0
