@@ -15,8 +15,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 from stable_baselines3.sac import SAC
 from stable_baselines3.sac.policies import MultiInputPolicy
 
-from .callbacks.checkpoint_callback import CheckpointCallback
-from .callbacks.curriculum_callback import CurriculumCallback
+from .callbacks import CheckpointCallback, CurriculumCallback
 from .unity_env import UnityEnv
 
 
