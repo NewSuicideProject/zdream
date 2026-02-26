@@ -16,18 +16,16 @@ logger = logging.getLogger(__name__)
 class UnityEnv(Env):
     def __init__(
         self,
+        parameters: dict,
         unity_path: str = None,
         base_port: int = 5004,
         worker_id: int = 0,
-        kwargs: dict = None,
     ):
         super().__init__()
 
         self.env_params_channel = EnvironmentParametersChannel()
 
-        if kwargs:
-            for key, value in kwargs.items():
-                self.env_params_channel.set_float_parameter(key, float(value))
+        self.set_parameters(parameters)
 
         logger.info("waiting unity")
         self._env = UnityEnvironment(
@@ -48,8 +46,8 @@ class UnityEnv(Env):
             for observation_spec in self._behavior_spec.observation_specs
         }
 
-        resolution = int(kwargs["terrain__resolution"])
-        max_token = int(kwargs["navigation__max_token"])
+        resolution = int(parameters.terrain.resolution)
+        max_token = int(parameters.navigation.max_token)
 
         self.observation_space = spaces.Dict(
             {
@@ -83,6 +81,13 @@ class UnityEnv(Env):
 
         logger.info(f"observation space: {self.observation_space}")
         logger.info(f"action space: {self.action_space}")
+
+    def set_parameters(self, parameters: dict):
+        for group, group_value in parameters.items():
+            for key, value in group_value.items():
+                self.env_params_channel.set_float_parameter(
+                    f"{group}__{key}", float(value)
+                )
 
     def _get_obs(self, steps):
         raw = {

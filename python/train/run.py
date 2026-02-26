@@ -24,8 +24,25 @@ logger = logging.getLogger(__name__)
 load_dotenv(Path(__file__).parent / ".env")
 
 
-def make_unity_env(file_name: str, worker_id: int, env_params: dict):
-    return UnityEnv(unity_path=file_name, worker_id=worker_id, kwargs=env_params)
+def make_unity_env(file_name: str, worker_id: int, parameters: dict):
+    return UnityEnv(unity_path=file_name, worker_id=worker_id, parameters=parameters)
+
+
+def get_unity_params(config: DictConfig) -> DictConfig:
+    nav_kwargs = config.model.policy_kwargs.features_extractor_kwargs.navigation_kwargs
+    terrain_kwargs = config.model.policy_kwargs.features_extractor_kwargs.terrain_kwargs
+
+    return OmegaConf.create(
+        {
+            "normalization": OmegaConf.to_container(
+                config.model.normalization, resolve=True
+            ),
+            "joint": OmegaConf.to_container(config.curriculum.joint, resolve=True),
+            "reward": OmegaConf.to_container(config.curriculum.reward, resolve=True),
+            "navigation": {"max_token": nav_kwargs.max_token},
+            "terrain": {"resolution": terrain_kwargs.resolution},
+        }
+    )
 
 
 def get_path(path_str):
@@ -67,7 +84,7 @@ def run(config: DictConfig):
     checkpoint_path = get_path(os.getenv("CHECKPOINT_PATH", None))
 
     policy_kwargs = OmegaConf.to_container(config.model.policy_kwargs, resolve=True)
-    unity_kwargs = OmegaConf.to_container(config.model.unity_kwargs, resolve=True)
+    unity_params = get_unity_params(config)
 
     if "features_extractor_class" in policy_kwargs:
         policy_kwargs["features_extractor_class"] = get_class(
@@ -75,17 +92,17 @@ def run(config: DictConfig):
         )
 
     if config.train.env_count > 1 and unity_server_path:
-        envs = [partial(make_unity_env, str(unity_path), 0, unity_kwargs)]
+        envs = [partial(make_unity_env, str(unity_path), 0, unity_params)]
         for i in range(1, config.train.env_count):
             envs.append(
-                partial(make_unity_env, str(unity_server_path), i, unity_kwargs)
+                partial(make_unity_env, str(unity_server_path), i, unity_params)
             )
         env = SubprocVecEnv(envs)
         env = VecMonitor(env)
     else:
         env = UnityEnv(
             unity_path=str(unity_path) if unity_path else None,
-            kwargs=unity_kwargs,
+            parameters=unity_params,
         )
         env = Monitor(env)
 

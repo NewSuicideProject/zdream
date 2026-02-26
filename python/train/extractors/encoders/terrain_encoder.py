@@ -4,7 +4,7 @@ import torch.nn as nn
 class TerrainEncoder(nn.Module):
     def __init__(
         self,
-        resolution,
+        resolution=8,
         hidden_dims=None,
         activation_fn=None,
     ):

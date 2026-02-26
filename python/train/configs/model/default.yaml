@@ -15,34 +15,13 @@ policy_kwargs:
       resolution: 8
       hidden_dims: [128, 64, 32]
 
-    navigation_ratio: 0.0
-    terrain_ratio: 0.0
-    proprioception_ratio: 1.0
-
   net_arch:
     pi: [256, 256]
     qf: [512, 512]
 
-unity_kwargs:
-  navigation__max_token: 3
-
-  terrain__resolution: 8
-
-  joint__target_smoothing: 0.2
-
-  reward__survival_reward: 1.6
-  reward__stay_success_reward: 5.0
-  reward__staying_reward: 1.0
-  reward__stay_success_threshold: 5.0
-  reward__distance_penalty_multiplier: 0.1
-  reward__jitter_penalty_multiplier: 0.2
-  reward__energy_penalty_multiplier: 0.005
-  reward__upright_reward_multiplier: 0.5
-  reward__height_match_reward_multiplier: 0.25
-  reward__direction_reward_multiplier: 0.5
-
-  normalization__expected_max_speed: 5.0
-  normalization__expected_max_distance: 10.0
-  normalization__expected_max_thickness: 1.0
-  normalization__expected_max_height: 2.0
-  normalization__expected_max_force: 300.0
+normalization:
+  expected_max_speed: 5.0
+  expected_max_distance: 10.0
+  expected_max_thickness: 1.0
+  expected_max_height: 2.0
+  expected_max_force: 300.0
