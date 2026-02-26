@@ -6,7 +6,7 @@ from pathlib import Path
 import hydra
 from dotenv import load_dotenv
 from hydra.utils import get_class, get_original_cwd
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import OmegaConf
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 load_dotenv(Path(__file__).parent / ".env")
 
 
-def make_unity_env(file_name: str, worker_id: int, parameters: dict):
-    return UnityEnv(unity_path=file_name, worker_id=worker_id, parameters=parameters)
+def make_unity_env(file_name, worker_id, parameters):
+    return UnityEnv(parameters, unity_path=file_name, worker_id=worker_id)
 
 
 def get_path(path_str):
@@ -38,7 +38,7 @@ def get_path(path_str):
 
 
 @hydra.main(version_base=None, config_path="./configs", config_name="config")
-def run(config: DictConfig):
+def run(config):
     base_dir = Path.cwd()
     log_dir = base_dir / "log"
     model_path = base_dir / "model.zip"
@@ -53,9 +53,9 @@ def run(config: DictConfig):
 
     if checkpoint_path:
         import json
-        from zipfile import ZipFile
+        import zipfile
 
-        with ZipFile(checkpoint_path, "r").open("unity_params.json") as file:
+        with zipfile.ZipFile(checkpoint_path, "r").open("unity_params.json") as file:
             unity_params = json.load(file)
     else:
         unity_params = OmegaConf.to_container(config.model.unity_params, resolve=True)

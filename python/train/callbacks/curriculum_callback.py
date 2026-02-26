@@ -93,10 +93,7 @@ class CurriculumCallback(BaseCallback):
 
     def _update_env(self, t: float) -> None:
         for group in self.unity_param_targets:
-            if (
-                group not in self.unity_param_targets
-                or group not in self.unity_param_starts
-            ):
+            if group not in self.unity_param_starts:
                 continue
             for key, target_val in self.unity_param_targets[group].items():
                 start_val = self.unity_param_starts[group].get(key, target_val)
