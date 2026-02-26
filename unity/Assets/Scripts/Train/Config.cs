@@ -53,7 +53,7 @@ namespace Train {
             public static int MaxTokens => _maxTokens;
 
             public static void OnEpisodeBegin() {
-                GetConfig("navigation__max_token", ref _maxTokens);
+                GetConfig("navigation__max_tokens", ref _maxTokens);
                 _maxTokens = Mathf.Clamp(_maxTokens, 0, MaxMaxTokens);
             }
         }
@@ -125,7 +125,7 @@ namespace Train {
             }
         }
 
-        public static class Normalize {
+        public static class Normalization {
             private static float _expectedMaxSpeed;
             private static float _expectedMaxHeight;
             private static float _expectedMaxDistance;
@@ -139,11 +139,11 @@ namespace Train {
             public static float ExpectedMaxForce => _expectedMaxForce;
 
             public static void OnEpisodeBegin() {
-                GetConfig("normalize__expected_max_speed", ref _expectedMaxSpeed);
-                GetConfig("normalize__expected_max_height", ref _expectedMaxHeight);
-                GetConfig("normalize__expected_max_distance", ref _expectedMaxDistance);
-                GetConfig("normalize__expected_max_thickness", ref _expectedMaxThickness);
-                GetConfig("normalize__expected_max_force", ref _expectedMaxForce);
+                GetConfig("normalization__expected_max_speed", ref _expectedMaxSpeed);
+                GetConfig("normalization__expected_max_height", ref _expectedMaxHeight);
+                GetConfig("normalization__expected_max_distance", ref _expectedMaxDistance);
+                GetConfig("normalization__expected_max_thickness", ref _expectedMaxThickness);
+                GetConfig("normalization__expected_max_force", ref _expectedMaxForce);
             }
         }
     }

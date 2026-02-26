@@ -32,14 +32,19 @@ unity_params:
   terrain:
     resolution: ${model.policy_kwargs.features_extractor_kwargs.terrain_kwargs.resolution}
 
+  passion:
+    ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.passion_ratio}
+
   joint:
     target_smoothing: 0.2
 
   reward:
     survival_reward: 1.6
+
     stay_success_reward: 0.0
     staying_reward: 0.0
     stay_success_threshold: 0.0
+
     distance_penalty_multiplier: 0.0
     jitter_penalty_multiplier: 0.2
     energy_penalty_multiplier: 0.005

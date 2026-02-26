@@ -64,7 +64,7 @@ namespace Train {
             Config.Passion.OnEpisodeBegin();
             Config.Joint.OnEpisodeBegin();
             Config.Reward.OnEpisodeBegin();
-            Config.Normalize.OnEpisodeBegin();
+            Config.Normalization.OnEpisodeBegin();
 
             _environment.OnEpisodeBegin();
 
