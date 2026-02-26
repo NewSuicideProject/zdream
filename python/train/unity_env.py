@@ -49,8 +49,8 @@ class UnityEnv(Env):
             for observation_spec in self._behavior_spec.observation_specs
         }
 
-        resolution = int(parameters.terrain.resolution)
-        max_token = int(parameters.navigation.max_token)
+        resolution = int(parameters["terrain"]["resolution"])
+        max_token = int(parameters["navigation"]["max_token"])
 
         self.observation_space = spaces.Dict(
             {
@@ -85,17 +85,23 @@ class UnityEnv(Env):
         logger.info(f"observation space: {self.observation_space}")
         logger.info(f"action space: {self.action_space}")
 
+    @staticmethod
+    def _param_key(group: str, key: str) -> str:
+        return f"{group}__{key}"
+
     def set_parameters(self, parameters: dict):
         self.parameters = parameters
         for group, group_value in parameters.items():
             for key, value in group_value.items():
                 self.env_params_channel.set_float_parameter(
-                    f"{group}__{key}", float(value)
+                    self._param_key(group, key), float(value)
                 )
 
     def set_parameter(self, group: str, key: str, value: float):
         self.parameters[group][key] = value
-        self.env_params_channel.set_float_parameter(f"{group}__{key}", float(value))
+        self.env_params_channel.set_float_parameter(
+            self._param_key(group, key), float(value)
+        )
 
     def get_parameters(self) -> dict:
         return OmegaConf.to_container(self.parameters, resolve=True)
