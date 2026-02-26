@@ -9,15 +9,6 @@ from stable_baselines3.common.vec_env import VecEnv
 
 logger = logging.getLogger(__name__)
 
-_GATE_KEYS = [
-    "proprioception_ratio",
-    "navigation_ratio",
-    "terrain_ratio",
-    "passion_ratio",
-]
-
-_ENV_GROUPS = ["joint", "reward"]
-
 
 class CurriculumCallback(BaseCallback):
     def __init__(
@@ -35,13 +26,11 @@ class CurriculumCallback(BaseCallback):
         self.interval = interval
 
         self.target_gate: dict[str, float] = OmegaConf.to_container(
-            config.curriculum.gate, resolve=True
+            config.curriculum.gate_ratios, resolve=True
         )
         self.target_env: dict[str, dict[str, float]] = {
-            group: OmegaConf.to_container(
-                getattr(config.curriculum, group), resolve=True
-            )
-            for group in _ENV_GROUPS
+            group: OmegaConf.to_container(params, resolve=True)
+            for group, params in config.curriculum.unity_params.items()
         }
 
         self._start_gate: dict[str, float] = {}
@@ -51,7 +40,7 @@ class CurriculumCallback(BaseCallback):
         extractor = self.model.policy.features_extractor
         self._start_gate = {
             key: getattr(extractor, key).item()
-            for key in _GATE_KEYS
+            for key in self.target_gate
             if hasattr(extractor, key)
         }
 
@@ -61,7 +50,7 @@ class CurriculumCallback(BaseCallback):
             params = self.unity_env.get_parameters()
 
         self._start_env = {
-            group: params[group] for group in _ENV_GROUPS if group in params
+            group: params[group] for group in self.target_env if group in params
         }
 
         logger.info("start gate  : %s", self._start_gate)
@@ -86,8 +75,8 @@ class CurriculumCallback(BaseCallback):
 
     def _update_gate(self, t: float) -> None:
         extractor = self.model.policy.features_extractor
-        for key in _GATE_KEYS:
-            if key not in self.target_gate or key not in self._start_gate:
+        for key in self.target_gate:
+            if key not in self._start_gate:
                 continue
             value = self._lerp(self._start_gate[key], self.target_gate[key], t)
             buffer: torch.Tensor = getattr(extractor, key)
@@ -96,7 +85,7 @@ class CurriculumCallback(BaseCallback):
                 logger.debug("gate.%s = %.4f (t=%.4f)", key, value, t)
 
     def _update_env(self, t: float) -> None:
-        for group in _ENV_GROUPS:
+        for group in self.target_env:
             if group not in self.target_env or group not in self._start_env:
                 continue
             for key, target_val in self.target_env[group].items():

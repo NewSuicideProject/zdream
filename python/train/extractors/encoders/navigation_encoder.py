@@ -12,14 +12,14 @@ class NavigationEncoder(nn.Module):
         d_model=128,
         activation_fn=None,
         num_layers=1,
-        max_token=3,
+        max_tokens=3,
         nhead=1,
     ):
         super().__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers
-        self.max_token = max_token
+        self.max_tokens = max_tokens
         self.nhead = nhead
 
         if isinstance(activation_fn, str):
@@ -32,10 +32,10 @@ class NavigationEncoder(nn.Module):
 
         self.input_projection = nn.Linear(NavigationEncoder.token_size, self.d_model)
 
-        pe = th.zeros(max_token, d_model)
-        position = th.arange(0, max_token, dtype=th.float).unsqueeze(1)
+        pe = th.zeros(self.max_tokens, self.d_model)
+        position = th.arange(0, self.max_tokens, dtype=th.float).unsqueeze(1)
         div_term = th.exp(
-            th.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
+            th.arange(0, self.d_model, 2).float() * (-math.log(10000.0) / self.d_model)
         )
         pe[:, 0::2] = th.sin(position * div_term)
         pe[:, 1::2] = th.cos(position * div_term)
@@ -57,7 +57,7 @@ class NavigationEncoder(nn.Module):
 
     def forward(self, x):
         batch_size = x.shape[0]
-        x = x.view(batch_size, self.max_token, NavigationEncoder.token_size)
+        x = x.view(batch_size, self.max_tokens, NavigationEncoder.token_size)
 
         valid_flags = x[:, :, -1]
         valid_mask = valid_flags.unsqueeze(-1)

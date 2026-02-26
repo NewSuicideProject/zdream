@@ -11,10 +11,7 @@ class FeaturesExtractor(BaseFeaturesExtractor):
         navigation_kwargs=None,
         proprioception_kwargs=None,
         terrain_kwargs=None,
-        navigation_ratio=1.0,
-        terrain_ratio=1.0,
-        proprioception_ratio=1.0,
-        passion_ratio=1.0,
+        gate_ratios: dict[str, float] | None = None,
     ):
         super().__init__(observation_space, features_dim=1)
 
@@ -24,6 +21,8 @@ class FeaturesExtractor(BaseFeaturesExtractor):
             proprioception_kwargs = {}
         if terrain_kwargs is None:
             terrain_kwargs = {}
+        if gate_ratios is None:
+            gate_ratios = {}
 
         self.navigation = NavigationEncoder(
             **navigation_kwargs,
@@ -38,24 +37,8 @@ class FeaturesExtractor(BaseFeaturesExtractor):
             **proprioception_kwargs,
         )
 
-        self.register_buffer(
-            "navigation_ratio", torch.tensor(navigation_ratio, dtype=torch.float32)
-        )
-        self.register_buffer(
-            "terrain_ratio", torch.tensor(terrain_ratio, dtype=torch.float32)
-        )
-        self.register_buffer(
-            "proprioception_ratio",
-            torch.tensor(proprioception_ratio, dtype=torch.float32),
-        )
-        self.register_buffer(
-            "passion_ratio", torch.tensor(passion_ratio, dtype=torch.float32)
-        )
-
-        self.proprioception_ratio: torch.Tensor
-        self.terrain_ratio: torch.Tensor
-        self.navigation_ratio: torch.Tensor
-        self.passion_ratio: torch.Tensor
+        for key, value in gate_ratios.items():
+            self.register_buffer(key, torch.tensor(value, dtype=torch.float32))
 
         self._features_dim = (
             self.navigation.output_dim
@@ -64,13 +47,19 @@ class FeaturesExtractor(BaseFeaturesExtractor):
             + 1  # passion
         )
 
+    def _gate(self, key: str) -> torch.Tensor:
+        if hasattr(self, key):
+            buf: torch.Tensor = getattr(self, key)
+            return buf
+        return torch.ones(1)
+
     def forward(self, obs):
-        navigation = self.navigation(obs["navigation"]) * self.navigation_ratio
-        terrain = self.terrain(obs["terrain"]) * self.terrain_ratio
-        proprioception = (
-            self.proprioception(obs["proprioception"]) * self.proprioception_ratio
+        navigation = self.navigation(obs["navigation"]) * self._gate("navigation_ratio")
+        terrain = self.terrain(obs["terrain"]) * self._gate("terrain_ratio")
+        proprioception = self.proprioception(obs["proprioception"]) * self._gate(
+            "proprioception_ratio"
         )
-        passion = obs["passion"] * self.passion_ratio
+        passion = obs["passion"] * self._gate("passion_ratio")
 
         return torch.cat(
             [passion, proprioception, navigation, terrain],

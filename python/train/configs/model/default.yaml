@@ -5,7 +5,7 @@ policy_kwargs:
       hidden_dims: [256, 256, 128]
 
     navigation_kwargs:
-      max_token: 3
+      max_tokens: 3
 
       d_model: 16
       num_layers: 1
@@ -26,6 +26,12 @@ policy_kwargs:
     qf: [512, 512]
 
 unity_params:
+  navigation:
+    max_tokens: ${model.policy_kwargs.features_extractor_kwargs.navigation_kwargs.max_tokens}
+
+  terrain:
+    resolution: ${model.policy_kwargs.features_extractor_kwargs.terrain_kwargs.resolution}
+
   joint:
     target_smoothing: 0.2
 
