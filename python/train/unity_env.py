@@ -86,7 +86,7 @@ class UnityEnv(Env):
         logger.info(f"action space: {self.action_space}")
 
     @staticmethod
-    def _param_key(group: str, key: str) -> str:
+    def _get_parameter_key(group: str, key: str) -> str:
         return f"{group}__{key}"
 
     def set_parameters(self, parameters: dict):
@@ -94,13 +94,13 @@ class UnityEnv(Env):
         for group, group_value in parameters.items():
             for key, value in group_value.items():
                 self.env_params_channel.set_float_parameter(
-                    self._param_key(group, key), float(value)
+                    self._get_parameter_key(group, key), float(value)
                 )
 
     def set_parameter(self, group: str, key: str, value: float):
         self.parameters[group][key] = value
         self.env_params_channel.set_float_parameter(
-            self._param_key(group, key), float(value)
+            self._get_parameter_key(group, key), float(value)
         )
 
     def get_parameters(self) -> dict:
