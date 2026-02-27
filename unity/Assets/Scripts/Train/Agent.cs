@@ -118,7 +118,7 @@ namespace Train {
                                             Config.Reward.DirectionRewardMultiplier * 2;
             }
 
-            const float targetHeight = 1f;
+            const float targetHeight = 1f; // TODO: make it adaptive to terrain
             const float variance = 0.1f;
             float height = _hierarchy.RootAgentNode.Transform.position.y;
             float heightDelta = height - targetHeight;

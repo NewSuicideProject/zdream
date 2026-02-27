@@ -85,16 +85,16 @@ namespace Train {
 
         public static class Assist {
             private static float _targetAssist;
-            private static float _gravityAssist;
-            private static float _uprightAssist;
+            private static float _heightAssist;
+            private static float _rotationAssist;
             public static float TargetAssist => _targetAssist;
-            public static float GravityAssist => _gravityAssist;
-            public static float UprightAssist => _uprightAssist;
+            public static float HeightAssist => _heightAssist;
+            public static float RotationAssist => _rotationAssist;
 
             public static void OnEpisodeBegin() {
                 GetConfig(nameof(Assist), nameof(TargetAssist), ref _targetAssist);
-                GetConfig(nameof(Assist), nameof(GravityAssist), ref _gravityAssist);
-                GetConfig(nameof(Assist), nameof(UprightAssist), ref _uprightAssist);
+                GetConfig(nameof(Assist), nameof(HeightAssist), ref _heightAssist);
+                GetConfig(nameof(Assist), nameof(RotationAssist), ref _rotationAssist);
             }
         }
 

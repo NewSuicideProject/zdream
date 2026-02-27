@@ -10,8 +10,8 @@ unity_params:
 
   assist:
     target_assist: ${model.unity_params.assist.target_assist}
-    gravity_assist: ${model.unity_params.assist.gravity_assist}
-    upright_assist: ${model.unity_params.assist.upright_assist}
+    height_assist: ${model.unity_params.assist.height_assist}
+    rotation_assist: ${model.unity_params.assist.rotation_assist}
 
   reward:
     survival_reward: ${model.unity_params.reward.survival_reward}

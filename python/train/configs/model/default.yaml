@@ -46,8 +46,8 @@ unity_params:
 
   assist:
     target_assist: 0.1
-    gravity_assist: 1.0
-    upright_assist: 1.0
+    height_assist: 1.0
+    rotation_assist: 1.0
 
   reward:
     survival_reward: 1.0

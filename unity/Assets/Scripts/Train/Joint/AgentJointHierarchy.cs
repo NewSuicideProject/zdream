@@ -41,43 +41,41 @@ namespace Train.Joint {
 
         private void FixedUpdate() {
             ArticulationBody rootBody = RootAgentNode.Body;
-            float uprightAssist = Config.Assist.UprightAssist;
+            float heightAssist = Config.Assist.HeightAssist;
+            float rotationAssist = Config.Assist.RotationAssist;
+            float mass = TotalMass;
 
-            if (Config.Assist.GravityAssist > 0f) {
-                rootBody.AddForce(-Physics.gravity * Config.Assist.GravityAssist, ForceMode.Acceleration);
+            if (heightAssist > 0f) {
+                Vector3 targetWorldPos = RootAgentNode.Transform.parent.TransformPoint(_initialRootLocalPosition);
+                float heightError = targetWorldPos.y - rootBody.transform.position.y;
+
+                float kp = 150f * heightAssist;
+                float kd = 2f * Mathf.Sqrt(kp);
+
+                float verticalForce = mass * ((heightError * kp) - (rootBody.linearVelocity.y * kd));
+                rootBody.AddForce(Vector3.up * verticalForce, ForceMode.Force);
             }
 
-            if (!(uprightAssist > 0f)) {
-                return;
+            if (rotationAssist > 0f) {
+                Quaternion targetWorldRot = RootAgentNode.Transform.parent.rotation * _initialRootLocalRotation;
+                Quaternion deltaRot = targetWorldRot * Quaternion.Inverse(rootBody.transform.rotation);
+                deltaRot.ToAngleAxis(out float angle, out Vector3 axis);
+
+                if (angle > 180f) {
+                    angle -= 360f;
+                }
+
+                if (!(Mathf.Abs(angle) > 0.01f)) {
+                    return;
+                }
+
+                float kp = 50f * rotationAssist;
+                float kd = 2f * Mathf.Sqrt(kp);
+
+                Vector3 torque = mass * ((axis.normalized * (angle * Mathf.Deg2Rad * kp)) -
+                                         (rootBody.angularVelocity * kd));
+                rootBody.AddTorque(torque, ForceMode.Force);
             }
-
-            Quaternion targetWorldRot = RootAgentNode.Transform.parent.rotation * _initialRootLocalRotation;
-            Quaternion deltaRot = targetWorldRot * Quaternion.Inverse(rootBody.transform.rotation);
-            deltaRot.ToAngleAxis(out float angle, out Vector3 axis);
-
-            if (angle > 180f) {
-                angle -= 360f;
-            }
-
-            if (Mathf.Abs(angle) > 0.01f) {
-                float rotKp = 50f * uprightAssist;
-                float rotKd = 2f * Mathf.Sqrt(rotKp);
-                Vector3 torque = (axis.normalized * (angle * Mathf.Deg2Rad * rotKp)) -
-                                 (rootBody.angularVelocity * rotKd);
-                rootBody.AddTorque(torque, ForceMode.Acceleration);
-            }
-
-            Vector3 targetWorldPos = RootAgentNode.Transform.parent.TransformPoint(_initialRootLocalPosition);
-            Vector3 posError = targetWorldPos - rootBody.transform.position;
-            posError.y = 0f;
-
-            float horizontalKp = 20f * uprightAssist;
-            float horizontalKd = 2f * Mathf.Sqrt(horizontalKp);
-
-            Vector3 horizontalForce = (posError * horizontalKp) - (rootBody.linearVelocity * horizontalKd);
-            horizontalForce.y = 0f;
-
-            rootBody.AddForce(horizontalForce, ForceMode.Acceleration);
         }
 
         public override void OnEpisodeBegin() {
