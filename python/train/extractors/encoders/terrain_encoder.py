@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from omegaconf import DictConfig
 
 
 class TerrainEncoder(nn.Module):
@@ -7,17 +8,12 @@ class TerrainEncoder(nn.Module):
         self,
         resolution: int = 8,
         hidden_dims: list[int] | None = None,
-        activation_fn: type[nn.Module] | str | None = None,
+        activation_fn: DictConfig | type[nn.Module] | None = None,
     ) -> None:
         super().__init__()
 
         if hidden_dims is None:
             hidden_dims = [256, 128, 64]
-
-        if isinstance(activation_fn, str):
-            from stable_baselines3.common.torch_layers import get_activation_fn
-
-            activation_fn = get_activation_fn(activation_fn)
 
         if activation_fn is None:
             activation_fn = nn.ReLU
@@ -27,7 +23,12 @@ class TerrainEncoder(nn.Module):
 
         for hidden_dim in hidden_dims:
             layers.append(nn.Linear(last_dim, hidden_dim))
-            layers.append(activation_fn())
+            if isinstance(activation_fn, DictConfig):
+                import hydra
+
+                layers.append(hydra.utils.instantiate(activation_fn))
+            else:
+                layers.append(activation_fn())
             last_dim = hidden_dim
 
         self.net = nn.Sequential(*layers)

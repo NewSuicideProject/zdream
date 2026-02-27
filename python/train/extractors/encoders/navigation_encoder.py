@@ -2,6 +2,7 @@ import math
 
 import torch as th
 import torch.nn as nn
+from omegaconf import DictConfig
 
 
 class NavigationEncoder(nn.Module):
@@ -13,7 +14,7 @@ class NavigationEncoder(nn.Module):
         d_model: int = 16,
         num_layers: int = 1,
         nhead: int = 2,
-        activation_fn: nn.Module | str | None = None,
+        activation_fn: DictConfig | nn.Module | None = None,
     ) -> None:
         super().__init__()
 
@@ -22,10 +23,10 @@ class NavigationEncoder(nn.Module):
         self.max_tokens = max_tokens
         self.nhead = nhead
 
-        if isinstance(activation_fn, str):
-            from stable_baselines3.common.torch_layers import get_activation_fn
+        if isinstance(activation_fn, DictConfig):
+            import hydra
 
-            activation_fn = get_activation_fn(activation_fn)
+            activation_fn = hydra.utils.instantiate(activation_fn)
 
         if activation_fn is None:
             activation_fn = nn.ReLU()

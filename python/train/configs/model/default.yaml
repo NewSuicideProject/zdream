@@ -4,7 +4,8 @@ policy_kwargs:
     proprioception_kwargs:
       hidden_dims: [256, 256, 128]
 
-      activation_fn: "relu"
+      activation_fn:
+        _target_: torch.nn.ReLU
 
     navigation_kwargs:
       max_tokens: 3
@@ -12,14 +13,16 @@ policy_kwargs:
       num_layers: 1
       nhead: 2
 
-      activation_fn: "relu"
+      activation_fn:
+        _target_: torch.nn.ReLU
 
     terrain_kwargs:
       resolution: 8
 
       hidden_dims: [128, 64, 32]
 
-      activation_fn: "relu"
+      activation_fn:
+        _target_: torch.nn.ReLU
 
     gate_ratios:
       proprioception_ratio: 1.0
