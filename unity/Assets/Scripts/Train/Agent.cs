@@ -120,7 +120,7 @@ namespace Train {
 
             const float targetHeight = 1f;
             const float variance = 0.1f;
-            float height = _hierarchy.RootAgentNode.GameObject.transform.position.y;
+            float height = _hierarchy.RootAgentNode.Transform.position.y;
             float heightDelta = height - targetHeight;
             float heightMatch = Mathf.Exp(-heightDelta * heightDelta / variance);
             float heightReward = heightMatch * (1f - _passion.Value) * Config.Reward.HeightMatchRewardMultiplier;

@@ -7,11 +7,11 @@ namespace Joint {
         protected JointNodeBase RootNode { get; private set; }
 
         protected virtual void Awake() {
-            GameObject rootJoint;
-            if (IsJoint(gameObject)) {
-                rootJoint = gameObject;
+            Transform rootJoint;
+            if (IsJoint(transform)) {
+                rootJoint = transform;
             } else {
-                GameObject[] roots = GetChildrenJoint(gameObject);
+                Transform[] roots = GetChildrenJoint(transform);
                 if (roots.Length == 0) {
                     Debug.LogError($"[JointHierarchyBase] No Joint found in children of {name}", this);
                     return;
@@ -31,26 +31,24 @@ namespace Joint {
             GetNodes(RootNode);
         }
 
-        protected virtual bool IsJoint(GameObject candidate) => true;
+        protected virtual bool IsJoint(Transform candidate) => true;
 
-        protected GameObject[] GetChildrenJoint(GameObject parent) {
-            List<GameObject> childrenJoint = new();
+        protected Transform[] GetChildrenJoint(Transform parent) {
+            List<Transform> childrenJoint = new();
 
-            for (int i = 0; i < parent.transform.childCount; i++) {
-                GameObject child = parent.transform.GetChild(i).gameObject;
+            foreach (Transform child in parent) {
                 CollectChildren(child, childrenJoint);
             }
 
             return childrenJoint.ToArray();
 
-            void CollectChildren(GameObject obj, List<GameObject> children) {
-                if (IsJoint(obj)) {
-                    children.Add(obj);
+            void CollectChildren(Transform t, List<Transform> children) {
+                if (IsJoint(t)) {
+                    children.Add(t);
                     return;
                 }
 
-                for (int i = 0; i < obj.transform.childCount; i++) {
-                    GameObject child = obj.transform.GetChild(i).gameObject;
+                foreach (Transform child in t) {
                     CollectChildren(child, children);
                 }
             }
@@ -64,11 +62,11 @@ namespace Joint {
             }
         }
 
-        protected virtual JointNodeBase GetJointNode(GameObject joint, JointNodeBase parent) {
+        protected virtual JointNodeBase GetJointNode(Transform joint, JointNodeBase parent) {
             JointNodeBase node = new(joint, parent);
-            GameObject[] childrenJoint = GetChildrenJoint(joint);
+            Transform[] childrenJoint = GetChildrenJoint(joint);
 
-            foreach (GameObject childJoint in childrenJoint) {
+            foreach (Transform childJoint in childrenJoint) {
                 node.Children.Add(GetJointNode(childJoint, node));
             }
 

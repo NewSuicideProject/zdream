@@ -4,11 +4,11 @@ using UnityEngine;
 namespace Joint {
     public class JointNodeBase {
         public readonly List<JointNodeBase> Children = new();
-        public readonly GameObject GameObject;
+        public readonly Transform Transform;
         public readonly JointNodeBase Parent;
 
-        public JointNodeBase(GameObject gameObject, JointNodeBase parent) {
-            GameObject = gameObject;
+        public JointNodeBase(Transform transform, JointNodeBase parent) {
+            Transform = transform;
             Parent = parent;
         }
 
@@ -27,7 +27,7 @@ namespace Joint {
             }
 
             IsSevered = true;
-            GameObject.transform.localScale = Vector3.zero;
+            Transform.localScale = Vector3.zero;
 
             foreach (JointNodeBase child in Children) {
                 child.Sever();
@@ -40,7 +40,7 @@ namespace Joint {
             }
 
             IsSevered = false;
-            GameObject.transform.localScale = Vector3.one;
+            Transform.localScale = Vector3.one;
 
             foreach (JointNodeBase child in Children) {
                 child.Join();

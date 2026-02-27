@@ -44,6 +44,11 @@ class CurriculumCallback(BaseCallback):
             if hasattr(features_extractor, key)
             and getattr(features_extractor, key).item() != self.gate_ratio_targets[key]
         }
+        self.gate_ratio_targets = {
+            k: v
+            for k, v in self.gate_ratio_targets.items()
+            if k in self.gate_ratio_starts
+        }
 
         if isinstance(self.unity_env, VecEnv):
             unity_params = self.unity_env.env_method("get_parameters", indices=[0])[0]
@@ -60,14 +65,34 @@ class CurriculumCallback(BaseCallback):
             for group in self.unity_param_targets
             if group in unity_params
         }
+        self.unity_param_targets = {
+            group: {
+                k: v
+                for k, v in keys.items()
+                if k in self.unity_param_starts.get(group, {})
+            }
+            for group, keys in self.unity_param_targets.items()
+            if group in self.unity_param_starts
+        }
 
-        logger.info("start gate  : %s", self.gate_ratio_starts)
-        logger.info("target gate : %s", self.gate_ratio_targets)
-        logger.info("start env   : %s", self.unity_param_starts)
-        logger.info("target env  : %s", self.unity_param_targets)
+        gate_log = "\n".join(
+            f"\t{key}: {start:.4f} -> {self.gate_ratio_targets[key]:.4f}"
+            for key, start in self.gate_ratio_starts.items()
+        )
+        unity_log = "\n".join(
+            f"\t{group}:\n"
+            + "\n".join(
+                f"\t\t{key}: {start_val:.4f} -> {self.unity_param_targets[group][key]:.4f}"
+                for key, start_val in starts.items()
+            )
+            for group, starts in self.unity_param_starts.items()
+        )
+        logger.info("gate ratios:\n%s", gate_log)
+        logger.info("unity params:\n%s", unity_log)
 
     def _on_step(self) -> bool:
-        if self.n_calls % self.interval != 0:
+        prev_timesteps = self.num_timesteps - self.training_env.num_envs
+        if self.num_timesteps // self.interval == prev_timesteps // self.interval:
             return True
 
         t = min(self.num_timesteps / self.steps_count, 1.0)

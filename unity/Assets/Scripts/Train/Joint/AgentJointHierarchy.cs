@@ -15,19 +15,19 @@ namespace Train.Joint {
             base.Awake();
 
             RootAgentNode = (AgentJointNode)RootNode;
-            _initialRootLocalPosition = RootAgentNode.GameObject.transform.localPosition;
-            _initialRootLocalRotation = RootAgentNode.GameObject.transform.localRotation;
+            _initialRootLocalPosition = RootAgentNode.Transform.localPosition;
+            _initialRootLocalRotation = RootAgentNode.Transform.localRotation;
 
             AgentNodes = Nodes.Cast<AgentJointNode>().ToList();
         }
 
-        protected override bool IsJoint(GameObject candidate) => candidate.GetComponent<ArticulationBody>() != null;
+        protected override bool IsJoint(Transform candidate) => candidate.GetComponent<ArticulationBody>() != null;
 
-        protected override JointNodeBase GetJointNode(GameObject joint, JointNodeBase parent) {
+        protected override JointNodeBase GetJointNode(Transform joint, JointNodeBase parent) {
             AgentJointNode node = new(joint, (AgentJointNode)parent);
 
-            GameObject[] childrenJoint = GetChildrenJoint(joint);
-            foreach (GameObject childJoint in childrenJoint) {
+            Transform[] childrenJoint = GetChildrenJoint(joint);
+            foreach (Transform childJoint in childrenJoint) {
                 node.Children.Add(GetJointNode(childJoint, node));
             }
 
@@ -45,8 +45,8 @@ namespace Train.Joint {
 
         public override void OnEpisodeBegin() {
             RootAgentNode.Body.TeleportRoot(
-                RootAgentNode.GameObject.transform.parent.TransformPoint(_initialRootLocalPosition),
-                RootAgentNode.GameObject.transform.parent.rotation * _initialRootLocalRotation);
+                RootAgentNode.Transform.parent.TransformPoint(_initialRootLocalPosition),
+                RootAgentNode.Transform.parent.rotation * _initialRootLocalRotation);
             base.OnEpisodeBegin();
         }
     }

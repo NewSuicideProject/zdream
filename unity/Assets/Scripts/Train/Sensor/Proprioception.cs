@@ -45,7 +45,7 @@ namespace Train.Sensor {
         }
 
         private void FixedUpdate() {
-            Transform rootTransform = Hierarchy.RootAgentNode.GameObject.transform;
+            Transform rootTransform = Hierarchy.RootAgentNode.Transform;
             ArticulationBody rootBody = Hierarchy.RootAgentNode.Body;
 
             gravity = rootTransform.InverseTransformDirection(Physics.gravity).normalized;

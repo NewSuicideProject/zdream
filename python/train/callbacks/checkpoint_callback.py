@@ -23,17 +23,20 @@ class CheckpointCallback(BaseCallback):
         self.unity_env = unity_env
 
     def _on_step(self) -> bool:
-        if self.n_calls % self.interval == 0:
-            step = self.num_timesteps
-            checkpoint_path = self.directory / f"{step}.zip"
+        prev_timesteps = self.num_timesteps - self.training_env.num_envs
+        if self.num_timesteps // self.interval == prev_timesteps // self.interval:
+            return True
 
-            self.model.save(checkpoint_path)
+        step = self.num_timesteps
+        checkpoint_path = self.directory / f"{step}.zip"
 
-            with zipfile.ZipFile(checkpoint_path, mode="a") as archive:
-                if isinstance(self.unity_env, VecEnv):
-                    params = self.unity_env.env_method("get_parameters", indices=[0])[0]
-                else:
-                    params = self.unity_env.get_parameters()
-                archive.writestr("unity_params.json", json.dumps(params))
+        self.model.save(checkpoint_path)
+
+        with zipfile.ZipFile(checkpoint_path, mode="a") as archive:
+            if isinstance(self.unity_env, VecEnv):
+                params = self.unity_env.env_method("get_parameters", indices=[0])[0]
+            else:
+                params = self.unity_env.get_parameters()
+            archive.writestr("unity_params.json", json.dumps(params))
 
         return True

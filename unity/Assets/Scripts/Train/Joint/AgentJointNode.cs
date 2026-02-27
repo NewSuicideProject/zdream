@@ -13,10 +13,10 @@ namespace Train.Joint {
         private ArticulationReducedSpace _rawTarget; // normalized
         public ArticulationReducedSpace RawTarget => _rawTarget;
 
-        public AgentJointNode(GameObject gameObject, AgentJointNode parent) : base(gameObject, parent) {
-            Body = gameObject.GetComponent<ArticulationBody>();
-            _collider = gameObject.GetComponentInChildren<Collider>();
-            Force = gameObject.AddComponent<Force>();
+        public AgentJointNode(Transform transform, AgentJointNode parent) : base(transform, parent) {
+            Body = transform.GetComponent<ArticulationBody>();
+            _collider = transform.GetComponentInChildren<Collider>();
+            Force = transform.gameObject.AddComponent<Force>();
 
             DoF = Body.dofCount;
             _zeroSpace = DoF switch {
@@ -37,7 +37,7 @@ namespace Train.Joint {
             IsSevered = true;
             _collider.enabled = false;
             Body.enabled = false;
-            GameObject.transform.localScale = Vector3.zero;
+            Transform.localScale = Vector3.zero;
 
 
             foreach (JointNodeBase child in Children) {
@@ -68,7 +68,7 @@ namespace Train.Joint {
             }
 
             IsSevered = false;
-            GameObject.transform.localScale = Vector3.one;
+            Transform.localScale = Vector3.one;
             Body.enabled = true;
             ResetBody();
             _collider.enabled = true;
