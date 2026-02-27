@@ -20,7 +20,7 @@ class TerrainEncoder(nn.Module):
             activation_fn = nn.ReLU
 
         layers: list[nn.Module] = []
-        last_dim = resolution
+        last_dim = resolution * resolution
 
         for hidden_dim in hidden_dims:
             layers.append(nn.Linear(last_dim, hidden_dim))
