@@ -46,8 +46,8 @@ unity_params:
 
   assist:
     target_assist: 0.1
-    height_assist: 1.0
-    rotation_assist: 1.0
+    height_assist: 0.75
+    rotation_assist: 0.75
 
   reward:
     stay_success_reward: 0.0
@@ -58,7 +58,7 @@ unity_params:
     jitter_penalty_multiplier: 0.5
     energy_penalty_multiplier: 0.5
     upright_reward_multiplier: 2.0
-    height_match_reward_multiplier: 2.0
+    height_match_reward_multiplier: 1.0
     direction_reward_multiplier: 0.0
 
   normalization:

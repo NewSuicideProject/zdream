@@ -85,6 +85,7 @@ def run(config: DictConfig) -> None:
             path=checkpoint_path,
             env=unity_env,
             custom_objects={
+                "learning_rate": config.train.learning_rate,
                 "learning_starts": config.train.prepare_count,
                 "gradient_steps": config.train.gradient_count,
                 "train_freq": config.train.train_interval,
@@ -101,6 +102,7 @@ def run(config: DictConfig) -> None:
 
         model = SAC(
             policy=MultiInputPolicy,
+            learning_rate=config.train.learning_rate,
             learning_starts=config.train.prepare_count,
             gradient_steps=config.train.gradient_count,
             train_freq=config.train.train_interval,
