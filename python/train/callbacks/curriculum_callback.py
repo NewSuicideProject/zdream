@@ -45,9 +45,9 @@ class CurriculumCallback(BaseCallback):
             and getattr(features_extractor, key).item() != self.gate_ratio_targets[key]
         }
         self.gate_ratio_targets = {
-            k: v
-            for k, v in self.gate_ratio_targets.items()
-            if k in self.gate_ratio_starts
+            key: value
+            for key, value in self.gate_ratio_targets.items()
+            if key in self.gate_ratio_starts
         }
 
         if isinstance(self.unity_env, VecEnv):
@@ -65,50 +65,62 @@ class CurriculumCallback(BaseCallback):
             for group in self.unity_param_targets
             if group in unity_params
         }
+        self.unity_param_starts = {
+            group: params for group, params in self.unity_param_starts.items() if params
+        }
         self.unity_param_targets = {
             group: {
-                k: v
-                for k, v in keys.items()
-                if k in self.unity_param_starts.get(group, {})
+                key: value
+                for key, value in self.unity_param_targets[group].items()
+                if key in self.unity_param_starts[group]
             }
-            for group, keys in self.unity_param_targets.items()
-            if group in self.unity_param_starts
+            for group in self.unity_param_starts
         }
 
-        gate_log = "\n".join(
-            f"\t{key}: {start:.4f} -> {self.gate_ratio_targets[key]:.4f}"
-            for key, start in self.gate_ratio_starts.items()
-        )
-        unity_log = "\n".join(
-            f"\t{group}:\n"
-            + "\n".join(
-                f"\t\t{key}: {start_val:.4f} -> {self.unity_param_targets[group][key]:.4f}"
-                for key, start_val in starts.items()
+        if self.gate_ratio_starts:
+            gate_log = OmegaConf.to_yaml(
+                OmegaConf.create(
+                    {
+                        key: f"{start:.4f} -> {self.gate_ratio_targets[key]:.4f}"
+                        for key, start in self.gate_ratio_starts.items()
+                    }
+                )
             )
-            for group, starts in self.unity_param_starts.items()
-        )
-        logger.info("gate ratios:\n%s", gate_log)
-        logger.info("unity params:\n%s", unity_log)
+            logger.info("gate ratios:\n%s", gate_log)
+
+        if self.unity_param_starts:
+            unity_log = OmegaConf.to_yaml(
+                OmegaConf.create(
+                    {
+                        group: {
+                            key: f"{start_val:.4f} -> {self.unity_param_targets[group][key]:.4f}"
+                            for key, start_val in starts.items()
+                        }
+                        for group, starts in self.unity_param_starts.items()
+                    }
+                )
+            )
+            logger.info("unity params:\n%s", unity_log)
 
     def _on_step(self) -> bool:
         prev_timesteps = self.num_timesteps - self.training_env.num_envs
         if self.num_timesteps // self.interval == prev_timesteps // self.interval:
             return True
 
-        t = min(self.num_timesteps / self.steps_count, 1.0)
+        ratio = min(self.num_timesteps / self.steps_count, 1.0)
 
-        def lerp(start: float, end: float, t: float) -> float:
-            return start + (end - start) * t
+        def lerp(a: float, b: float, r: float) -> float:
+            return a + (b - a) * r
 
         features_extractor = self.model.policy.features_extractor
         for key, start in self.gate_ratio_starts.items():
-            value = lerp(start, self.gate_ratio_targets[key], t)
+            value = lerp(start, self.gate_ratio_targets[key], ratio)
             buffer: torch.Tensor = getattr(features_extractor, key)
             buffer.fill_(value)
 
         for group, starts in self.unity_param_starts.items():
             for key, start_val in starts.items():
-                value = lerp(start_val, self.unity_param_targets[group][key], t)
+                value = lerp(start_val, self.unity_param_targets[group][key], ratio)
 
                 if isinstance(self.unity_env, VecEnv):
                     self.unity_env.env_method("set_parameter", group, key, value)

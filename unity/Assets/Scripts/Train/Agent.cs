@@ -97,8 +97,8 @@ namespace Train {
                 }
             }
 
-            float jitterPenalty = jitterSum / _proprioception.TotalDoF * Config.Reward.JitterPenaltyMultiplier;
-            float energyPenalty = energySum / _proprioception.TotalDoF * (1f - _passion.Value) *
+            float jitterPenalty = jitterSum / _hierarchy.TotalDoF * Config.Reward.JitterPenaltyMultiplier;
+            float energyPenalty = energySum / _hierarchy.TotalDoF * (1f - _passion.Value) *
                                   Config.Reward.EnergyPenaltyMultiplier;
 
             float targetDirectionMatch =
