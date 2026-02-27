@@ -11,15 +11,14 @@ namespace Train {
     [RequireComponent(typeof(AgentJointHierarchy))]
     [RequireComponent(typeof(Passion))]
     public class Agent : Unity.MLAgents.Agent {
-        private AgentJointHierarchy _hierarchy;
-
         private EnvironmentBase _environment;
-        private Proprioception _proprioception;
+        private AgentJointHierarchy _hierarchy;
         private Navigation _navigation;
         private Passion _passion;
-        private Terrain _terrain;
+        private Proprioception _proprioception;
         private float _stayTime;
         private Transform _targetTransform;
+        private Terrain _terrain;
 
         protected override void Awake() {
             base.Awake();
@@ -81,15 +80,25 @@ namespace Train {
 
             int index = 0;
             float jitterSum = 0f;
+            float energySum = 0f;
             foreach (AgentJointNode node in _hierarchy.AgentNodes) {
+                ArticulationReducedSpace positions = node.Body.jointPosition;
                 for (int i = 0; i < node.DoF; i++) {
-                    jitterSum += (newTargets[index] - node.RawTarget[i]) * (newTargets[index] - node.RawTarget[i]);
-                    node.SetTarget(i, newTargets[index]);
+                    float newTarget = newTargets[index];
+                    jitterSum += (newTarget - node.RawTarget[i]) * (newTarget - node.RawTarget[i]);
+                    node.SetTarget(i, newTarget);
                     index++;
+
+                    ArticulationDrive drive = node.GetDrive(i);
+                    float position = positions[i] * Mathf.Rad2Deg;
+                    float normalizedPosition = Normalize.JointPosition(position, drive.lowerLimit, drive.upperLimit);
+                    energySum += (newTarget - normalizedPosition) * (newTarget - normalizedPosition);
                 }
             }
 
             float jitterPenalty = jitterSum / _proprioception.TotalDoF * Config.Reward.JitterPenaltyMultiplier;
+            float energyPenalty = energySum / _proprioception.TotalDoF * (1f - _passion.Value) *
+                                  Config.Reward.EnergyPenaltyMultiplier;
 
             float targetDirectionMatch =
                 Vector3.Dot(
@@ -113,17 +122,6 @@ namespace Train {
             float height = transform.localPosition.y;
             float heightMatch = Mathf.Exp(-Mathf.Pow(height - targetHeight, 2) / variance);
             float heightReward = heightMatch * (1f - _passion.Value) * Config.Reward.HeightMatchRewardMultiplier;
-
-            float energySum = 0f;
-            foreach (AgentJointNode node in _hierarchy.AgentNodes) {
-                for (int i = 0; i < node.DoF; i++) {
-                    float normalizedForce = Normalize.Force(node.Body.jointForce[i]);
-                    energySum += normalizedForce * normalizedForce;
-                    // TODO - force normalization
-                }
-            }
-
-            float energyPenalty = energySum * (1f - _passion.Value) * Config.Reward.EnergyPenaltyMultiplier;
 
             float uprightMatch = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
             float uprightReward = uprightMatch * (1f - _passion.Value) * Config.Reward.UprightRewardMultiplier;
