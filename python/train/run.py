@@ -111,6 +111,9 @@ def run(config: DictConfig) -> None:
             policy_kwargs=policy_kwargs,
         )
 
+    for param_group in model.ent_coef_optimizer.param_groups:
+        param_group["lr"] = config.train.entropy_learning_rate
+
     model.set_logger(configure(str(base_dir), ["tensorboard"]))
 
     model.learn(
