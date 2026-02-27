@@ -9,11 +9,11 @@ class NavigationEncoder(nn.Module):
 
     def __init__(
         self,
-        d_model=16,
-        activation_fn=None,
-        num_layers=1,
         max_tokens=3,
-        nhead=1,
+        d_model=16,
+        num_layers=1,
+        nhead=2,
+        activation_fn=None,
     ):
         super().__init__()
 

@@ -2,12 +2,7 @@ import torch.nn as nn
 
 
 class ProprioceptionEncoder(nn.Module):
-    def __init__(
-        self,
-        input_dim,
-        hidden_dims=None,
-        activation_fn=None,
-    ):
+    def __init__(self, input_dim, hidden_dims=None, activation_fn=None):
         super().__init__()
 
         if hidden_dims is None:

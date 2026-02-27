@@ -4,16 +4,22 @@ policy_kwargs:
     proprioception_kwargs:
       hidden_dims: [256, 256, 128]
 
+      activation_fn: "relu"
+
     navigation_kwargs:
       max_tokens: 3
-
       d_model: 16
       num_layers: 1
       nhead: 2
 
+      activation_fn: "relu"
+
     terrain_kwargs:
       resolution: 8
+
       hidden_dims: [128, 64, 32]
+
+      activation_fn: "relu"
 
     gate_ratios:
       proprioception_ratio: 1.0
@@ -27,13 +33,13 @@ policy_kwargs:
 
 unity_params:
   navigation:
-    max_tokens: ${model.policy_kwargs.features_extractor_kwargs.navigation_kwargs.max_tokens}
+    max_tokens: ${model.policy_kwargs.features_extractor_kwargs.navigation_kwargs.max_tokens} # do not modify
 
   terrain:
-    resolution: ${model.policy_kwargs.features_extractor_kwargs.terrain_kwargs.resolution}
+    resolution: ${model.policy_kwargs.features_extractor_kwargs.terrain_kwargs.resolution} # do not modify
 
   passion:
-    ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.passion_ratio}
+    ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.passion_ratio} # do not modify
 
   joint:
     target_smoothing: 0.2

@@ -112,25 +112,20 @@ def run(config):
 
     model.set_logger(configure(str(log_dir), ["tensorboard"]))
 
-    callbacks = [
-        CheckpointCallback(
-            interval=config.train.checkpoint_interval,
-            directory=str(checkpoint_dir),
-            unity_env=unity_env,
-        ),
-    ]
-    if config.curriculum:
-        callbacks.append(
+    model.learn(
+        total_timesteps=config.train.step_count,
+        callback=[
+            CheckpointCallback(
+                interval=config.train.checkpoint_interval,
+                directory=str(checkpoint_dir),
+                unity_env=unity_env,
+            ),
             CurriculumCallback(
                 unity_env=unity_env,
                 config=config.curriculum,
                 steps_count=config.train.step_count,
-            )
-        )
-
-    model.learn(
-        total_timesteps=config.train.step_count,
-        callback=callbacks,
+            ),
+        ],
     )
 
     model.save(str(model_path))

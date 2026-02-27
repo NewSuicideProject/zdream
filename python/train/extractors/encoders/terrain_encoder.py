@@ -2,12 +2,7 @@ import torch.nn as nn
 
 
 class TerrainEncoder(nn.Module):
-    def __init__(
-        self,
-        resolution=8,
-        hidden_dims=None,
-        activation_fn=None,
-    ):
+    def __init__(self, resolution=8, hidden_dims=None, activation_fn=None):
         super().__init__()
 
         if hidden_dims is None:

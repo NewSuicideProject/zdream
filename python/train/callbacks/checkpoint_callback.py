@@ -2,7 +2,6 @@ import json
 import zipfile
 from pathlib import Path
 
-from python.train.unity_env import UnityEnv
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.vec_env import VecEnv
 
@@ -10,10 +9,10 @@ from stable_baselines3.common.vec_env import VecEnv
 class CheckpointCallback(BaseCallback):
     def __init__(
         self,
-        interval: int,
-        directory: str,
-        unity_env: UnityEnv,
-        verbose: int = 0,
+        unity_env,
+        interval,
+        directory,
+        verbose=0,
     ):
         super().__init__(verbose)
         self.interval = interval
