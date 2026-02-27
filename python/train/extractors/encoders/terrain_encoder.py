@@ -1,3 +1,4 @@
+import hydra
 import torch
 import torch.nn as nn
 from omegaconf import DictConfig
@@ -8,7 +9,7 @@ class TerrainEncoder(nn.Module):
         self,
         resolution: int = 8,
         hidden_dims: list[int] | None = None,
-        activation_fn: DictConfig | type[nn.Module] | None = None,
+        activation_fn: DictConfig | dict | type[nn.Module] | None = None,
     ) -> None:
         super().__init__()
 
@@ -23,9 +24,7 @@ class TerrainEncoder(nn.Module):
 
         for hidden_dim in hidden_dims:
             layers.append(nn.Linear(last_dim, hidden_dim))
-            if isinstance(activation_fn, DictConfig):
-                import hydra
-
+            if isinstance(activation_fn, (DictConfig, dict)):
                 layers.append(hydra.utils.instantiate(activation_fn))
             else:
                 layers.append(activation_fn())

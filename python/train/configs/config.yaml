@@ -3,3 +3,5 @@ defaults:
   - model: default
   - curriculum: default
   - _self_
+  - local: default
+    optional: true

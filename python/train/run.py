@@ -63,8 +63,8 @@ def run(config: DictConfig) -> None:
     logger.info(f"unity_path: {unity_path}")
     logger.info(f"unity_server_path: {unity_server_path}")
     logger.info(f"checkpoint_path: {checkpoint_path}")
-    logger.info(f"config:\n{OmegaConf.to_yaml(config)}")
-    logger.info(f"unity_params: {unity_params}")
+    logger.info(f"config:\n{OmegaConf.to_yaml(config, resolve=True)}")
+    logger.info(f"unity_params:\n{OmegaConf.to_yaml(unity_params)}")
 
     if config.train.env_count > 1 and unity_server_path:
         unity_envs = [partial(make_unity_env, str(unity_path), 0, unity_params)]
