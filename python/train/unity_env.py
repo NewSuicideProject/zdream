@@ -1,3 +1,4 @@
+import copy
 import logging
 
 import numpy as np
@@ -7,7 +8,6 @@ from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.environment_parameters_channel import (
     EnvironmentParametersChannel,
 )
-from omegaconf import OmegaConf
 from python.train.extractors.encoders.navigation_encoder import NavigationEncoder
 
 
@@ -26,9 +26,10 @@ class UnityEnv(Env):
 
         self.env_params_channel = EnvironmentParametersChannel()
 
-        self.parameters: dict
-
-        self.set_parameters(parameters)
+        self._parameters: dict = {}
+        for group, group_value in parameters.items():
+            for key, value in group_value.items():
+                self.set_parameter(group, key, value)
 
         logger.info("waiting unity")
         self._env = UnityEnvironment(
@@ -49,8 +50,8 @@ class UnityEnv(Env):
             for observation_spec in self._behavior_spec.observation_specs
         }
 
-        resolution = int(parameters["terrain"]["resolution"])
-        max_token = int(parameters["navigation"]["max_token"])
+        resolution = int(self._parameters["terrain"]["resolution"])
+        max_token = int(self._parameters["navigation"]["max_token"])
 
         self.observation_space = spaces.Dict(
             {
@@ -89,37 +90,27 @@ class UnityEnv(Env):
     def _get_parameter_key(group: str, key: str) -> str:
         return f"{group}__{key}"
 
-    def set_parameters(self, parameters: dict):
-        self.parameters = parameters
-        for group, group_value in parameters.items():
-            for key, value in group_value.items():
-                self.env_params_channel.set_float_parameter(
-                    self._get_parameter_key(group, key), float(value)
-                )
-
     def set_parameter(self, group: str, key: str, value: float):
-        self.parameters[group][key] = value
+        self._parameters.setdefault(group, {})[key] = value
         self.env_params_channel.set_float_parameter(
             self._get_parameter_key(group, key), float(value)
         )
 
-    def get_parameters(self) -> dict:
-        return OmegaConf.to_container(self.parameters, resolve=True)
+    def get_parameters(self):
+        return copy.deepcopy(self._parameters)
 
     def _get_obs(self, steps):
-        raw = {
+        raw_obs = {
             observation_spec.name: steps.obs[i][0]
             for i, observation_spec in enumerate(self._behavior_spec.observation_specs)
         }
 
-        return {
-            "passion": raw["passion"],
-            "proprioception": raw["proprioception"],
-            "terrain": raw["terrain"][: self.observation_space["terrain"].shape[0]],
-            "navigation": raw["navigation"][
-                : self.observation_space["navigation"].shape[0]
-            ],
-        }
+        obs = {}
+        for key, space in self.observation_space.items():
+            size = np.prod(space.shape)
+            obs[key] = raw_obs[key][:size]
+
+        return obs
 
     def reset(self, **kwargs):
         self._env.reset()

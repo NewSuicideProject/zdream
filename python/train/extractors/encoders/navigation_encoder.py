@@ -9,7 +9,7 @@ class NavigationEncoder(nn.Module):
 
     def __init__(
         self,
-        d_model=128,
+        d_model=16,
         activation_fn=None,
         num_layers=1,
         max_tokens=3,
