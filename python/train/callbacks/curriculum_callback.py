@@ -1,16 +1,25 @@
 import logging
 
 import torch
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.vec_env import VecEnv
+
+from ..unity_env import UnityEnv
 
 
 logger = logging.getLogger(__name__)
 
 
 class CurriculumCallback(BaseCallback):
-    def __init__(self, unity_env, config, steps_count, interval=1, verbose=0):
+    def __init__(
+        self,
+        unity_env: VecEnv | UnityEnv,
+        config: DictConfig,
+        steps_count: int,
+        interval: int = 1,
+        verbose: int = 0,
+    ) -> None:
         super().__init__(verbose)
 
         self.unity_env = unity_env
@@ -27,7 +36,7 @@ class CurriculumCallback(BaseCallback):
         self.gate_ratio_starts: dict[str, float] = {}
         self.unity_param_starts: dict[str, dict[str, float]] = {}
 
-    def _on_training_start(self):
+    def _on_training_start(self) -> None:
         features_extractor = self.model.policy.features_extractor
         self.gate_ratio_starts = {
             key: getattr(features_extractor, key).item()
@@ -57,13 +66,13 @@ class CurriculumCallback(BaseCallback):
         logger.info("start env   : %s", self.unity_param_starts)
         logger.info("target env  : %s", self.unity_param_targets)
 
-    def _on_step(self):
+    def _on_step(self) -> bool:
         if self.n_calls % self.interval != 0:
             return True
 
         t = min(self.num_timesteps / self.steps_count, 1.0)
 
-        def lerp(start, end, t):
+        def lerp(start: float, end: float, t: float) -> float:
             return start + (end - start) * t
 
         features_extractor = self.model.policy.features_extractor

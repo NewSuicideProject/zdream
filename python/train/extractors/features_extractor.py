@@ -1,4 +1,5 @@
 import torch
+from gymnasium import spaces
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 from .encoders import NavigationEncoder, ProprioceptionEncoder, TerrainEncoder
@@ -7,12 +8,12 @@ from .encoders import NavigationEncoder, ProprioceptionEncoder, TerrainEncoder
 class FeaturesExtractor(BaseFeaturesExtractor):
     def __init__(
         self,
-        observation_space,
-        navigation_kwargs=None,
-        proprioception_kwargs=None,
-        terrain_kwargs=None,
+        observation_space: spaces.Dict,
+        navigation_kwargs: dict | None = None,
+        proprioception_kwargs: dict | None = None,
+        terrain_kwargs: dict | None = None,
         gate_ratios: dict[str, float] | None = None,
-    ):
+    ) -> None:
         super().__init__(observation_space, features_dim=1)
 
         if navigation_kwargs is None:
@@ -53,7 +54,7 @@ class FeaturesExtractor(BaseFeaturesExtractor):
             return buf
         return torch.ones(1)
 
-    def forward(self, obs):
+    def forward(self, obs: dict[str, torch.Tensor]) -> torch.Tensor:
         navigation = self.navigation(obs["navigation"]) * self._gate("navigation_ratio")
         terrain = self.terrain(obs["terrain"]) * self._gate("terrain_ratio")
         proprioception = self.proprioception(obs["proprioception"]) * self._gate(

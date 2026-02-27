@@ -1,8 +1,14 @@
+import torch
 import torch.nn as nn
 
 
 class ProprioceptionEncoder(nn.Module):
-    def __init__(self, input_dim, hidden_dims=None, activation_fn=None):
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dims: list[int] | None = None,
+        activation_fn: type[nn.Module] | str | None = None,
+    ) -> None:
         super().__init__()
 
         if hidden_dims is None:
@@ -16,7 +22,7 @@ class ProprioceptionEncoder(nn.Module):
         if activation_fn is None:
             activation_fn = nn.ReLU
 
-        layers = []
+        layers: list[nn.Module] = []
         last_dim = input_dim
 
         for hidden_dim in hidden_dims:
@@ -27,5 +33,5 @@ class ProprioceptionEncoder(nn.Module):
         self.net = nn.Sequential(*layers)
         self.output_dim = last_dim
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x)

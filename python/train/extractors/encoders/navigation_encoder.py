@@ -9,12 +9,12 @@ class NavigationEncoder(nn.Module):
 
     def __init__(
         self,
-        max_tokens=3,
-        d_model=16,
-        num_layers=1,
-        nhead=2,
-        activation_fn=None,
-    ):
+        max_tokens: int = 3,
+        d_model: int = 16,
+        num_layers: int = 1,
+        nhead: int = 2,
+        activation_fn: nn.Module | str | None = None,
+    ) -> None:
         super().__init__()
 
         self.d_model = d_model
@@ -55,7 +55,7 @@ class NavigationEncoder(nn.Module):
 
         self.output_dim = self.d_model
 
-    def forward(self, x):
+    def forward(self, x: th.Tensor) -> th.Tensor:
         batch_size = x.shape[0]
         x = x.view(batch_size, self.max_tokens, NavigationEncoder.token_size)
 
@@ -70,8 +70,8 @@ class NavigationEncoder(nn.Module):
             return th.zeros(batch_size, self.d_model, device=x.device, dtype=x.dtype)
 
         x = self.transformer_blocks(x, src_key_padding_mask=padding_mask)
-        x = x * valid_mask
+        x *= valid_mask
         x = x.sum(dim=1)
-        x = x / valid_mask.sum(dim=1).clamp(min=1)
+        x /= valid_mask.sum(dim=1).clamp(min=1)
 
         return x

@@ -5,15 +5,17 @@ from pathlib import Path
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.vec_env import VecEnv
 
+from ..unity_env import UnityEnv
+
 
 class CheckpointCallback(BaseCallback):
     def __init__(
         self,
-        unity_env,
-        interval,
-        directory,
-        verbose=0,
-    ):
+        unity_env: VecEnv | UnityEnv,
+        interval: int,
+        directory: str,
+        verbose: int = 0,
+    ) -> None:
         super().__init__(verbose)
         self.interval = interval
         self.directory = Path(directory)
