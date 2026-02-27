@@ -40,7 +40,6 @@ def get_path(path_str: str | None) -> Path | None:
 @hydra.main(version_base=None, config_path="./configs", config_name="config")
 def run(config: DictConfig) -> None:
     base_dir = Path.cwd()
-    log_dir = base_dir / "log"
     model_path = base_dir / "model.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
@@ -110,7 +109,7 @@ def run(config: DictConfig) -> None:
             policy_kwargs=policy_kwargs,
         )
 
-    model.set_logger(configure(str(log_dir), ["tensorboard"]))
+    model.set_logger(configure(str(base_dir), ["tensorboard"]))
 
     model.learn(
         total_timesteps=config.train.step_count,

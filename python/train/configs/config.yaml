@@ -4,3 +4,7 @@ defaults:
   - curriculum: default
   - _self_
   - optional local: default
+
+hydra:
+  job:
+    chdir: True
