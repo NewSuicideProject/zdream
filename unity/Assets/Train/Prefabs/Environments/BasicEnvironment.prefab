@@ -47,6 +47,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Environment.EnvironmentBase
   agentPrefab: {fileID: 1849166048388668536, guid: 779e951164005fa42b6a14e5de4df8c4, type: 3}
   targetPrefab: {fileID: 4023071220588982890, guid: 47d6586d162f6334eb22b12a37e7f0db, type: 3}
+  agentSpawnOffest: {x: 0, y: 0.5, z: 0}
+  targetSpawnOffest: {x: 0, y: 0, z: 0}
   timeScale: 1
 --- !u!1 &6910087730733757821
 GameObject:

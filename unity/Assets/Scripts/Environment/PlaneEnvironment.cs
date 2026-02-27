@@ -5,8 +5,6 @@ namespace Environment {
     public class PlaneEnvironment : EnvironmentBase {
         [SerializeField] private float spawnRange = 20f;
         [SerializeField] private float minSpawnDistance = 5f;
-        [SerializeField] private Vector3 agentSpawnOffest = Vector3.zero;
-        [SerializeField] private Vector3 targetSpawnOffest = Vector3.zero;
 
         public override void OnEpisodeBegin() {
             Vector3 agentScale = AgentTransform.localScale;

@@ -4,6 +4,8 @@ namespace Environment {
     public class EnvironmentBase : MonoBehaviour {
         [SerializeField] protected GameObject agentPrefab;
         [SerializeField] protected GameObject targetPrefab;
+        [SerializeField] protected Vector3 agentSpawnOffest = Vector3.zero;
+        [SerializeField] protected Vector3 targetSpawnOffest = Vector3.zero;
 
         [SerializeField] private float timeScale = 2f;
 
@@ -13,8 +15,8 @@ namespace Environment {
         protected virtual void Awake() {
             Time.timeScale = timeScale;
 
-            TargetTransform = Instantiate(targetPrefab, transform).transform;
-            AgentTransform = Instantiate(agentPrefab, transform).transform;
+            TargetTransform = Instantiate(targetPrefab, targetSpawnOffest, Quaternion.identity, transform).transform;
+            AgentTransform = Instantiate(agentPrefab, agentSpawnOffest, Quaternion.identity, transform).transform;
         }
 
         public virtual void OnEpisodeBegin() {

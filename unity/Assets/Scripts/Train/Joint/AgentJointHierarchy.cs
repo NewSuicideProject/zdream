@@ -8,15 +8,15 @@ namespace Train.Joint {
         public AgentJointNode RootAgentNode;
         public List<AgentJointNode> AgentNodes;
 
-        private Vector3 _initialRootRelativePosition;
-        private Quaternion _initialRootRelativeRotation;
+        private Vector3 _initialRootLocalPosition;
+        private Quaternion _initialRootLocalRotation;
 
         protected override void Awake() {
             base.Awake();
 
             RootAgentNode = (AgentJointNode)RootNode;
-            _initialRootRelativePosition = RootAgentNode.GameObject.transform.localPosition;
-            _initialRootRelativeRotation = RootAgentNode.GameObject.transform.localRotation;
+            _initialRootLocalPosition = RootAgentNode.GameObject.transform.localPosition;
+            _initialRootLocalRotation = RootAgentNode.GameObject.transform.localRotation;
 
             AgentNodes = Nodes.Cast<AgentJointNode>().ToList();
         }
@@ -38,11 +38,15 @@ namespace Train.Joint {
             if (Config.Assist.GravityAssist > 0f) {
                 RootAgentNode.Body.AddForce(Vector3.up * Config.Assist.GravityAssist, ForceMode.Acceleration);
             }
+
+            if (Config.Assist.UprightAssist > 0f) {
+            }
         }
 
         public override void OnEpisodeBegin() {
-            RootAgentNode.Body.TeleportRoot(transform.TransformPoint(_initialRootRelativePosition),
-                transform.rotation * _initialRootRelativeRotation);
+            RootAgentNode.Body.TeleportRoot(
+                RootAgentNode.GameObject.transform.parent.TransformPoint(_initialRootLocalPosition),
+                RootAgentNode.GameObject.transform.parent.rotation * _initialRootLocalRotation);
             base.OnEpisodeBegin();
         }
     }
