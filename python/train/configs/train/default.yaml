@@ -1,0 +1,9 @@
+env_count: 1
+step_count: 10000000
+
+prepare_count: 10000
+batch_size: 256
+train_interval: 128
+gradient_count: 16
+
+checkpoint_interval: 10000

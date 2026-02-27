@@ -1,98 +1,136 @@
 import logging
-from datetime import datetime
+import os
 from functools import partial
 from pathlib import Path
 
-from stable_baselines3.common.callbacks import CheckpointCallback
+import hydra
+from dotenv import load_dotenv
+from hydra.utils import get_class, get_original_cwd
+from omegaconf import DictConfig, OmegaConf
+from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 from stable_baselines3.sac import SAC
 from stable_baselines3.sac.policies import MultiInputPolicy
 
-from .config import config
+from .callbacks import CheckpointCallback, CurriculumCallback
 from .unity_env import UnityEnv
 
 
 logger = logging.getLogger(__name__)
+load_dotenv(Path(__file__).parent / ".env")
 
 
-def make_unity_env(file_name: str, worker_id: int, env_params: dict):
-    return UnityEnv(unity_path=file_name, worker_id=worker_id, unity_kwargs=env_params)
+def make_unity_env(file_name: str | None, worker_id: int, parameters: dict) -> UnityEnv:
+    return UnityEnv(parameters, unity_path=file_name, worker_id=worker_id)
 
 
-def run():
-    logger.info(f"config: {config}")
+def get_path(path_str: str | None) -> Path | None:
+    if not path_str:
+        return None
+    path = Path(path_str)
+    if not path.is_absolute():
+        path = Path(get_original_cwd()) / path
+    if not path.exists():
+        logger.error(f"path invalid: {path}")
+        return None
+    return path
 
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    base_dir = Path.cwd() / timestamp
-    log_dir = base_dir / "log"
-    model_path = base_dir / "result.zip"
+
+@hydra.main(version_base=None, config_path="./configs", config_name="config")
+def run(config: DictConfig) -> None:
+    base_dir = Path.cwd()
+    model_path = base_dir / "model.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
-    unity_server_path = config.unity_server_path
-    unity_path = config.unity_path if config.unity_path else unity_server_path
+    unity_server_path = get_path(os.getenv("UNITY_SERVER_PATH", None))
+    unity_path = get_path(os.getenv("UNITY_PATH", None))
+    if not unity_path:
+        unity_path = unity_server_path
 
-    if config.env_count > 1 and unity_server_path:
-        envs = [partial(make_unity_env, str(unity_path), 0, config.unity_kwargs)]
-        for i in range(1, config.env_count):
-            envs.append(
-                partial(make_unity_env, str(unity_server_path), i, config.unity_kwargs)
-            )
-        env = SubprocVecEnv(envs)
-        env = VecMonitor(env)
+    checkpoint_path = get_path(os.getenv("CHECKPOINT_PATH", None))
+
+    if checkpoint_path:
+        import json
+        import zipfile
+
+        with zipfile.ZipFile(checkpoint_path).open("unity_params.json") as file:
+            unity_params = json.load(file)
     else:
-        env = UnityEnv(
+        unity_params = OmegaConf.to_container(config.model.unity_params, resolve=True)
+
+    logger.info(f"unity_path: {unity_path}")
+    logger.info(f"unity_server_path: {unity_server_path}")
+    logger.info(f"checkpoint_path: {checkpoint_path}")
+    logger.info(f"config:\n{OmegaConf.to_yaml(config, resolve=True)}")
+    logger.info(f"unity_params:\n{OmegaConf.to_yaml(unity_params)}")
+
+    if config.train.env_count > 1 and unity_server_path:
+        unity_envs = [partial(make_unity_env, str(unity_path), 0, unity_params)]
+        for i in range(1, config.train.env_count):
+            unity_envs.append(
+                partial(make_unity_env, str(unity_server_path), i, unity_params)
+            )
+        raw_unity_env = SubprocVecEnv(unity_envs)
+        unity_env = VecMonitor(raw_unity_env)
+    else:
+        raw_unity_env = UnityEnv(
             unity_path=str(unity_path) if unity_path else None,
-            unity_kwargs=config.unity_kwargs,
+            parameters=unity_params,
         )
-        env = Monitor(env)
+        unity_env = Monitor(raw_unity_env)
 
-    checkpoint_callback = CheckpointCallback(
-        save_freq=config.checkpoint_interval,
-        name_prefix="checkpoint",
-        save_path=str(checkpoint_dir),
-    )
-
-    if config.checkpoint_path:
+    if checkpoint_path:
         model = SAC.load(
-            path=config.checkpoint_path,
-            env=env,
-            tensorboard_log=str(log_dir),
+            path=checkpoint_path,
+            env=unity_env,
             custom_objects={
-                "learning_starts": config.prepare_count,
-                "gradient_steps": config.gradient_count,
-                "train_freq": config.train_interval,
-                "batch_size": config.batch_size,
+                "learning_starts": config.train.prepare_count,
+                "gradient_steps": config.train.gradient_count,
+                "train_freq": config.train.train_interval,
+                "batch_size": config.train.batch_size,
             },
         )
     else:
+        policy_kwargs = OmegaConf.to_container(config.model.policy_kwargs, resolve=True)
+
+        if "features_extractor_class" in policy_kwargs:
+            policy_kwargs["features_extractor_class"] = get_class(
+                policy_kwargs["features_extractor_class"]
+            )
+
         model = SAC(
             policy=MultiInputPolicy,
-            learning_starts=config.prepare_count,
-            gradient_steps=config.gradient_count,
-            train_freq=config.train_interval,
-            batch_size=config.batch_size,
-            env=env,
-            policy_kwargs=config.policy_kwargs,
-            tensorboard_log=str(log_dir),
+            learning_starts=config.train.prepare_count,
+            gradient_steps=config.train.gradient_count,
+            train_freq=config.train.train_interval,
+            batch_size=config.train.batch_size,
+            env=unity_env,
+            policy_kwargs=policy_kwargs,
         )
 
+    model.set_logger(configure(str(base_dir), ["tensorboard"]))
+
     model.learn(
-        total_timesteps=config.step_count,
-        callback=checkpoint_callback,
-        log_interval=config.log_interval,
-        tb_log_name="train",
+        total_timesteps=config.train.step_count,
+        callback=[
+            CheckpointCallback(
+                interval=config.train.checkpoint_interval,
+                directory=str(checkpoint_dir),
+                unity_env=raw_unity_env,
+            ),
+            CurriculumCallback(
+                unity_env=raw_unity_env,
+                config=config.curriculum,
+                steps_count=config.train.step_count,
+            ),
+        ],
     )
 
     model.save(str(model_path))
-    env.close()
+    unity_env.close()
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        format="[%(levelname)s] %(message)s",
-        force=True,
-    )
     logging.getLogger("mlagents_envs").setLevel(logging.WARNING)
     run()

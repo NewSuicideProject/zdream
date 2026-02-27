@@ -76,7 +76,7 @@ namespace Test {
             _rigidbody.angularVelocity = Vector3.zero;
             _rigidbody.linearVelocity = Vector3.zero;
 
-            _environment.Reset();
+            _environment.OnEpisodeBegin();
         }
 
         public override void CollectObservations(VectorSensor sensor) {

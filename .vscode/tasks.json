@@ -12,12 +12,12 @@
         "--no-capture-output",
         "python",
         "-m",
-        "python.test.run"
+        "test.run"
       ],
       "options": {
         "cwd": "${workspaceFolder}/test",
         "env": {
-          "PYTHONPATH": "${workspaceFolder}"
+          "PYTHONPATH": "${workspaceFolder}/python"
         }
       },
       "problemMatcher": [],
@@ -45,12 +45,12 @@
         "--no-capture-output",
         "python",
         "-m",
-        "python.train.run"
+        "train.run"
       ],
       "options": {
-        "cwd": "${workspaceFolder}/train",
+        "cwd": "${workspaceFolder}",
         "env": {
-          "PYTHONPATH": "${workspaceFolder}"
+          "PYTHONPATH": "${workspaceFolder}/python"
         }
       },
       "problemMatcher": [],

@@ -32,10 +32,10 @@ namespace Train.Sensor {
             _navMeshSurface = _navMeshObject.AddComponent<NavMeshSurface>();
             _navMeshSurface.layerMask = targetLayer;
             _navMeshPath = new NavMeshPath();
-            Reset();
+            OnEpisodeBegin();
         }
 
-        public void Reset() => _navMeshSurface.BuildNavMesh();
+        public void OnEpisodeBegin() => _navMeshSurface.BuildNavMesh();
 
         private void FixedUpdate() {
             if (!targetTransform) {

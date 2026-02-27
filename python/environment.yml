@@ -21,7 +21,7 @@ dependencies:
   - gymnasium
   - onnx
 
-  - pyyaml
+  - hydra-core
   - python-dotenv
 
   - pip:

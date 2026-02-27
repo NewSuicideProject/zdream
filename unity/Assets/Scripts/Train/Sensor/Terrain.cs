@@ -16,9 +16,12 @@ namespace Train.Sensor {
         }
 
         private void Awake() {
-            _spacing = Config.Normalization.ExpectedMaxThickness * 2 / (Config.Terrain.Resolution - 1);
-            HeightMap = new float[Config.Terrain.Resolution, Config.Terrain.Resolution];
+            HeightMap = new float[Config.Terrain.MaxResolution, Config.Terrain.MaxResolution];
+            OnEpisodeBegin();
         }
+
+        public void OnEpisodeBegin() =>
+            _spacing = Config.Normalization.ExpectedMaxThickness * 2 / (Config.Terrain.Resolution - 1);
 
         private void FixedUpdate() {
             float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;

@@ -8,7 +8,7 @@ namespace Environment {
         [SerializeField] private Vector3 agentSpawnOffest = Vector3.zero;
         [SerializeField] private Vector3 targetSpawnOffest = Vector3.zero;
 
-        public override void Reset() {
+        public override void OnEpisodeBegin() {
             Vector3 agentScale = AgentTransform.localScale;
             Vector3 targetScale = TargetTransform.localScale;
 

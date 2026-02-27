@@ -75,6 +75,6 @@ namespace Joint {
             return node;
         }
 
-        public virtual void Reset() => RootNode.Reset();
+        public virtual void OnEpisodeBegin() => RootNode.Reset();
     }
 }

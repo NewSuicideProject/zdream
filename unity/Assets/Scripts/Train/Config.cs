@@ -46,89 +46,105 @@ namespace Train {
             throw new System.NotSupportedException($"Unsupported config type: {typeof(T).Name}");
         }
 
-        public static class NavigationSensor {
-            public static int MaxToken = 3;
+        public static class Navigation {
+            public const int MaxMaxTokens = 10;
 
-            public static void Reset() => GetConfig("navigation_sensor__max_token", ref MaxToken);
+            private static int _maxTokens;
+            public static int MaxTokens => _maxTokens;
+
+            public static void OnEpisodeBegin() {
+                GetConfig("navigation__max_tokens", ref _maxTokens);
+                _maxTokens = Mathf.Clamp(_maxTokens, 0, MaxMaxTokens);
+            }
         }
 
         public static class Terrain {
-            public static int Resolution = 8;
+            public const int MaxResolution = 100;
 
-            public static void Reset() => GetConfig("terrain__resolution", ref Resolution);
+            private static int _resolution;
+            public static int Resolution => _resolution;
+
+            public static void OnEpisodeBegin() {
+                GetConfig("terrain__resolution", ref _resolution);
+                _resolution = Mathf.Clamp(_resolution, 2, MaxResolution);
+            }
+        }
+
+        public static class Passion {
+            private static float _ratio;
+            public static float Ratio => _ratio;
+
+            public static void OnEpisodeBegin() => GetConfig("passion__ratio", ref _ratio);
         }
 
         public static class Joint {
-            public static float TargetSmoothing = 0.2f;
+            private static float _targetSmoothing;
+            public static float TargetSmoothing => _targetSmoothing;
 
-            public static void Reset() => GetConfig("joint__target_smoothing", ref TargetSmoothing);
+            public static void OnEpisodeBegin() => GetConfig("joint__target_smoothing", ref _targetSmoothing);
         }
 
         public static class Reward {
-            public static float SurvivalReward = 1.6f;
+            private static float _survivalReward;
+            private static float _staySuccessReward;
+            private static float _stayingReward;
+            private static float _staySuccessThreshold;
 
-            public static float StaySuccessReward = 5f;
-            public static float StayingReward = 1f;
-            public static float StaySuccessThreshold = 5f;
+            private static float _distancePenaltyMultiplier;
+            private static float _jitterPenaltyMultiplier;
+            private static float _energyPenaltyMultiplier;
+            private static float _uprightRewardMultiplier;
+            private static float _heightMatchRewardMultiplier;
+            private static float _directionRewardMultiplier;
 
-            public static float DistancePenaltyMultiplier = 0.1f;
-            public static float JitterPenaltyMultiplier = 0.2f;
-            public static float EnergyPenaltyMultiplier = 0.005f;
-            public static float UprightRewardMultiplier = 0.5f;
-            public static float HeightMatchRewardMultiplier = 0.25f;
-            public static float DirectionRewardMultiplier = 0.5f;
+            public static float SurvivalReward => _survivalReward;
+            public static float StaySuccessReward => _staySuccessReward;
+            public static float StayingReward => _stayingReward;
+            public static float StaySuccessThreshold => _staySuccessThreshold;
 
-            public static void Reset() {
-                GetConfig("reward__survival_reward", ref SurvivalReward);
+            public static float DistancePenaltyMultiplier => _distancePenaltyMultiplier;
+            public static float JitterPenaltyMultiplier => _jitterPenaltyMultiplier;
+            public static float EnergyPenaltyMultiplier => _energyPenaltyMultiplier;
+            public static float UprightRewardMultiplier => _uprightRewardMultiplier;
+            public static float HeightMatchRewardMultiplier => _heightMatchRewardMultiplier;
+            public static float DirectionRewardMultiplier => _directionRewardMultiplier;
 
-                GetConfig("reward__stay_success_reward", ref StaySuccessReward);
-                GetConfig("reward__staying_reward", ref StayingReward);
-                GetConfig("reward__stay_success_threshold", ref StaySuccessThreshold);
+            public static void OnEpisodeBegin() {
+                GetConfig("reward__survival_reward", ref _survivalReward);
 
-                GetConfig("reward__distance_penalty_multiplier", ref DistancePenaltyMultiplier);
-                GetConfig("reward__jitter_penalty_multiplier", ref JitterPenaltyMultiplier);
-                GetConfig("reward__energy_penalty_multiplier", ref EnergyPenaltyMultiplier);
-                GetConfig("reward__upright_reward_multiplier", ref UprightRewardMultiplier);
-                GetConfig("reward__height_match_reward_multiplier", ref HeightMatchRewardMultiplier);
-                GetConfig("reward__direction_reward_multiplier", ref DirectionRewardMultiplier);
+                GetConfig("reward__stay_success_reward", ref _staySuccessReward);
+                GetConfig("reward__staying_reward", ref _stayingReward);
+                GetConfig("reward__stay_success_threshold", ref _staySuccessThreshold);
+
+                GetConfig("reward__distance_penalty_multiplier", ref _distancePenaltyMultiplier);
+                GetConfig("reward__jitter_penalty_multiplier", ref _jitterPenaltyMultiplier);
+                GetConfig("reward__energy_penalty_multiplier", ref _energyPenaltyMultiplier);
+                GetConfig("reward__upright_reward_multiplier", ref _uprightRewardMultiplier);
+                GetConfig("reward__height_match_reward_multiplier", ref _heightMatchRewardMultiplier);
+                GetConfig("reward__direction_reward_multiplier", ref _directionRewardMultiplier);
             }
-        }
-
-        public static class Phase {
-            public static void Reset() {
-                GetConfig("phase__e_ratio", ref ERatio);
-                GetConfig("phase__d_ratio", ref DRatio);
-                GetConfig("phase__c_ratio", ref CRatio);
-                GetConfig("phase__b_ratio", ref BRatio);
-                GetConfig("phase__a_ratio", ref ARatio);
-
-                DRatio = Mathf.Max(DRatio, ERatio);
-                CRatio = Mathf.Max(CRatio, DRatio, ERatio);
-                BRatio = Mathf.Max(BRatio, CRatio, DRatio, ERatio);
-                ARatio = Mathf.Max(ARatio, BRatio, CRatio, DRatio, ERatio);
-            }
-
-            public static float ARatio = 1.0f; // Agent try to stand up and stabilize (proprioception)
-            public static float BRatio; // Agent try to move towards the target (navigation)
-            public static float CRatio; // Phase B with Passion
-            public static float DRatio; // Agent try to overcome the terrain (terrain)
-            public static float ERatio; // Phase D with Passion
         }
 
         public static class Normalization {
-            public static void Reset() {
-                GetConfig("normalization__expected_max_speed", ref ExpectedMaxSpeed);
-                GetConfig("normalization__expected_max_height", ref ExpectedMaxHeight);
-                GetConfig("normalization__expected_max_distance", ref ExpectedMaxDistance);
-                GetConfig("normalization__expected_max_thickness", ref ExpectedMaxThickness);
-                GetConfig("normalization__expected_max_force", ref ExpectedMaxForce);
-            }
+            private static float _expectedMaxSpeed;
+            private static float _expectedMaxHeight;
+            private static float _expectedMaxDistance;
+            private static float _expectedMaxThickness;
+            private static float _expectedMaxForce;
 
-            public static float ExpectedMaxSpeed = 5f;
-            public static float ExpectedMaxDistance = 10f;
-            public static float ExpectedMaxThickness = 1f;
-            public static float ExpectedMaxHeight = 2f;
-            public static float ExpectedMaxForce = 300f;
+            public static float ExpectedMaxSpeed => _expectedMaxSpeed;
+            public static float ExpectedMaxHeight => _expectedMaxHeight;
+            public static float ExpectedMaxDistance => _expectedMaxDistance;
+            public static float ExpectedMaxThickness => _expectedMaxThickness;
+            public static float ExpectedMaxForce => _expectedMaxForce;
+
+            public static void OnEpisodeBegin() {
+                GetConfig("normalization__expected_max_speed", ref _expectedMaxSpeed);
+                GetConfig("normalization__expected_max_height", ref _expectedMaxHeight);
+                GetConfig("normalization__expected_max_distance", ref _expectedMaxDistance);
+                GetConfig("normalization__expected_max_thickness", ref _expectedMaxThickness);
+                GetConfig("normalization__expected_max_force", ref _expectedMaxForce);
+            }
         }
     }
 }

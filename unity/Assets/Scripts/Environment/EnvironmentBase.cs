@@ -17,7 +17,7 @@ namespace Environment {
             AgentTransform = Instantiate(agentPrefab, transform).transform;
         }
 
-        public virtual void Reset() {
+        public virtual void OnEpisodeBegin() {
         }
     }
 }

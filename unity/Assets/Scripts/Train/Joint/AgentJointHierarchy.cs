@@ -34,10 +34,10 @@ namespace Train.Joint {
             return node;
         }
 
-        public override void Reset() {
+        public override void OnEpisodeBegin() {
             RootAgentNode.Body.TeleportRoot(transform.TransformPoint(_initialRootRelativePosition),
                 transform.rotation * _initialRootRelativeRotation);
-            base.Reset();
+            base.OnEpisodeBegin();
         }
     }
 }
