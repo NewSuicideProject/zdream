@@ -52,7 +52,7 @@ class UnityEnv(Env):
         }
 
         resolution = int(self._parameters["terrain"]["resolution"])
-        max_token = int(self._parameters["navigation"]["max_token"])
+        max_tokens = int(self._parameters["navigation"]["max_tokens"])
 
         self.observation_space = spaces.Dict(
             {
@@ -66,7 +66,7 @@ class UnityEnv(Env):
                 "navigation": spaces.Box(
                     low=-1.0,
                     high=1.0,
-                    shape=(max_token * NavigationEncoder.token_size,),
+                    shape=(max_tokens * NavigationEncoder.token_size,),
                 ),
             }
         )

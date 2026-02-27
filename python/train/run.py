@@ -72,14 +72,14 @@ def run(config: DictConfig) -> None:
             unity_envs.append(
                 partial(make_unity_env, str(unity_server_path), i, unity_params)
             )
-        unity_env = VecMonitor(SubprocVecEnv(unity_envs))
+        raw_unity_env = SubprocVecEnv(unity_envs)
+        unity_env = VecMonitor(raw_unity_env)
     else:
-        unity_env = Monitor(
-            UnityEnv(
-                unity_path=str(unity_path) if unity_path else None,
-                parameters=unity_params,
-            )
+        raw_unity_env = UnityEnv(
+            unity_path=str(unity_path) if unity_path else None,
+            parameters=unity_params,
         )
+        unity_env = Monitor(raw_unity_env)
 
     if checkpoint_path:
         model = SAC.load(
@@ -118,10 +118,10 @@ def run(config: DictConfig) -> None:
             CheckpointCallback(
                 interval=config.train.checkpoint_interval,
                 directory=str(checkpoint_dir),
-                unity_env=unity_env,
+                unity_env=raw_unity_env,
             ),
             CurriculumCallback(
-                unity_env=unity_env,
+                unity_env=raw_unity_env,
                 config=config.curriculum,
                 steps_count=config.train.step_count,
             ),
