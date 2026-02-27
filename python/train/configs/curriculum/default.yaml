@@ -14,8 +14,6 @@ unity_params:
     rotation_assist: ${model.unity_params.assist.rotation_assist}
 
   reward:
-    survival_reward: ${model.unity_params.reward.survival_reward}
-
     stay_success_reward: ${model.unity_params.reward.stay_success_reward}
     staying_reward: ${model.unity_params.reward.staying_reward}
     stay_success_threshold: ${model.unity_params.reward.stay_success_threshold}

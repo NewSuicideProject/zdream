@@ -50,8 +50,6 @@ unity_params:
     rotation_assist: 1.0
 
   reward:
-    survival_reward: 1.0
-
     stay_success_reward: 0.0
     staying_reward: 0.0
     stay_success_threshold: 5.0

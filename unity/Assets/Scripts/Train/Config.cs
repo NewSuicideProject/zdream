@@ -99,9 +99,6 @@ namespace Train {
         }
 
         public static class Reward {
-            private static float _survivalReward;
-            public static float SurvivalReward => _survivalReward;
-
             private static float _staySuccessReward;
             private static float _stayingReward;
             private static float _staySuccessThreshold;
@@ -123,8 +120,6 @@ namespace Train {
             public static float DirectionRewardMultiplier => _directionRewardMultiplier;
 
             public static void OnEpisodeBegin() {
-                GetConfig(nameof(Reward), nameof(SurvivalReward), ref _survivalReward);
-
                 GetConfig(nameof(Reward), nameof(StaySuccessReward), ref _staySuccessReward);
                 GetConfig(nameof(Reward), nameof(StayingReward), ref _stayingReward);
                 GetConfig(nameof(Reward), nameof(StaySuccessThreshold), ref _staySuccessThreshold);

@@ -132,11 +132,8 @@ namespace Train {
             float distancePenalty = Normalize.Distance(distance) * _passion.Value *
                                     Config.Reward.DistancePenaltyMultiplier;
 
-
-            float survivalReward = Config.Reward.SurvivalReward;
-
-            float fullReward = targetDirectionReward + navigationDirectionReward - jitterPenalty -
-                energyPenalty + uprightReward - distancePenalty + heightReward + survivalReward;
+            float fullReward = targetDirectionReward + navigationDirectionReward - jitterPenalty - energyPenalty +
+                uprightReward - distancePenalty + heightReward;
 
             AddReward(fullReward * Time.fixedDeltaTime);
 
