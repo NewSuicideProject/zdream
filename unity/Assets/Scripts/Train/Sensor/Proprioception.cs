@@ -1,3 +1,4 @@
+using System.Linq;
 using Train.Joint;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
@@ -49,11 +50,7 @@ namespace Train.Sensor {
             Vector3 totalWeightedPos = Vector3.zero;
             float totalJoinedMass = 0f;
 
-            foreach (AgentJointNode node in Hierarchy.AgentNodes) {
-                if (node.IsSevered) {
-                    continue;
-                }
-
+            foreach (AgentJointNode node in Hierarchy.AgentNodes.Where(n => !n.IsSevered)) {
                 float mass = node.Body.mass;
                 totalWeightedPos += node.Body.worldCenterOfMass * mass;
                 totalJoinedMass += mass;

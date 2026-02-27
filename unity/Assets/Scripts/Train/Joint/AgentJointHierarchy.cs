@@ -43,38 +43,36 @@ namespace Train.Joint {
             ArticulationBody rootBody = RootAgentNode.Body;
             float heightAssist = Config.Assist.HeightAssist;
             float rotationAssist = Config.Assist.RotationAssist;
-            float mass = TotalMass;
 
             if (heightAssist > 0f) {
                 Vector3 targetWorldPos = RootAgentNode.Transform.parent.TransformPoint(_initialRootLocalPosition);
                 float heightError = targetWorldPos.y - rootBody.transform.position.y;
 
-                float kp = 150f * heightAssist;
-                float kd = 2f * Mathf.Sqrt(kp);
+                float kp = 50f * heightAssist;
+                float kd = 5f * Mathf.Sqrt(kp);
 
-                float verticalForce = mass * ((heightError * kp) - (rootBody.linearVelocity.y * kd));
-                rootBody.AddForce(Vector3.up * verticalForce, ForceMode.Force);
+                float verticalAccel = (heightError * kp) - (rootBody.linearVelocity.y * kd);
+                rootBody.AddForce(Vector3.up * verticalAccel, ForceMode.Acceleration);
             }
 
             if (rotationAssist > 0f) {
                 Quaternion targetWorldRot = RootAgentNode.Transform.parent.rotation * _initialRootLocalRotation;
-                Quaternion deltaRot = targetWorldRot * Quaternion.Inverse(rootBody.transform.rotation);
-                deltaRot.ToAngleAxis(out float angle, out Vector3 axis);
+
+                Quaternion rotationError = targetWorldRot * Quaternion.Inverse(rootBody.transform.rotation);
+                rotationError.ToAngleAxis(out float angle, out Vector3 axis);
 
                 if (angle > 180f) {
                     angle -= 360f;
                 }
 
-                if (!(Mathf.Abs(angle) > 0.01f)) {
-                    return;
+                if (Mathf.Abs(angle) > 0.01f) {
+                    float kp = 500f * rotationAssist;
+                    float kd = 50f * Mathf.Sqrt(kp);
+
+                    Vector3 torqueAccel = (axis.normalized * (angle * Mathf.Deg2Rad * kp)) -
+                                          (rootBody.angularVelocity * kd);
+                    rootBody.AddTorque(torqueAccel, ForceMode.Acceleration);
                 }
-
-                float kp = 50f * rotationAssist;
-                float kd = 2f * Mathf.Sqrt(kp);
-
-                Vector3 torque = mass * ((axis.normalized * (angle * Mathf.Deg2Rad * kp)) -
-                                         (rootBody.angularVelocity * kd));
-                rootBody.AddTorque(torque, ForceMode.Force);
             }
         }
 
