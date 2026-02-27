@@ -8,8 +8,9 @@ unity_params:
   passion:
     ratio: ${curriculum.gate_ratios.passion_ratio} # do not modify
 
-  joint:
-    target_smoothing: ${model.unity_params.joint.target_smoothing}
+  assist:
+    target_assist: ${model.unity_params.assist.target_assist}
+    gravity_assist: ${model.unity_params.assist.gravity_assist}
 
   reward:
     survival_reward: ${model.unity_params.reward.survival_reward}

@@ -1,9 +1,15 @@
-﻿using Unity.MLAgents;
+﻿using System.Linq;
+using Unity.MLAgents;
 using UnityEngine;
 
 namespace Train {
     public static class Config {
-        private static void GetConfig<T>(string key, ref T value) {
+        private static string ToSnakeCase(string text) => string.IsNullOrEmpty(text)
+            ? text
+            : string.Concat(text.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
+
+        private static void GetConfig<T>(string group, string property, ref T value) {
+            string key = $"{ToSnakeCase(group)}__{ToSnakeCase(property)}";
             EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
             T newValue;
 
@@ -53,7 +59,7 @@ namespace Train {
             public static int MaxTokens => _maxTokens;
 
             public static void OnEpisodeBegin() {
-                GetConfig("navigation__max_tokens", ref _maxTokens);
+                GetConfig(nameof(Navigation), nameof(MaxTokens), ref _maxTokens);
                 _maxTokens = Mathf.Clamp(_maxTokens, 0, MaxMaxTokens);
             }
         }
@@ -65,7 +71,7 @@ namespace Train {
             public static int Resolution => _resolution;
 
             public static void OnEpisodeBegin() {
-                GetConfig("terrain__resolution", ref _resolution);
+                GetConfig(nameof(Terrain), nameof(Resolution), ref _resolution);
                 _resolution = Mathf.Clamp(_resolution, 2, MaxResolution);
             }
         }
@@ -74,21 +80,31 @@ namespace Train {
             private static float _ratio;
             public static float Ratio => _ratio;
 
-            public static void OnEpisodeBegin() => GetConfig("passion__ratio", ref _ratio);
+            public static void OnEpisodeBegin() => GetConfig(nameof(Passion), nameof(Ratio), ref _ratio);
         }
 
-        public static class Joint {
-            private static float _targetSmoothing;
-            public static float TargetSmoothing => _targetSmoothing;
+        public static class Assist {
+            private static float _targetAssist;
+            private static float _gravityAssist;
+            public static float TargetAssist => _targetAssist;
+            public static float GravityAssist => _gravityAssist;
 
-            public static void OnEpisodeBegin() => GetConfig("joint__target_smoothing", ref _targetSmoothing);
+            public static void OnEpisodeBegin() {
+                GetConfig(nameof(Assist), nameof(TargetAssist), ref _targetAssist);
+                GetConfig(nameof(Assist), nameof(GravityAssist), ref _gravityAssist);
+            }
         }
 
         public static class Reward {
             private static float _survivalReward;
+            public static float SurvivalReward => _survivalReward;
+
             private static float _staySuccessReward;
             private static float _stayingReward;
             private static float _staySuccessThreshold;
+            public static float StaySuccessReward => _staySuccessReward;
+            public static float StayingReward => _stayingReward;
+            public static float StaySuccessThreshold => _staySuccessThreshold;
 
             private static float _distancePenaltyMultiplier;
             private static float _jitterPenaltyMultiplier;
@@ -96,12 +112,6 @@ namespace Train {
             private static float _uprightRewardMultiplier;
             private static float _heightMatchRewardMultiplier;
             private static float _directionRewardMultiplier;
-
-            public static float SurvivalReward => _survivalReward;
-            public static float StaySuccessReward => _staySuccessReward;
-            public static float StayingReward => _stayingReward;
-            public static float StaySuccessThreshold => _staySuccessThreshold;
-
             public static float DistancePenaltyMultiplier => _distancePenaltyMultiplier;
             public static float JitterPenaltyMultiplier => _jitterPenaltyMultiplier;
             public static float EnergyPenaltyMultiplier => _energyPenaltyMultiplier;
@@ -110,18 +120,18 @@ namespace Train {
             public static float DirectionRewardMultiplier => _directionRewardMultiplier;
 
             public static void OnEpisodeBegin() {
-                GetConfig("reward__survival_reward", ref _survivalReward);
+                GetConfig(nameof(Reward), nameof(SurvivalReward), ref _survivalReward);
 
-                GetConfig("reward__stay_success_reward", ref _staySuccessReward);
-                GetConfig("reward__staying_reward", ref _stayingReward);
-                GetConfig("reward__stay_success_threshold", ref _staySuccessThreshold);
+                GetConfig(nameof(Reward), nameof(StaySuccessReward), ref _staySuccessReward);
+                GetConfig(nameof(Reward), nameof(StayingReward), ref _stayingReward);
+                GetConfig(nameof(Reward), nameof(StaySuccessThreshold), ref _staySuccessThreshold);
 
-                GetConfig("reward__distance_penalty_multiplier", ref _distancePenaltyMultiplier);
-                GetConfig("reward__jitter_penalty_multiplier", ref _jitterPenaltyMultiplier);
-                GetConfig("reward__energy_penalty_multiplier", ref _energyPenaltyMultiplier);
-                GetConfig("reward__upright_reward_multiplier", ref _uprightRewardMultiplier);
-                GetConfig("reward__height_match_reward_multiplier", ref _heightMatchRewardMultiplier);
-                GetConfig("reward__direction_reward_multiplier", ref _directionRewardMultiplier);
+                GetConfig(nameof(Reward), nameof(DistancePenaltyMultiplier), ref _distancePenaltyMultiplier);
+                GetConfig(nameof(Reward), nameof(JitterPenaltyMultiplier), ref _jitterPenaltyMultiplier);
+                GetConfig(nameof(Reward), nameof(EnergyPenaltyMultiplier), ref _energyPenaltyMultiplier);
+                GetConfig(nameof(Reward), nameof(UprightRewardMultiplier), ref _uprightRewardMultiplier);
+                GetConfig(nameof(Reward), nameof(HeightMatchRewardMultiplier), ref _heightMatchRewardMultiplier);
+                GetConfig(nameof(Reward), nameof(DirectionRewardMultiplier), ref _directionRewardMultiplier);
             }
         }
 
@@ -139,11 +149,11 @@ namespace Train {
             public static float ExpectedMaxForce => _expectedMaxForce;
 
             public static void OnEpisodeBegin() {
-                GetConfig("normalization__expected_max_speed", ref _expectedMaxSpeed);
-                GetConfig("normalization__expected_max_height", ref _expectedMaxHeight);
-                GetConfig("normalization__expected_max_distance", ref _expectedMaxDistance);
-                GetConfig("normalization__expected_max_thickness", ref _expectedMaxThickness);
-                GetConfig("normalization__expected_max_force", ref _expectedMaxForce);
+                GetConfig(nameof(Normalization), nameof(ExpectedMaxSpeed), ref _expectedMaxSpeed);
+                GetConfig(nameof(Normalization), nameof(ExpectedMaxHeight), ref _expectedMaxHeight);
+                GetConfig(nameof(Normalization), nameof(ExpectedMaxDistance), ref _expectedMaxDistance);
+                GetConfig(nameof(Normalization), nameof(ExpectedMaxThickness), ref _expectedMaxThickness);
+                GetConfig(nameof(Normalization), nameof(ExpectedMaxForce), ref _expectedMaxForce);
             }
         }
     }

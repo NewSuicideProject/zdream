@@ -61,7 +61,7 @@ namespace Train {
             Config.Navigation.OnEpisodeBegin();
             Config.Terrain.OnEpisodeBegin();
             Config.Passion.OnEpisodeBegin();
-            Config.Joint.OnEpisodeBegin();
+            Config.Assist.OnEpisodeBegin();
             Config.Reward.OnEpisodeBegin();
             Config.Normalization.OnEpisodeBegin();
 
@@ -84,15 +84,16 @@ namespace Train {
             foreach (AgentJointNode node in _hierarchy.AgentNodes) {
                 ArticulationReducedSpace positions = node.Body.jointPosition;
                 for (int i = 0; i < node.DoF; i++) {
-                    float newTarget = newTargets[index];
-                    jitterSum += (newTarget - node.RawTarget[i]) * (newTarget - node.RawTarget[i]);
+                    float newTarget = newTargets[index++];
+                    float targetDelta = newTarget - node.RawTarget[i];
+                    jitterSum += targetDelta * targetDelta;
                     node.SetTarget(i, newTarget);
-                    index++;
 
                     ArticulationDrive drive = node.GetDrive(i);
                     float position = positions[i] * Mathf.Rad2Deg;
                     float normalizedPosition = Normalize.JointPosition(position, drive.lowerLimit, drive.upperLimit);
-                    energySum += (newTarget - normalizedPosition) * (newTarget - normalizedPosition);
+                    float positionDelta = newTarget - normalizedPosition;
+                    energySum += positionDelta * positionDelta;
                 }
             }
 
@@ -104,23 +105,24 @@ namespace Train {
                 Vector3.Dot(
                     _proprioception.ProjectedLinearVelocity.normalized,
                     _proprioception.RelativeTargetPosition.normalized);
-            float targetDirectionMatchReward = targetDirectionMatch * _passion.Value *
-                                               Config.Reward.DirectionRewardMultiplier;
+            float targetDirectionReward = targetDirectionMatch * _passion.Value *
+                                          Config.Reward.DirectionRewardMultiplier;
 
-            float navigationDirectionMatchReward = 0;
-            if (_navigation.Corners.Count != 0) {
+            float navigationDirectionReward = 0;
+            if (_navigation.Corners.Count > 0) {
                 float navigationDirectionMatch =
                     Vector3.Dot(
                         _navigation.Corners.First().RelativePosition.normalized,
                         _proprioception.ProjectedLinearVelocity.normalized);
-                navigationDirectionMatchReward = navigationDirectionMatch * _passion.Value *
-                                                 Config.Reward.DirectionRewardMultiplier * 2;
+                navigationDirectionReward = navigationDirectionMatch * _passion.Value *
+                                            Config.Reward.DirectionRewardMultiplier * 2;
             }
 
             const float targetHeight = 1f;
             const float variance = 0.1f;
-            float height = transform.localPosition.y;
-            float heightMatch = Mathf.Exp(-Mathf.Pow(height - targetHeight, 2) / variance);
+            float height = _hierarchy.RootAgentNode.GameObject.transform.position.y;
+            float heightDelta = height - targetHeight;
+            float heightMatch = Mathf.Exp(-heightDelta * heightDelta / variance);
             float heightReward = heightMatch * (1f - _passion.Value) * Config.Reward.HeightMatchRewardMultiplier;
 
             float uprightMatch = Vector3.Dot(_proprioception.Gravity, _proprioception.InitialGravity);
@@ -130,9 +132,10 @@ namespace Train {
             float distancePenalty = Normalize.Distance(distance) * _passion.Value *
                                     Config.Reward.DistancePenaltyMultiplier;
 
+
             float survivalReward = Config.Reward.SurvivalReward;
 
-            float fullReward = targetDirectionMatchReward + navigationDirectionMatchReward - jitterPenalty -
+            float fullReward = targetDirectionReward + navigationDirectionReward - jitterPenalty -
                 energyPenalty + uprightReward - distancePenalty + heightReward + survivalReward;
 
             AddReward(fullReward * Time.fixedDeltaTime);
@@ -140,7 +143,7 @@ namespace Train {
             if (_stayTime > Config.Reward.StaySuccessThreshold) {
                 AddReward(Config.Reward.StaySuccessReward);
                 EndEpisode();
-            } else if (_hierarchy.RootAgentNode.GameObject.transform.position.y < 0.5f) {
+            } else if (height < 0f) {
                 EndEpisode();
             }
         }

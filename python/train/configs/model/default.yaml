@@ -44,8 +44,9 @@ unity_params:
   passion:
     ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.passion_ratio} # do not modify
 
-  joint:
-    target_smoothing: 0.15
+  assist:
+    target_assist: 0.1
+    gravity_assist: 7.5
 
   reward:
     survival_reward: 1.0

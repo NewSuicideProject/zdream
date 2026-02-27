@@ -34,6 +34,12 @@ namespace Train.Joint {
             return node;
         }
 
+        private void FixedUpdate() {
+            if (Config.Assist.GravityAssist > 0f) {
+                RootAgentNode.Body.AddForce(Vector3.up * Config.Assist.GravityAssist, ForceMode.Acceleration);
+            }
+        }
+
         public override void OnEpisodeBegin() {
             RootAgentNode.Body.TeleportRoot(transform.TransformPoint(_initialRootRelativePosition),
                 transform.rotation * _initialRootRelativeRotation);
