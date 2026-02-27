@@ -120,6 +120,7 @@ def run(config: DictConfig) -> None:
                 unity_env=raw_unity_env,
             ),
             CurriculumCallback(
+                interval=config.train.curriculum_interval,
                 unity_env=raw_unity_env,
                 config=config.curriculum,
                 steps_count=config.train.step_count,

@@ -7,3 +7,4 @@ train_interval: 128
 gradient_count: 16
 
 checkpoint_interval: 10000
+curriculum_interval: 10000
