@@ -86,6 +86,7 @@ def run(config: DictConfig) -> None:
             env=unity_env,
             custom_objects={
                 "learning_rate": config.train.learning_rate,
+                "target_entropy": config.train.target_entropy,
                 "learning_starts": config.train.prepare_count,
                 "gradient_steps": config.train.gradient_count,
                 "train_freq": config.train.train_interval,
@@ -103,6 +104,7 @@ def run(config: DictConfig) -> None:
         model = SAC(
             policy=MultiInputPolicy,
             learning_rate=config.train.learning_rate,
+            target_entropy=config.train.target_entropy,
             learning_starts=config.train.prepare_count,
             gradient_steps=config.train.gradient_count,
             train_freq=config.train.train_interval,
@@ -110,9 +112,6 @@ def run(config: DictConfig) -> None:
             env=unity_env,
             policy_kwargs=policy_kwargs,
         )
-
-    for param_group in model.ent_coef_optimizer.param_groups:
-        param_group["lr"] = config.train.entropy_learning_rate
 
     model.set_logger(configure(str(base_dir), ["tensorboard"]))
 

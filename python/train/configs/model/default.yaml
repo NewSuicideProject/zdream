@@ -45,9 +45,9 @@ unity_params:
     ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.passion_ratio} # do not modify
 
   assist:
-    target_assist: 0.1
-    height_assist: 0.75
-    rotation_assist: 0.75
+    target_assist: 0.2
+    height_assist: 0.5
+    rotation_assist: 0.5
 
   reward:
     stay_success_reward: 0.0

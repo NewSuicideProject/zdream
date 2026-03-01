@@ -2,7 +2,7 @@ env_count: 1
 step_count: 10000000
 
 learning_rate: 3e-4
-entropy_learning_rate: 1e-4
+target_entropy: -10.0
 
 prepare_count: 10000
 batch_size: 256
