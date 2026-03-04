@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &314366345347997056
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1272871652606335571}
+  - component: {fileID: 5199895564648225775}
+  m_Layer: 3
+  m_Name: Environment
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1272871652606335571
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314366345347997056}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5199895564648225775
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314366345347997056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c934cc9481cc4c146b1e7cb8d0d43582, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomMstMainGen
+  wallPrefab: {fileID: 4469763471920512403, guid: 837c65a5d387b4844abbf6661c07d6f9, type: 3}
+  floorPrefab: {fileID: 1951435799632560061, guid: 13afc761558539c4387fec4f2e879332, type: 3}
+  wallCenterY: 1
+  agentPrefab: {fileID: 1773494241456120922, guid: cd2d96c56e44db441aec702515437b89, type: 3}
+  targetPrefab: {fileID: 7024144856309663006, guid: ebfd8b9aecd574f4ca450510a55aeef3, type: 3}
+  gridWidth: 64
+  gridHeight: 64
+  cellSize: 2
+  initialSeed: 0
+  roomCount: 8
+  maxRoomRerolls: 64
+  circleRoomChance: 0.35
+  rectSizeRange:
+    x: 2
+    y: 2
+    width: 8
+    height: 8
+  circleMinR: 2
+  circleMaxR: 4
+  roomPadding: 1
+  roadWidth: 1
+  randomizeLTurnOrder: 1
+  organicIterations: 3
+  organicCarveRatio: 0.1
+  organicGrowRatio: 0.1
+  organicGrowMaxTriesPerCell: 6
+  minRoomLevel: 0
+  maxRoomLevel: 32
+  levelHeight: 1
+  floorThickness: 1
+  maxStepHeight: 0.5

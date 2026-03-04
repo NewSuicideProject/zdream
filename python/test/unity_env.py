@@ -6,6 +6,7 @@ from gymnasium import spaces
 from mlagents_envs.base_env import ActionTuple
 from mlagents_envs.environment import UnityEnvironment
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,22 +18,21 @@ class UnityEnv(gym.Env):
 
         self._env.reset()
 
-        self.behavior_name = list(self._env.behavior_specs.keys())[0]
-        self.spec = self._env.behavior_specs[self.behavior_name]
+        self._behavior_name = list(self._env.behavior_specs.keys())[0]
+        spec = self._env.behavior_specs[self._behavior_name]
 
-        self.action_space = spaces.Box(
-            -1, 1, shape=(self.spec.action_spec.continuous_size,)
+        self.action_space = spaces.Box(-1, 1, shape=(spec.action_spec.continuous_size,))
+
+        self.observation_space = spaces.Box(
+            -1, 1, shape=spec.observation_specs[0].shape
         )
-
-        obs_shape = self.spec.observation_specs[0].shape
-        self.observation_space = spaces.Box(-1, 1, shape=obs_shape)
 
         logger.info(f"observation space: {self.observation_space}")
         logger.info(f"action space: {self.action_space}")
 
     def reset(self, seed=None, options=None):
         self._env.reset()
-        decision_steps, _ = self._env.get_steps(self.behavior_name)
+        decision_steps, _ = self._env.get_steps(self._behavior_name)
 
         obs = decision_steps.obs[0][0]
         return obs, {}
@@ -41,10 +41,10 @@ class UnityEnv(gym.Env):
         action_tuple = ActionTuple()
         action_tuple.add_continuous(np.array([action]))
 
-        self._env.set_actions(self.behavior_name, action_tuple)
+        self._env.set_actions(self._behavior_name, action_tuple)
         self._env.step()
 
-        decision_steps, terminal_steps = self._env.get_steps(self.behavior_name)
+        decision_steps, terminal_steps = self._env.get_steps(self._behavior_name)
 
         terminated = False
         truncated = False

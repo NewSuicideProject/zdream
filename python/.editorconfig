@@ -2,15 +2,15 @@ root = true
 
 [*]
 charset = utf-8
-end_of_line = crlf
+end_of_line = lf
 indent_style = space
 indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
-spelling_languages = en-us
+max_line_length = 120
 
-[*.py]
-indent_size = 4
+[*.{py,pyi}]
+max_line_length = 88
 
-[*.{json,yaml,yml,md,js,html,css}]
+[*.{json,json5,yaml,yml,toml,webmanifest,html,js,jsx,ts,tsx,css,scss,md}]
 indent_size = 2

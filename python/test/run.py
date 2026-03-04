@@ -12,6 +12,7 @@ from stable_baselines3.sac.policies import MlpPolicy
 from .config import config
 from .unity_env import UnityEnv
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,25 +25,19 @@ def run():
     logger.info(f"config: {config}")
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    base_dir = Path.cwd() / "tests" / timestamp
+    base_dir = Path.cwd() / timestamp
     log_dir = base_dir / "log"
     model_path = base_dir / "result.zip"
     checkpoint_dir = base_dir / "checkpoints"
 
     if config.env_count > 1:
-        envs = []
-        envs.append(partial(make_unity_env, str(config.unity_path), 5004, 0))
+        envs = [partial(make_unity_env, str(config.unity_path), 5004, 0)]
         for i in range(1, config.env_count):
-            envs.append(
-                partial(make_unity_env, str(config.unity_server_path), 5004, i)
-            )
+            envs.append(partial(make_unity_env, str(config.unity_server_path), 5004, i))
         env = SubprocVecEnv(envs)
         env = VecMonitor(env)
     else:
-        env = UnityEnv(
-            file_name=str(config.unity_path) if config.unity_path else None,
-            base_port=5004,
-        )
+        env = UnityEnv(file_name=str(config.unity_path) if config.unity_path else None)
         env = Monitor(env)
 
     checkpoint_callback = CheckpointCallback(
@@ -54,9 +49,7 @@ def run():
     checkpoint_path = config.checkpoint_path
     if checkpoint_path and Path(checkpoint_path).exists():
         logger.info(f"valid checkpoint: {checkpoint_path}")
-        model = SAC.load(
-            path=checkpoint_path, env=env, tensorboard_log=str(log_dir)
-        )
+        model = SAC.load(path=checkpoint_path, env=env, tensorboard_log=str(log_dir))
     else:
         logger.info("no valid checkpoint")
         model = SAC(

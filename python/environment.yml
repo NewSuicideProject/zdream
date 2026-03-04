@@ -8,7 +8,6 @@ dependencies:
   - python=3.10
   - pip
 
-  - black
   - ruff
 
   - pytorch
@@ -22,9 +21,11 @@ dependencies:
   - gymnasium
   - onnx
 
+  - hydra-core
   - python-dotenv
 
   - pip:
       - stable-baselines3[extra]
       - mlagents
+      - mlagents-envs
       - protobuf<4.0.0

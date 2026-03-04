@@ -12,12 +12,45 @@
         "--no-capture-output",
         "python",
         "-m",
-        "python.test.run"
+        "test.run"
       ],
       "options": {
         "cwd": "${workspaceFolder}/test",
         "env": {
-          "PYTHONPATH": "${workspaceFolder}"
+          "PYTHONPATH": "${workspaceFolder}/python"
+        }
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Start Train",
+      "type": "shell",
+      "command": "conda",
+      "args": [
+        "run",
+        "-n",
+        "zdream",
+        "--no-capture-output",
+        "python",
+        "-m",
+        "train.run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}/python"
         }
       },
       "problemMatcher": [],
@@ -44,7 +77,7 @@
         "zdream",
         "--no-capture-output",
         "tensorboard",
-        "--logdir=${workspaceFolder}/test/tests",
+        "--logdir=${workspaceFolder}",
         "--bind_all"
       ],
       "isBackground": true,

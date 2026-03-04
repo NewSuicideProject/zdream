@@ -1,11 +1,13 @@
 {
   "dependencies": {
+    "com.unity.ai.inference": "2.5.0",
+    "com.unity.ai.navigation": "2.0.10",
     "com.unity.dedicated-server": "2.0.1",
     "com.unity.ide.rider": "3.0.39",
     "com.unity.inputsystem": "1.18.0",
-    "com.unity.ml-agents": "4.0.1",
+    "com.unity.ml-agents": "4.0.2",
     "com.unity.multiplayer.center": "1.0.1",
-    "com.unity.render-pipelines.high-definition": "17.3.0",
+    "com.unity.render-pipelines.universal": "17.3.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

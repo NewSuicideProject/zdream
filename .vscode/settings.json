@@ -1,30 +1,17 @@
 {
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.rulers": [{ "color": "#ff000020", "column": 88 }],
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports": "explicit",
       "source.fixAll": "explicit"
     }
   },
-  "black-formatter.importStrategy": "fromEnvironment",
   "ruff.importStrategy": "fromEnvironment",
 
-  "git.autofetch": true,
-
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
-
-  "diffEditor.wordWrap": "off",
-
-  "editor.wordWrap": "off",
   "editor.formatOnSave": true,
-  "editor.formatOnType": true,
-  "editor.guides.indentation": true,
-  "editor.guides.bracketPairs": true,
-  "editor.wordBasedSuggestions": "off",
-  "editor.tabCompletion": "onlySnippets",
-
   "trailing-spaces.trimOnSave": true,
-
-  "editor.rulers": [{ "color": "#ff000020", "column": 80 }],
+  "python-envs.defaultEnvManager": "ms-python.python:conda",
+  "python-envs.defaultPackageManager": "ms-python.python:conda"
 }

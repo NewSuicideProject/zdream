@@ -1,0 +1,33 @@
+gate_ratios:
+  proprioception_ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.proprioception_ratio}
+  navigation_ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.navigation_ratio}
+  terrain_ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.terrain_ratio}
+  passion_ratio: ${model.policy_kwargs.features_extractor_kwargs.gate_ratios.passion_ratio}
+
+unity_params:
+  passion:
+    ratio: ${curriculum.gate_ratios.passion_ratio} # do not modify
+
+  assist:
+    target_assist: ${model.unity_params.assist.target_assist}
+    height_assist: ${model.unity_params.assist.height_assist}
+    rotation_assist: ${model.unity_params.assist.rotation_assist}
+
+  reward:
+    stay_success_reward: ${model.unity_params.reward.stay_success_reward}
+    staying_reward: ${model.unity_params.reward.staying_reward}
+    stay_success_threshold: ${model.unity_params.reward.stay_success_threshold}
+
+    distance_penalty_multiplier: ${model.unity_params.reward.distance_penalty_multiplier}
+    jitter_penalty_multiplier: ${model.unity_params.reward.jitter_penalty_multiplier}
+    energy_penalty_multiplier: ${model.unity_params.reward.energy_penalty_multiplier}
+    upright_reward_multiplier: ${model.unity_params.reward.upright_reward_multiplier}
+    height_match_reward_multiplier: ${model.unity_params.reward.height_match_reward_multiplier}
+    direction_reward_multiplier: ${model.unity_params.reward.direction_reward_multiplier}
+
+  normalization:
+    expected_max_speed: ${model.unity_params.normalization.expected_max_speed}
+    expected_max_distance: ${model.unity_params.normalization.expected_max_distance}
+    expected_max_thickness: ${model.unity_params.normalization.expected_max_thickness}
+    expected_max_height: ${model.unity_params.normalization.expected_max_height}
+    expected_max_force: ${model.unity_params.normalization.expected_max_force}
