@@ -200,8 +200,7 @@ namespace PEG {
 
                     int delta = allowed <= 0 ? 0 : rng.Next(-allowed, allowed + 1);
 
-                    map.Rooms[nb].heightLevel =
-                        Mathf.Clamp(curLevel + delta, minLevel, maxLevel);
+                    map.Rooms[nb].heightLevel = Mathf.Clamp(curLevel + delta, minLevel, maxLevel);
 
                     q.Enqueue(nb);
                 }

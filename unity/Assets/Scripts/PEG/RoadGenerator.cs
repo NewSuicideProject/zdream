@@ -53,20 +53,13 @@ namespace PEG {
             }
         }
 
-        private static List<Vector2Int> BuildRoadPathCells(
-            Room a,
-            Room b,
-            Random rng,
-            bool randomizeLTurnOrder
-        ) {
+        private static List<Vector2Int> BuildRoadPathCells(Room a, Room b, Random rng, bool randomizeLTurnOrder) {
             Vector2Int doorA = a.GetDoorCell(b.center);
             Vector2Int doorB = b.GetDoorCell(a.center);
 
             bool xThenY = !randomizeLTurnOrder || rng.NextDouble() < 0.5;
 
-            List<Vector2Int> path = new(
-                Mathf.Abs(doorA.x - doorB.x) + Mathf.Abs(doorA.y - doorB.y) + 2
-            );
+            List<Vector2Int> path = new(Mathf.Abs(doorA.x - doorB.x) + Mathf.Abs(doorA.y - doorB.y) + 2);
 
             if (xThenY) {
                 AppendLineCells(path, doorA, new Vector2Int(doorB.x, doorA.y));

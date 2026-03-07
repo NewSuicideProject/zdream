@@ -13,7 +13,8 @@ namespace PEG {
 
         public readonly HashSet<Vector2Int> Floors = new();
 
-        public Room() { }
+        public Room() {
+        }
 
         public Room(
             Map map,
@@ -53,15 +54,7 @@ namespace PEG {
             }
         }
 
-        public Room(
-            Map map,
-            Random rng,
-            int id,
-            int circleMinR,
-            int circleMaxR,
-            int minRoomLevel,
-            int maxRoomLevel
-        ) {
+        public Room(Map map, Random rng, int id, int circleMinR, int circleMaxR, int minRoomLevel, int maxRoomLevel) {
             int r = rng.Next(circleMinR, circleMaxR + 1);
 
             const int border = 1;

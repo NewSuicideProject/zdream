@@ -35,7 +35,10 @@ namespace Train.Sensor {
 
         public ObservationSpec GetObservationSpec() => _observationSpec;
 
-        public void Update() { }
-        public void Reset() { }
+        public void Update() {
+        }
+
+        public void Reset() {
+        }
     }
 }

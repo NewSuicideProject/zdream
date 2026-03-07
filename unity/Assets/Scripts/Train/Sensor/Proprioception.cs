@@ -30,7 +30,11 @@ namespace Train.Sensor {
         public float Integrity => integrity;
         public Vector3 ProjectedForward => projectedForward;
         public Vector3 RelativeTargetPosition => relativeTargetPosition;
-        public AgentJointHierarchy Hierarchy { get; private set; }
+
+        public AgentJointHierarchy Hierarchy {
+            get;
+            private set;
+        }
 
         public Transform targetTransform;
 
@@ -56,9 +60,9 @@ namespace Train.Sensor {
                 totalJoinedMass += mass;
             }
 
-            com = rootTransform.InverseTransformPoint(totalJoinedMass > 0f
-                ? totalWeightedPos / totalJoinedMass
-                : Vector3.zero);
+            com = rootTransform.InverseTransformPoint(
+                totalJoinedMass > 0f ? totalWeightedPos / totalJoinedMass : Vector3.zero
+            );
 
             projectedForward = Vector3.ProjectOnPlane(rootTransform.forward, Vector3.up);
             if (projectedForward.sqrMagnitude < 0.001f) {
@@ -72,8 +76,9 @@ namespace Train.Sensor {
             angularVelocity = rootTransform.InverseTransformDirection(rootBody.angularVelocity);
 
             projectedLinearVelocity = inverseYaw * rootBody.linearVelocity;
-            relativeTargetPosition =
-                targetTransform ? inverseYaw * (targetTransform.position - rootTransform.position) : Vector3.zero;
+            relativeTargetPosition = targetTransform
+                ? inverseYaw * (targetTransform.position - rootTransform.position)
+                : Vector3.zero;
 
             float totalMass = Hierarchy.TotalMass;
             integrity = totalMass > 0f ? totalJoinedMass / totalMass : 0f;

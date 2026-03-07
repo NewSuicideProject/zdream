@@ -46,7 +46,8 @@ namespace Train.Joint {
 
             Gizmos.DrawLine(
                 _collider.transform.position,
-                _collider.transform.position + _collider.transform.TransformDirection(normalizedValue));
+                _collider.transform.position + _collider.transform.TransformDirection(normalizedValue)
+            );
         }
     }
 }

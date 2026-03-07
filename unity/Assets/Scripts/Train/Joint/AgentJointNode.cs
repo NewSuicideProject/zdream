@@ -83,23 +83,28 @@ namespace Train.Joint {
                 0 => Body.xDrive,
                 1 => Body.yDrive,
                 2 => Body.zDrive,
-                _ => throw new ArgumentOutOfRangeException(nameof(axisIndex),
-                    $"Invalid axis index {axisIndex}")
+                _ => throw new ArgumentOutOfRangeException(nameof(axisIndex), $"Invalid axis index {axisIndex}")
             };
 
         private void SetDrive(int axisIndex, ArticulationDrive drive) {
             switch (axisIndex) {
-                case 0: Body.xDrive = drive; break;
-                case 1: Body.yDrive = drive; break;
-                case 2: Body.zDrive = drive; break;
-                default: throw new ArgumentOutOfRangeException(nameof(axisIndex), $"Invalid axis index {axisIndex}");
+                case 0:
+                    Body.xDrive = drive;
+                    break;
+                case 1:
+                    Body.yDrive = drive;
+                    break;
+                case 2:
+                    Body.zDrive = drive;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(axisIndex), $"Invalid axis index {axisIndex}");
             }
         }
 
         public void SetTarget(int axisIndex, float rawTarget) {
             ArticulationDrive drive = GetDrive(axisIndex);
-            float denormalizedTarget =
-                Denormalize.JointPosition(rawTarget, drive.lowerLimit, drive.upperLimit);
+            float denormalizedTarget = Denormalize.JointPosition(rawTarget, drive.lowerLimit, drive.upperLimit);
             drive.target = Mathf.Lerp(drive.target, denormalizedTarget, Config.Assist.TargetAssist);
             _rawTarget[axisIndex] = rawTarget;
             SetDrive(axisIndex, drive);

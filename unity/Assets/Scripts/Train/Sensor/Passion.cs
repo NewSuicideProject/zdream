@@ -14,7 +14,6 @@ namespace Train.Sensor {
 
         public float Value => value;
 
-        public void OnEpisodeBegin() =>
-            value = 0.5f + (Random.Range(-0.5f, 0.5f) * Config.Passion.Ratio);
+        public void OnEpisodeBegin() => value = 0.5f + (Random.Range(-0.5f, 0.5f) * Config.Passion.Ratio);
     }
 }

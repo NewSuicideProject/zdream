@@ -153,9 +153,40 @@ csharp_space_before_open_square_brackets = false
 csharp_space_between_empty_square_brackets = false
 csharp_space_between_square_brackets = false
 csharp_preserve_single_line_statements = false
-csharp_preserve_single_line_blocks = true
+csharp_preserve_single_line_blocks = false
 csharp_style_namespace_declarations = block_scoped:silent
 resharper_csharp_place_field_attribute_on_same_line = true
+
+# ------------------------------------------------------------------------------
+# Wrapping & Alignment (Ruff / Black Style Applied - Strict Mode)
+# ------------------------------------------------------------------------------
+# Force formatter to ignore manual line breaks and enforce rules strictly
+resharper_keep_existing_linebreaks = false
+resharper_keep_existing_arrangement = false
+resharper_keep_existing_declaration_parens_arrangement = false
+resharper_keep_existing_invocation_parens_arrangement = false
+
+# Wrap all arguments/parameters to new lines strictly if they exceed max_line_length
+resharper_wrap_arguments_style = chop_if_long
+resharper_wrap_parameters_style = chop_if_long
+resharper_wrap_chained_method_calls = chop_if_long
+
+# Disable visual alignment to opening parenthesis (use standard indentation instead)
+resharper_align_multiline_parameters = false
+resharper_align_multiline_arguments = false
+
+# Force left and right parentheses to their own lines when wrapping (Black style)
+resharper_wrap_after_invocation_lpar = true
+resharper_wrap_before_invocation_rpar = true
+resharper_wrap_after_declaration_lpar = true
+resharper_wrap_before_declaration_rpar = true
+
+# Prevent double indentation for wrapped lines (keeps it to standard 1 indent)
+resharper_continuous_indent_multiplier = 1
+
+# Prevent moving all parameters of a declaration to the next line together
+resharper_allow_all_parameters_on_next_line = false
+resharper_allow_all_arguments_on_next_line = false
 
 # ------------------------------------------------------------------------------
 # Naming Conventions (Grouped for Brevity)

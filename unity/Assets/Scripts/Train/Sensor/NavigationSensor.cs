@@ -44,7 +44,10 @@ namespace Train.Sensor {
 
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
 
-        public void Update() { }
-        public void Reset() { }
+        public void Update() {
+        }
+
+        public void Reset() {
+        }
     }
 }

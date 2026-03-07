@@ -29,11 +29,7 @@ namespace PEG {
 
         private void Carve(Room room, Random rng) {
             List<Vector2Int> boundary = room.GetBorderCells();
-            int carveCount = Mathf.Clamp(
-                Mathf.RoundToInt(room.Floors.Count * _carveRatio),
-                0,
-                boundary.Count
-            );
+            int carveCount = Mathf.Clamp(Mathf.RoundToInt(room.Floors.Count * _carveRatio), 0, boundary.Count);
 
             for (int i = 0; i < carveCount && boundary.Count > 0; i++) {
                 int idx = rng.Next(boundary.Count);
@@ -52,11 +48,7 @@ namespace PEG {
 
         private void Grow(Room room, Random rng) {
             List<Vector2Int> boundary = room.GetBorderCells();
-            int growCount = Mathf.Clamp(
-                Mathf.RoundToInt(room.Floors.Count * _growRatio),
-                0,
-                boundary.Count
-            );
+            int growCount = Mathf.Clamp(Mathf.RoundToInt(room.Floors.Count * _growRatio), 0, boundary.Count);
 
             for (int i = 0; i < growCount && boundary.Count > 0; i++) {
                 int idx = rng.Next(boundary.Count);
@@ -66,9 +58,7 @@ namespace PEG {
                 for (int t = 0; t < _growMaxTries; t++) {
                     Vector2Int n = b + Utility.Cardinal[rng.Next(4)];
 
-                    if (room.Floors.Contains(n) ||
-                        room.GetNeighborCount(n) < 2 ||
-                        !room.bounds.Contains(n)) {
+                    if (room.Floors.Contains(n) || room.GetNeighborCount(n) < 2 || !room.bounds.Contains(n)) {
                         continue;
                     }
 

@@ -8,8 +8,15 @@ namespace Train.Joint {
         public AgentJointNode RootAgentNode;
         public List<AgentJointNode> AgentNodes;
 
-        public int TotalDoF { get; private set; }
-        public float TotalMass { get; private set; }
+        public int TotalDoF {
+            get;
+            private set;
+        }
+
+        public float TotalMass {
+            get;
+            private set;
+        }
 
         private Vector3 _initialRootLocalPosition;
         private Quaternion _initialRootLocalRotation;
@@ -79,7 +86,8 @@ namespace Train.Joint {
         public override void OnEpisodeBegin() {
             RootAgentNode.Body.TeleportRoot(
                 RootAgentNode.Transform.parent.TransformPoint(_initialRootLocalPosition),
-                RootAgentNode.Transform.parent.rotation * _initialRootLocalRotation);
+                RootAgentNode.Transform.parent.rotation * _initialRootLocalRotation
+            );
             base.OnEpisodeBegin();
         }
     }

@@ -20,6 +20,7 @@ namespace Environment {
 
         [Min(2)] [SerializeField] private int roomCount = 14;
         [Min(1)] [SerializeField] private int maxRoomRerolls = 60;
+
         [Range(0f, 1f)] [SerializeField] private float circleRoomChance = 0.35f;
 
         [SerializeField] private RectInt rectSizeRange = new(5, 5, 12, 12);
@@ -33,8 +34,11 @@ namespace Environment {
         [SerializeField] private bool randomizeLTurnOrder = true;
 
         [Range(0, 3)] [SerializeField] private int organicIterations = 1;
+
         [Range(0f, 0.25f)] [SerializeField] private float organicCarveRatio = 0.06f;
+
         [Range(0f, 0.25f)] [SerializeField] private float organicGrowRatio = 0.05f;
+
         [Min(1)] [SerializeField] private int organicGrowMaxTriesPerCell = 6;
 
         [Header("Height")] [SerializeField] private int minRoomLevel = -4;
@@ -115,13 +119,7 @@ namespace Environment {
                 _roomGenerator.WriteRoomToGrid(_map, room, levelHeight);
             }
 
-            _roadGenerator.ConnectRoomsAndRoadHeight(
-                _map,
-                _rng,
-                roadWidth,
-                randomizeLTurnOrder,
-                levelHeight
-            );
+            _roadGenerator.ConnectRoomsAndRoadHeight(_map, _rng, roadWidth, randomizeLTurnOrder, levelHeight);
 
             _map.ApplyBorders();
             _visualizer.Rebuild(_map);

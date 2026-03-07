@@ -12,7 +12,10 @@ namespace Joint {
             Parent = parent;
         }
 
-        public bool IsSevered { get; protected set; }
+        public bool IsSevered {
+            get;
+            protected set;
+        }
 
         public virtual void Reset() {
             Join();

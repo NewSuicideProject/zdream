@@ -20,7 +20,11 @@ namespace Train.Sensor {
         public byte[] GetCompressedObservation() => null;
         public ObservationSpec GetObservationSpec() => _observationSpec;
         public CompressionSpec GetCompressionSpec() => CompressionSpec.Default();
-        public void Update() { }
-        public void Reset() { }
+
+        public void Update() {
+        }
+
+        public void Reset() {
+        }
     }
 }

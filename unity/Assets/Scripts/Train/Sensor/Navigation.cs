@@ -57,10 +57,12 @@ namespace Train.Sensor {
                 Vector3 corner = _navMeshPath.corners[i];
                 Vector3 nextCorner = _navMeshPath.corners[i + 1];
 
-                Corners.Add(new Corner {
-                    RelativePosition = inverseYaw * (corner - transform.position),
-                    Direction = inverseYaw * (nextCorner - corner).normalized
-                });
+                Corners.Add(
+                    new Corner {
+                        RelativePosition = inverseYaw * (corner - transform.position),
+                        Direction = inverseYaw * (nextCorner - corner).normalized
+                    }
+                );
             }
         }
 

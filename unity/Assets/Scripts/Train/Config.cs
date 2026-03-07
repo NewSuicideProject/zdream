@@ -4,9 +4,10 @@ using UnityEngine;
 
 namespace Train {
     public static class Config {
-        private static string ToSnakeCase(string text) => string.IsNullOrEmpty(text)
-            ? text
-            : string.Concat(text.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
+        private static string ToSnakeCase(string text) =>
+            string.IsNullOrEmpty(text)
+                ? text
+                : string.Concat(text.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
 
         private static void GetConfig<T>(string group, string property, ref T value) {
             string key = $"{ToSnakeCase(group)}__{ToSnakeCase(property)}";

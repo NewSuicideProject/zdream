@@ -56,19 +56,14 @@ namespace Test {
         }
 
         private float NormalizeDistance(float distance) => Normalize.Tanh(distance, _distanceNormalizationFactor);
+
         private float NormalizeSpeed(float speed) => Normalize.Tanh(speed, _speedNormalizationFactor);
 
         private Vector3 NormalizeCoordinate(Vector3 coordinate) =>
-            new(
-                NormalizeDistance(coordinate.x),
-                NormalizeDistance(coordinate.y),
-                NormalizeDistance(coordinate.z));
+            new(NormalizeDistance(coordinate.x), NormalizeDistance(coordinate.y), NormalizeDistance(coordinate.z));
 
         private Vector3 NormalizeVelocity(Vector3 velocity) =>
-            new(
-                NormalizeSpeed(velocity.x),
-                NormalizeSpeed(velocity.y),
-                NormalizeSpeed(velocity.z));
+            new(NormalizeSpeed(velocity.x), NormalizeSpeed(velocity.y), NormalizeSpeed(velocity.z));
 
         public override void OnEpisodeBegin() {
             _stayTime = 0f;
@@ -103,6 +98,7 @@ namespace Test {
             }
         }
 
-        public override void Heuristic(in ActionBuffers actionsOut) { }
+        public override void Heuristic(in ActionBuffers actionsOut) {
+        }
     }
 }

@@ -4,7 +4,11 @@ using UnityEngine;
 namespace Joint {
     public class JointHierarchyBase : MonoBehaviour {
         protected List<JointNodeBase> Nodes;
-        protected JointNodeBase RootNode { get; private set; }
+
+        protected JointNodeBase RootNode {
+            get;
+            private set;
+        }
 
         protected virtual void Awake() {
             Transform rootJoint;
@@ -21,7 +25,8 @@ namespace Joint {
                 if (roots.Length > 1) {
                     Debug.LogWarning(
                         $"[JointHierarchyBase] Multiple potential roots found under {name}. Using {rootJoint.name}.",
-                        this);
+                        this
+                    );
                 }
             }
 

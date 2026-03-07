@@ -10,7 +10,11 @@ namespace Environment {
         [SerializeField] private float timeScale = 2f;
 
         protected Transform AgentTransform;
-        public Transform TargetTransform { get; private set; }
+
+        public Transform TargetTransform {
+            get;
+            private set;
+        }
 
         protected virtual void Awake() {
             Time.timeScale = timeScale;

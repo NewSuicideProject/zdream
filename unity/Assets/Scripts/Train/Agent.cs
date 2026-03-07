@@ -101,19 +101,19 @@ namespace Train {
             float energyPenalty = energySum / _hierarchy.TotalDoF * (1f - _passion.Value) *
                                   Config.Reward.EnergyPenaltyMultiplier;
 
-            float targetDirectionMatch =
-                Vector3.Dot(
-                    _proprioception.ProjectedLinearVelocity.normalized,
-                    _proprioception.RelativeTargetPosition.normalized);
+            float targetDirectionMatch = Vector3.Dot(
+                _proprioception.ProjectedLinearVelocity.normalized,
+                _proprioception.RelativeTargetPosition.normalized
+            );
             float targetDirectionReward = targetDirectionMatch * _passion.Value *
                                           Config.Reward.DirectionRewardMultiplier;
 
             float navigationDirectionReward = 0;
             if (_navigation.Corners.Count > 0) {
-                float navigationDirectionMatch =
-                    Vector3.Dot(
-                        _navigation.Corners.First().RelativePosition.normalized,
-                        _proprioception.ProjectedLinearVelocity.normalized);
+                float navigationDirectionMatch = Vector3.Dot(
+                    _navigation.Corners.First().RelativePosition.normalized,
+                    _proprioception.ProjectedLinearVelocity.normalized
+                );
                 navigationDirectionReward = navigationDirectionMatch * _passion.Value *
                                             Config.Reward.DirectionRewardMultiplier * 2;
             }
@@ -145,6 +145,7 @@ namespace Train {
             }
         }
 
-        public override void Heuristic(in ActionBuffers actionsOut) { }
+        public override void Heuristic(in ActionBuffers actionsOut) {
+        }
     }
 }

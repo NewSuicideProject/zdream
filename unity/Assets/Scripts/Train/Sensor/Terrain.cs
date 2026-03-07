@@ -25,15 +25,17 @@ namespace Train.Sensor {
 
         private void FixedUpdate() {
             float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
-            Vector3 gridTopLeft = transform.position +
-                                  new Vector3(-gridHalfSize, Config.Normalization.ExpectedMaxHeight, gridHalfSize);
+            Vector3 gridTopLeft = transform.position + new Vector3(
+                -gridHalfSize,
+                Config.Normalization.ExpectedMaxHeight,
+                gridHalfSize
+            );
 
             for (int z = 0; z < Config.Terrain.Resolution; z++) {
                 for (int x = 0; x < Config.Terrain.Resolution; x++) {
                     Vector3 rayOrigin = gridTopLeft + new Vector3(x * _spacing, 0, -z * _spacing);
 
-                    if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit,
-                            Mathf.Infinity, targetLayer)) {
+                    if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, Mathf.Infinity, targetLayer)) {
                         HeightMap[x, z] = hit.point.y - transform.position.y;
                     } else {
                         HeightMap[x, z] = Mathf.Infinity;
@@ -48,8 +50,11 @@ namespace Train.Sensor {
             }
 
             float gridHalfSize = (Config.Terrain.Resolution - 1) * _spacing * 0.5f;
-            Vector3 gridTopLeft = transform.position +
-                                  new Vector3(-gridHalfSize, Config.Normalization.ExpectedMaxHeight, gridHalfSize);
+            Vector3 gridTopLeft = transform.position + new Vector3(
+                -gridHalfSize,
+                Config.Normalization.ExpectedMaxHeight,
+                gridHalfSize
+            );
 
             for (int z = 0; z < Config.Terrain.Resolution; z++) {
                 for (int x = 0; x < Config.Terrain.Resolution; x++) {
