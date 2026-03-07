@@ -1,17 +1,22 @@
 {
-  "[python]": {
-    "editor.rulers": [{ "color": "#ff000020", "column": 88 }],
-    "editor.defaultFormatter": "charliermarsh.ruff",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit",
-      "source.fixAll": "explicit"
-    }
-  },
-  "ruff.importStrategy": "fromEnvironment",
-
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "trailing-spaces.trimOnSave": true,
+
+  "[python]": {
+    "editor.rulers": [
+      {
+        "column": 88,
+        "color": "#ff000055"
+      }
+    ],
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+
   "python-envs.defaultEnvManager": "ms-python.python:conda",
-  "python-envs.defaultPackageManager": "ms-python.python:conda"
+  "python-envs.defaultPackageManager": "ms-python.python:conda",
+
+  "files.exclude": {
+    "**/*.meta": true
+  }
 }
